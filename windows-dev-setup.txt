@@ -1,0 +1,5 @@
+1) Install a Mono project target loosely following the guide here:
+	http://erictummers.wordpress.com/2012/01/25/target-mono-from-visual-studio/
+2) Install GTK# for .NET from the Mono website.
+3) Install Glade w/ GTK+ from here:
+	http://sourceforge.net/projects/gladewin32/
