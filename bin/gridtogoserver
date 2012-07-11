@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 
-# This is the main client-side GUI executable.
+# This is the central coordination server executable.
 
 import os
 import sys
+from gridtogo.server import GridToGoServer
 
 #TODO: Find less hacky way to get our package imported
 # Add project root directory (enable symlink, and trunk execution).
-from gridtogo.client import clientmain
-
 PROJECT_ROOT_DIRECTORY = os.path.abspath(
 	os.path.dirname(os.path.dirname(os.path.realpath(sys.argv[0]))))
 
@@ -17,5 +16,6 @@ if (os.path.exists(os.path.join(PROJECT_ROOT_DIRECTORY, 'gridtogo'))
 	sys.path.insert(0, PROJECT_ROOT_DIRECTORY)
 	os.putenv('PYTHONPATH', PROJECT_ROOT_DIRECTORY) # for subprocesses
 
-client = clientmain.GridToGoClient()
-client.run()
+#TODO: User-configurable port
+server = GridToGoServer(8017)
+server.run()
