@@ -10,5 +10,6 @@ class GridToGoServer(object):
 
 class GTGProtocol(LineReceiver):
 	"""Stateful communication with clients through a one-line-per-request serialization format.
+	Any serialization can be used, default implementation is JSON.
 	One of these is created for each client connection."""
 	pass

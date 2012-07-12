@@ -7,8 +7,6 @@ import sys
 
 #TODO: Find less hacky way to get our package imported
 # Add project root directory (enable symlink, and trunk execution).
-from gridtogo.client import clientmain
-
 PROJECT_ROOT_DIRECTORY = os.path.abspath(
 	os.path.dirname(os.path.dirname(os.path.realpath(sys.argv[0]))))
 
@@ -16,6 +14,8 @@ if (os.path.exists(os.path.join(PROJECT_ROOT_DIRECTORY, 'gridtogo'))
     and PROJECT_ROOT_DIRECTORY not in sys.path):
 	sys.path.insert(0, PROJECT_ROOT_DIRECTORY)
 	os.putenv('PYTHONPATH', PROJECT_ROOT_DIRECTORY) # for subprocesses
+
+from gridtogo.client import clientmain
 
 client = clientmain.GridToGoClient()
 client.run()

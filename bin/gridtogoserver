@@ -4,7 +4,6 @@
 
 import os
 import sys
-from gridtogo.server import GridToGoServer
 
 #TODO: Find less hacky way to get our package imported
 # Add project root directory (enable symlink, and trunk execution).
@@ -15,6 +14,8 @@ if (os.path.exists(os.path.join(PROJECT_ROOT_DIRECTORY, 'gridtogo'))
     and PROJECT_ROOT_DIRECTORY not in sys.path):
 	sys.path.insert(0, PROJECT_ROOT_DIRECTORY)
 	os.putenv('PYTHONPATH', PROJECT_ROOT_DIRECTORY) # for subprocesses
+
+from gridtogo.server import GridToGoServer
 
 #TODO: User-configurable port
 server = GridToGoServer(8017)
