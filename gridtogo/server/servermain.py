@@ -1,14 +1,20 @@
 from twisted.protocols.basic import LineReceiver
-from ..shared import *
+from gridtogo.shared import *
+import gridtogo.shared.networkobjects
 
 class GridToGoServer(object):
 	def __init__(self, port):
 		self.port = port
 
 	def run(self):
-		serializer = ILineSerializer(JSONSerializer())
 		loginRequest = LoginRequest("torco", "man", "scudz", "mygrid")
-		print(serializer.serialize(loginRequest))
+
+		serializer = ILineSerializer(JSONSerializer(networkobjects))
+
+		string = serializer.serialize(loginRequest)
+
+		instance = serializer.deserialize(string)
+		print(instance.firstName)
 
 
 class GTGProtocol(LineReceiver):
