@@ -23,4 +23,5 @@ class GTGProtocol(LineReceiver):
 	Any serialization can be used, default implementation is JSON.
 	One of these is created for each client connection.
 	"""
-	pass
+	def lineReceived(self, line):
+		pass
