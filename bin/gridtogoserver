@@ -18,5 +18,6 @@ if (os.path.exists(os.path.join(PROJECT_ROOT_DIRECTORY, 'gridtogo'))
 from gridtogo.server.servermain import GridToGoServer
 
 #TODO: User-configurable port
-server = GridToGoServer(8017)
-server.run()
+if __name__ == "__main__":
+    server = GridToGoServer(8017)
+    server.run()

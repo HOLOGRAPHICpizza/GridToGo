@@ -17,5 +17,6 @@ if (os.path.exists(os.path.join(PROJECT_ROOT_DIRECTORY, 'gridtogo'))
 
 from gridtogo.client import clientmain
 
-client = clientmain.GridToGoClient()
-client.run()
+if __name__ == "__main__":
+    client = clientmain.GridToGoClient()
+    client.run()
