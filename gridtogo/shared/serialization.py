@@ -5,7 +5,10 @@ import json
 class ILineSerializer(Interface):
 	"""Classes implementing this must serialize data to string containing no newlines."""
 	def serialize(self, obj):
-		"""Return the serialized string of an object."""
+		"""
+		Return the serialized string of an object.
+		Raises an InvalidSerializedDataException if the passed data is invalid.
+		"""
 
 	def deserialize(self, str):
 		"""Return the object of a serialized string."""
@@ -42,6 +45,9 @@ class JSONSerializer(object):
 			return class_(representation['firstName'], representation['lastName'],
 				representation['password'], representation['grid'])
 
+		elif issubclass(class_, LoginResponse):
+			return class_()
+
 	class _CustomEncoder(json.JSONEncoder):
 		def default(self, obj):
 			# The decoder looks for the className to choose decoding scheme.
@@ -54,4 +60,5 @@ class JSONSerializer(object):
 				representation['grid'] = obj.grid
 				return representation
 
-
+			if isinstance(obj, LoginResponse):
+				return representation

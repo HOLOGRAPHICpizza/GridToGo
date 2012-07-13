@@ -1,23 +1,19 @@
-from zope.interface import Interface, implements
+import hashlib
+from gridtogo.shared.networkobjects import *
 
-class LoginResponse(object):
-	"""Subclasses of this are returned by authentication services."""
-	self.message = 'Unknown authentication '
+class Authenticator(object):
+	"""Checks LoginRequests against a Database."""
+	def __init__(self, database):
+		self.database = database
 
-class UnknownUser(LoginResponse):
-	pass
+	def authenticateUser(self, loginRequest):
+		#TODO: Flood checking and grid member checking.
+		hashedPassword = hashlib.sha224(loginRequest.password).hexdigest()
+		userAccount = self.database.getUserAccountByName(loginRequest.firstName, loginRequest.lastName)
+		if not userAccount:
+			return UnknownUser()
 
-class IncorrectPassword(LoginResponse):
-	pass
-
-class NotGridMember(LoginResponse):
-	"""The user is not on the members list of a members-only grid."""
-	pass
-
-class TooManyAttempts(LoginResponse):
-	"""The user has attempted to log in too many times in too short of a period."""
-	pass
-
-class IAuthenticationService(Interface):
-
-	def
+		if userAccount.hashedPassword == hashedPassword:
+			return LoginSuccess()
+		else:
+			return IncorrectPassword()

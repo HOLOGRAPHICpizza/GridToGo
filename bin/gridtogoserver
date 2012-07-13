@@ -15,7 +15,7 @@ if (os.path.exists(os.path.join(PROJECT_ROOT_DIRECTORY, 'gridtogo'))
 	sys.path.insert(0, PROJECT_ROOT_DIRECTORY)
 	os.putenv('PYTHONPATH', PROJECT_ROOT_DIRECTORY) # for subprocesses
 
-from gridtogo.server import GridToGoServer
+from gridtogo.server.servermain import GridToGoServer
 
 #TODO: User-configurable port
 server = GridToGoServer(8017)
