@@ -24,9 +24,9 @@ parser = argparse.ArgumentParser(description="GridToGo OpenSim Grid Management S
 parser.add_argument("-p", "--port")
 args = parser.parse_args(sys.argv[1:])
 
-if args.port != None:
-    port = args.port
+if args.port is None:
+	port = args.port
 
 if __name__ == "__main__":
-    server = GridToGoServer(port)
-    server.run()
+	server = GridToGoServer(port)
+	server.run()
