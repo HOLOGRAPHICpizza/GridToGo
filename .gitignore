@@ -25,10 +25,15 @@ pip-log.txt
 .tox
 nosetests.xml
 
-#Translations
+# Translations
 *.mo
 
-#Mr Developer
+# Mr Developer
 .mr.developer.cfg
 
+# IDEA IDE
 .idea
+
+# SQLite Databases
+*.db
+

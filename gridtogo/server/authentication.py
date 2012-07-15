@@ -2,7 +2,10 @@ import hashlib
 from gridtogo.shared.networkobjects import *
 
 class Authenticator(object):
-	"""Checks LoginRequests against a Database."""
+	"""
+	Checks LoginRequests against a Database.
+	All methods may thow a DatabaseException.
+	"""
 	def __init__(self, database):
 		self.database = database
 

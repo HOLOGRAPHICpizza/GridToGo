@@ -7,7 +7,10 @@ from gridtogo.shared import serialization, networkobjects
 from gridtogo.shared.networkobjects import *
 
 class GridToGoServer(object):
+	"""Ony one object of this class should exist per python interpreter."""
 	def __init__(self, port):
+		GridToGoServer.exitcode = 0
+		GridToGoServer.reactor = reactor
 		self.port = port
 
 	def run(self):
@@ -15,8 +18,13 @@ class GridToGoServer(object):
 #		testSerializer = serialization.ILineSerializer(serialization.JSONSerializer(networkobjects))
 #		print(testSerializer.serialize(testRequest))
 
-		reactor.listenTCP(self.port, GTGFactory())
-		reactor.run()
+		try:
+			GridToGoServer.reactor.listenTCP(self.port, GTGFactory())
+			GridToGoServer.reactor.run()
+		except AttributeError:
+			pass
+		return GridToGoServer.exitcode
+
 
 
 class GTGProtocol(basic.LineReceiver):
@@ -47,7 +55,16 @@ class GTGProtocol(basic.LineReceiver):
 
 class GTGFactory(protocol.ServerFactory):
 	def __init__(self):
-		self.database = database.IDatabase(database.DummyDatabase())
+		try:
+			#TODO: Add ability to specify database file.
+			#TODO: Call the database's close() method on program exit.
+			self.database = database.IDatabase(database.SQLiteDatabase('gridtogoserver.db'))
+		except database.DatabaseException as e:
+			# Believe it or not, this is our standard failure procedure.
+			GridToGoServer.exitcode = 1
+			del GridToGoServer.reactor
+			raise e
+
 		self.authenticator = authentication.Authenticator(self.database)
 		self.serializer = serialization.ILineSerializer(serialization.JSONSerializer(networkobjects))
 
@@ -55,6 +72,8 @@ class GTGFactory(protocol.ServerFactory):
 		return GTGProtocol(self.serializer, self.authenticator)
 
 #TODO: Use service and twistd to daemonize
+#      Or perhaps not, there are drawbacks with command args and return codes
+#
 #class GTGService(service.Service):
 #	"""
 #	Creates GTGFactory instances.
