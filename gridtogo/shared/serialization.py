@@ -31,34 +31,58 @@ class JSONSerializer(object):
 	def serialize(self, obj):
 		return self._jsonEncoder.encode(obj)
 
+	#TODO: Use more reflection and make (de)serialization automatic!
 	def deserialize(self, string):
 		try:
-			representation = json.loads(string)
+			data = json.loads(string)
 		except ValueError:
 			raise InvalidSerializedDataException(self)
 
-		if not representation.has_key('className'):
+		if not data.has_key('className'):
 			raise InvalidSerializedDataException(self)
 
-		class_ = getattr(self.serializeableObjectsModule, representation['className'])
+		class_ = getattr(self.serializeableObjectsModule, data['className'])
 		if class_ is LoginRequest:
-			return class_(representation['firstName'], representation['lastName'],
-				representation['password'], representation['grid'])
+			return class_(
+				data['firstName'],
+				data['lastName'],
+				data['password'],
+				data['grid'])
 
 		elif issubclass(class_, LoginResponse):
 			return class_()
 
+		elif issubclass(class_, CreateUserResponse):
+			return class_()
+
+		elif issubclass(class_, CreateUserRequest):
+			return class_(
+				data['firstName'],
+				data['lastName'],
+				data['password'],
+				data['email'])
+
 	class _CustomEncoder(json.JSONEncoder):
 		def default(self, obj):
 			# The decoder looks for the className to choose decoding scheme.
-			representation = {'className': obj.__class__.__name__}
+			data = {'className': obj.__class__.__name__}
 
 			if isinstance(obj, LoginRequest):
-				representation['firstName'] = obj.firstName
-				representation['lastName'] = obj.lastName
-				representation['password'] = obj.password
-				representation['grid'] = obj.grid
-				return representation
+				data['firstName'] = obj.firstName
+				data['lastName'] = obj.lastName
+				data['password'] = obj.password
+				data['grid'] = obj.grid
+				return data
 
-			if isinstance(obj, LoginResponse):
-				return representation
+			elif isinstance(obj, LoginResponse):
+				return data
+
+			elif isinstance(obj, CreateUserResponse):
+				return data
+
+			elif isinstance(obj, CreateUserRequest):
+				data['firstName'] = obj.firstName
+				data['lastName'] = obj.lastName
+				data['password'] = obj.password
+				data['email'] = obj.email
+				return data

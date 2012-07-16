@@ -4,7 +4,7 @@ import hashlib
 import sqlite3
 
 class UserAccount(object):
-	def __init__(self, UUID, firstName, lastName, hashedPassword, online, natStatus):
+	def __init__(self, UUID, firstName, lastName, hashedPassword, email):
 		# UUID is inherently unique and should be used for lookups whenever possible
 		# UUID should be an instance of the UUID class
 		self.UUID = UUID
@@ -14,8 +14,7 @@ class UserAccount(object):
 		self.lastName = lastName
 
 		self.hashedPassword = hashedPassword
-		self.online = online
-		self.natStatus = natStatus
+		self.email = email
 
 class DatabaseException(Exception):
 	"""Thrown on a problem with the database."""
@@ -56,8 +55,7 @@ class SQLiteDatabase(object):
 		               'firstName VARCHAR(64) NOT NULL,' +
 		               'lastName VARCHAR(64) NOT NULL,' +
 		               'hashedPassword VARCHAR(64) NOT NULL,' +
-		               'online BOOLEAN NOT NULL,' +
-		               'natStatus BOOLEAN NOT NULL'
+		               'email VARCHAR(64) NOT NULL' +
 		               ')')
 
 	def getUserAccountByName(self, firstName, lastName):
@@ -66,7 +64,7 @@ class SQLiteDatabase(object):
 		row = cursor.fetchone()
 		if row is None:
 			return None
-		return UserAccount(uuid.UUID(row[0]), row[1], row[2], row[3], bool(row[4]), bool(row[5]))
+		return UserAccount(uuid.UUID(row[0]), row[1], row[2], row[3], row[4])
 
 	def storeUserAccount(self, userAccount):
 		cursor = self.connection.cursor()
@@ -75,8 +73,7 @@ class SQLiteDatabase(object):
 			userAccount.firstName,
 			userAccount.lastName,
 			userAccount.hashedPassword,
-			userAccount.online,
-			userAccount.natStatus))
+			userAccount.email))
 		self.connection.commit()
 
 	def close(self):

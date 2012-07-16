@@ -14,13 +14,14 @@ class GridToGoServer(object):
 		GridToGoServer.reactor = reactor
 
 	def run(self):
-#		testRequest = LoginRequest('Michael', 'Craft', 'testpass', 'testgrid')
-#		testSerializer = serialization.ILineSerializer(serialization.JSONSerializer(networkobjects))
-#		print(testSerializer.serialize(testRequest))
+		#testRequest = LoginRequest('Michael', 'Craft', 'testpass', 'testgrid')
+		#testSerializer = serialization.ILineSerializer(serialization.JSONSerializer(networkobjects))
+		#print(testSerializer.serialize(testRequest))
 	
 		config = configuration.ConfigurationLoader().load()
 
 		try:
+			#TODO: Use SSL so we're not sending passwords in plaintext anymore
 			GridToGoServer.reactor.listenTCP(config.port, GTGFactory(config))
 			GridToGoServer.reactor.run()
 		except AttributeError:
@@ -53,20 +54,27 @@ class GTGProtocol(basic.LineReceiver):
 
 	def lineReceived(self, line):
 		try:
+			#TODO: Perhaps in the future we should make (de)serialization operations asynchronous,
+			# not sure if this is worth the effort/overhead or not.
+			# The same can be said for all database lookups.
 			request = self.serializer.deserialize(line)
 
 			if not self.authenticated:
-				# All we want to hear is LoginRequests
 				if isinstance(request, LoginRequest):
 					response = self.authenticator.authenticateUser(request)
 					if isinstance(response, LoginSuccess):
 						self.authenticated = True
 					self._writeResponse(response)
 
+				elif isinstance(request, CreateUserRequest):
+					response = self.authenticator.createUser(request)
+					self._writeResponse(response)
+
+				elif isinstance(request, ResetPasswordRequest):
+					pass
+
 			else:
 				# User is authenticated.
-				#TODO: Find an efficient way to notify the client of the current state,
-				# and keep the client subscribed to state changes.
 				pass
 
 		except serialization.InvalidSerializedDataException:

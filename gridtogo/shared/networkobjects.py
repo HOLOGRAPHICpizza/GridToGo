@@ -1,3 +1,30 @@
+# Account management stuff
+
+class CreateUserRequest(object):
+	def __init__(self, firstName, lastName, password, email):
+		self.firstName = firstName
+		self.lastName = lastName
+		self.password = password
+		self.email = email
+
+class CreateUserResponse(object):
+	"""Subclasses of this are returned by authentication services."""
+	def __init__(self):
+		self.message = 'Unknown error creating account, this is probably a bug.'
+
+class UsernameConflict(CreateUserResponse):
+	def __init__(self):
+		self.message = 'Someone with the same name already exists in the database.'
+
+class CreateUserSuccess(CreateUserResponse):
+	def __init__(self):
+		self.message = 'Account successfully created.'
+
+class ResetPasswordRequest(object):
+	pass
+
+# Login stuff
+
 class LoginRequest(object):
 	def __init__(self, firstName, lastName, password, grid):
 		self.firstName = firstName

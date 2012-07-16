@@ -20,3 +20,13 @@ class Authenticator(object):
 			return LoginSuccess()
 		else:
 			return IncorrectPassword()
+
+	def createUser(self, createUserRequest):
+		userAccount = self.database.getUserAccountByName(createUserRequest.firstName, createUserRequest.lastName)
+		#TODO: Possibly do additional checking such as password complexity, email validity
+		if userAccount:
+			# Name conflict.
+			return UsernameConflict()
+		else:
+			# no name conflict
+			return CreateUserSuccess()
