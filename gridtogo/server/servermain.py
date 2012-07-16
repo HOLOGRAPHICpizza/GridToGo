@@ -26,7 +26,13 @@ class GridToGoServer(object):
 		return GridToGoServer.exitcode
 
 
-
+# Protocol example of successful login
+# Client        -   Server
+#
+# LoginRequest  >
+#               <   LoginResponse
+#               <   Send all entities currently relevant
+#               <   Client is now subscribed and will be sent updates
 class GTGProtocol(basic.LineReceiver):
 	"""
 	Stateful communication with clients through a one-line-per-request serialization format.
@@ -38,6 +44,8 @@ class GTGProtocol(basic.LineReceiver):
 		self.serializer = serializer
 		self.authenticator = authenticator
 
+		self.authenticated = False
+
 	def connectionMade(self):
 		pass
 
@@ -45,13 +53,26 @@ class GTGProtocol(basic.LineReceiver):
 		try:
 			request = self.serializer.deserialize(line)
 
-			if isinstance(request, LoginRequest):
-				response = self.authenticator.authenticateUser(request)
-				self.transport.write(self.serializer.serialize(response)+"\r\n")
+			if not self.authenticated:
+				# All we want to hear is LoginRequests
+				if isinstance(request, LoginRequest):
+					response = self.authenticator.authenticateUser(request)
+					if isinstance(response, LoginSuccess):
+						self.authenticated = True
+					self._writeResponse(response)
+
+			else:
+				# User is authenticated.
+				#TODO: Find an efficient way to notify the client of the current state,
+				# and keep the client subscribed to state changes.
+				pass
 
 		except serialization.InvalidSerializedDataException:
 			self.transport.write("Stop sending me bad data! >:|\r\n")
 			self.transport.loseConnection()
+
+	def _writeResponse(self, response):
+		self.transport.write(self.serializer.serialize(response)+"\r\n")
 
 class GTGFactory(protocol.ServerFactory):
 	def __init__(self):
