@@ -68,7 +68,7 @@ class SQLiteDatabase(object):
 
 	def storeUserAccount(self, userAccount):
 		cursor = self.connection.cursor()
-		cursor.execute('INSERT OR REPLACE INTO users VALUES (?,?,?,?,?,?)',
+		cursor.execute('INSERT OR REPLACE INTO users VALUES (?,?,?,?,?)',
 			(str(userAccount.UUID),
 			userAccount.firstName,
 			userAccount.lastName,

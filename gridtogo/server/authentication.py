@@ -1,4 +1,6 @@
 import hashlib
+import database
+import uuid
 from gridtogo.shared.networkobjects import *
 
 class Authenticator(object):
@@ -23,10 +25,17 @@ class Authenticator(object):
 
 	def createUser(self, createUserRequest):
 		userAccount = self.database.getUserAccountByName(createUserRequest.firstName, createUserRequest.lastName)
-		#TODO: Possibly do additional checking such as password complexity, email validity
+		#TODO: Possibly do additional checking such as password complexity, email validity, flood checking
 		if userAccount:
 			# Name conflict.
 			return UsernameConflict()
 		else:
-			# no name conflict
+			hashedPassword = hashlib.sha224(createUserRequest.password).hexdigest()
+			userAccount = database.UserAccount(
+				uuid.uuid4(),
+				createUserRequest.firstName,
+				createUserRequest.lastName,
+				hashedPassword,
+				createUserRequest.email)
+			self.database.storeUserAccount(userAccount)
 			return CreateUserSuccess()

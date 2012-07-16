@@ -55,7 +55,7 @@ class JSONSerializer(object):
 		elif issubclass(class_, CreateUserResponse):
 			return class_()
 
-		elif issubclass(class_, CreateUserRequest):
+		elif class_ is CreateUserRequest:
 			return class_(
 				data['firstName'],
 				data['lastName'],

@@ -1,6 +1,5 @@
 from twisted.internet import protocol, reactor
 from twisted.protocols import basic
-from twisted.application import service
 import authentication
 import configuration
 import database
