@@ -62,6 +62,12 @@ class JSONSerializer(object):
 				data['password'],
 				data['email'])
 
+		elif issubclass(class_, RequestPasswordRequest):
+			return class_()
+
+		elif issubclass(class_, RequestPasswordResponse):
+			return class_()
+
 	class _CustomEncoder(json.JSONEncoder):
 		def default(self, obj):
 			# The decoder looks for the className to choose decoding scheme.
@@ -74,9 +80,6 @@ class JSONSerializer(object):
 				data['grid'] = obj.grid
 				return data
 
-			elif isinstance(obj, LoginResponse):
-				return data
-
 			elif isinstance(obj, CreateUserResponse):
 				return data
 
@@ -85,4 +88,10 @@ class JSONSerializer(object):
 				data['lastName'] = obj.lastName
 				data['password'] = obj.password
 				data['email'] = obj.email
+				return data
+
+			elif if isinstance(obj, RequestPasswordRequest):
+				return data
+			
+			elif isinstance(obj, RequestPasswordResponse):
 				return data
