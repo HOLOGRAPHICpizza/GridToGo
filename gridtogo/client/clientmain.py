@@ -20,6 +20,10 @@ class GTGClientProtocol(basic.LineReceiver):
 		self._writeRequest(createUserRequest)
 		self._writeRequest(createUserRequest)
 
+		# reset password request
+		resetPasswordRequest = ResetPasswordRequest('generated', 'user')
+		self._writeRequest(resetPasswordRequest)
+
 		# log in to the user incorrectly, then correctly
 		loginRequest = LoginRequest('wrong', 'user', 'testpass', 'testgrid')
 		self._writeRequest(loginRequest)
@@ -29,6 +33,9 @@ class GTGClientProtocol(basic.LineReceiver):
 		self._writeRequest(loginRequest)
 
 	def lineReceived(self, line):
+
+		#print("IN : " + line)
+
 		try:
 			#TODO: Perhaps in the future we should make (de)serialization operations asynchronous,
 			# not sure if this is worth the effort/overhead or not.
@@ -41,7 +48,9 @@ class GTGClientProtocol(basic.LineReceiver):
 			self.transport.loseConnection()
 
 	def _writeRequest(self, request):
-		self.transport.write(self.serializer.serialize(request)+"\r\n")
+		line = self.serializer.serialize(request)
+		#print("OUT: " + line)
+		self.transport.write(line + "\r\n")
 
 class GTGClientFactory(protocol.ClientFactory):
 	def __init__(self):

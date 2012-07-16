@@ -52,6 +52,9 @@ class GTGProtocol(basic.LineReceiver):
 		pass
 
 	def lineReceived(self, line):
+
+		#print("IN : " + line)
+
 		try:
 			#TODO: Perhaps in the future we should make (de)serialization operations asynchronous,
 			# not sure if this is worth the effort/overhead or not.
@@ -64,16 +67,14 @@ class GTGProtocol(basic.LineReceiver):
 					if isinstance(response, LoginSuccess):
 						self.authenticated = True
 					self._writeResponse(response)
+
 				elif isinstance(request, ResetPasswordRequest):
-					response = ResetPasswordResponse
+					response = self.authenticator.resetPassword(request)
 					self._writeResponse(response)
 
 				elif isinstance(request, CreateUserRequest):
 					response = self.authenticator.createUser(request)
 					self._writeResponse(response)
-
-				elif isinstance(request, ResetPasswordRequest):
-					pass
 
 			else:
 				# User is authenticated.
@@ -84,7 +85,9 @@ class GTGProtocol(basic.LineReceiver):
 			self.transport.loseConnection()
 
 	def _writeResponse(self, response):
-		self.transport.write(self.serializer.serialize(response)+"\r\n")
+		line = self.serializer.serialize(response)
+		#print("OUT: " + line)
+		self.transport.write(line + "\r\n")
 
 class GTGFactory(protocol.ServerFactory):
 	def __init__(self, config):

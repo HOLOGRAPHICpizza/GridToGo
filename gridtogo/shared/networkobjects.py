@@ -21,7 +21,13 @@ class CreateUserSuccess(CreateUserResponse):
 		self.message = 'Account successfully created.'
 
 class ResetPasswordRequest(object):
-	pass
+	def __init__(self, firstName, lastName):
+		self.firstName = firstName
+		self.lastName = lastName
+
+class ResetPasswordResponse(object):
+	def __init__(self):
+		self.message = "Instructions for accessing this account have been sent to the email address this account was registered with."
 
 # Login stuff
 
@@ -31,14 +37,6 @@ class LoginRequest(object):
 		self.lastName = lastName
 		self.password = password
 		self.grid = grid
-
-class ResetPasswordRequest(object):
-	def __init__(self):
-		self.message = 'Request Password'
-
-class ResetPasswordResponse(object):
-	def __init__(self):
-		self.message = "Password has been emailed to the email address this account was registered with."
 
 class LoginResponse(object):
 	"""Subclasses of this are returned by authentication services."""

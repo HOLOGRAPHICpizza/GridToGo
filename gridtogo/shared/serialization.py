@@ -56,8 +56,15 @@ class JSONSerializer(object):
 				data['password'],
 				data['email'])
 
+		elif class_ is ResetPasswordRequest:
+			return class_(data['firstName'], data['lastName'])
+
 		else:
-			return class_()
+			try:
+				return class_()
+			# We have no idea if the constructor needs more info or not.
+			except TypeError:
+				raise InvalidSerializedDataException(self)
 
 	class _CustomEncoder(json.JSONEncoder):
 		def default(self, obj):
@@ -76,6 +83,11 @@ class JSONSerializer(object):
 				data['lastName'] = obj.lastName
 				data['password'] = obj.password
 				data['email'] = obj.email
+				return data
+
+			elif isinstance(obj, ResetPasswordRequest):
+				data['firstName'] = obj.firstName
+				data['lastName'] = obj.lastName
 				return data
 			
 			else:

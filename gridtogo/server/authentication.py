@@ -39,3 +39,10 @@ class Authenticator(object):
 				createUserRequest.email)
 			self.database.storeUserAccount(userAccount)
 			return CreateUserSuccess()
+
+	def resetPassword(self, resetPasswordRequest):
+		#TODO: Actually process this request.
+		# The password should not be immediately reset, or users could DOS each other like crazy.
+		# Nor are we even able to send the user their current password.
+		# New functionality will be required.
+		return ResetPasswordResponse()
