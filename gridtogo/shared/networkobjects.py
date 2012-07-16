@@ -32,6 +32,14 @@ class LoginRequest(object):
 		self.password = password
 		self.grid = grid
 
+class ResetPasswordRequest(object):
+	def __init__(self):
+		self.message = 'Request Password'
+
+class ResetPasswordResponse(object):
+	def __init__(self):
+		self.message = "Password has been emailed to the email address this account was registered with."
+
 class LoginResponse(object):
 	"""Subclasses of this are returned by authentication services."""
 	def __init__(self):

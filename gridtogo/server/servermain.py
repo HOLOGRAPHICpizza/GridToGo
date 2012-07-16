@@ -64,6 +64,9 @@ class GTGProtocol(basic.LineReceiver):
 					if isinstance(response, LoginSuccess):
 						self.authenticated = True
 					self._writeResponse(response)
+				elif isinstance(request, ResetPasswordRequest):
+					response = ResetPasswordResponse
+					self._writeResponse(response)
 
 				elif isinstance(request, CreateUserRequest):
 					response = self.authenticator.createUser(request)

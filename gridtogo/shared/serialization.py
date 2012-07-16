@@ -49,18 +49,15 @@ class JSONSerializer(object):
 				data['password'],
 				data['grid'])
 
-		elif issubclass(class_, LoginResponse):
-			return class_()
-
-		elif issubclass(class_, CreateUserResponse):
-			return class_()
-
 		elif class_ is CreateUserRequest:
 			return class_(
 				data['firstName'],
 				data['lastName'],
 				data['password'],
 				data['email'])
+
+		else:
+			return class_()
 
 	class _CustomEncoder(json.JSONEncoder):
 		def default(self, obj):
@@ -74,15 +71,12 @@ class JSONSerializer(object):
 				data['grid'] = obj.grid
 				return data
 
-			elif isinstance(obj, LoginResponse):
-				return data
-
-			elif isinstance(obj, CreateUserResponse):
-				return data
-
 			elif isinstance(obj, CreateUserRequest):
 				data['firstName'] = obj.firstName
 				data['lastName'] = obj.lastName
 				data['password'] = obj.password
 				data['email'] = obj.email
+				return data
+			
+			else:
 				return data
