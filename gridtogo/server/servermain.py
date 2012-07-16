@@ -1,25 +1,27 @@
 from twisted.internet import protocol, reactor
 from twisted.protocols import basic
 from twisted.application import service
-import database
 import authentication
+import configuration
+import database
 from gridtogo.shared import serialization, networkobjects
 from gridtogo.shared.networkobjects import *
 
 class GridToGoServer(object):
 	"""Ony one object of this class should exist per python interpreter."""
-	def __init__(self, port):
+	def __init__(self):
 		GridToGoServer.exitcode = 0
 		GridToGoServer.reactor = reactor
-		self.port = port
 
 	def run(self):
 #		testRequest = LoginRequest('Michael', 'Craft', 'testpass', 'testgrid')
 #		testSerializer = serialization.ILineSerializer(serialization.JSONSerializer(networkobjects))
 #		print(testSerializer.serialize(testRequest))
+	
+		config = configuration.ConfigurationLoader().load()
 
 		try:
-			GridToGoServer.reactor.listenTCP(self.port, GTGFactory())
+			GridToGoServer.reactor.listenTCP(config.port, GTGFactory(config))
 			GridToGoServer.reactor.run()
 		except AttributeError:
 			pass
@@ -75,11 +77,10 @@ class GTGProtocol(basic.LineReceiver):
 		self.transport.write(self.serializer.serialize(response)+"\r\n")
 
 class GTGFactory(protocol.ServerFactory):
-	def __init__(self):
+	def __init__(self, config):
 		try:
-			#TODO: Add ability to specify database file.
 			#TODO: Call the database's close() method on program exit.
-			self.database = database.IDatabase(database.SQLiteDatabase('gridtogoserver.db'))
+			self.database = database.IDatabase(database.SQLiteDatabase(config.dbfile))
 		except database.DatabaseException as e:
 			# Believe it or not, this is our standard failure procedure.
 			GridToGoServer.exitcode = 1
