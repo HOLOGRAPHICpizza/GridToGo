@@ -6,16 +6,23 @@ from twisted.internet import protocol, reactor
 from twisted.protocols import basic
 from gridtogo.shared import serialization, networkobjects
 from gridtogo.shared.networkobjects import *
+from ui.windows import *
 
 #TODO: Move this test code to a different module and make this the real client
 class GridToGoClient(object):
-	def run(self):
-		win = Gtk.Window()
-		win.connect("delete-event", Gtk.main_quit)
-		win.show_all()
+	def __init__(self, projectRoot):
+		self.projectRoot = projectRoot
 
-		reactor.connectTCP("localhost", 8017, GTGClientFactory())
+	def run(self):
+		windowFactory = WindowFactory(self)
+		exampleWindow = windowFactory.buildWindow('exampleWindow', ExampleHandler)
+		exampleWindow.show_all()
+
+		#reactor.connectTCP("localhost", 8017, GTGClientFactory())
 		reactor.run()
+
+	def stop(self):
+		reactor.stop()
 
 class GTGClientProtocol(basic.LineReceiver):
 	def __init__(self, serializer):

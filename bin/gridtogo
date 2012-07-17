@@ -22,5 +22,5 @@ if __name__ == "__main__":
 	from gridtogo.client import clientmain
 
 	# gridtogo.clientmain.GridToGoClient().run() is the "real" entry-point of the application.
-	client = clientmain.GridToGoClient()
+	client = clientmain.GridToGoClient(PROJECT_ROOT_DIRECTORY)
 	client.run()
