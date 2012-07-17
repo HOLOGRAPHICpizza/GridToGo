@@ -1,3 +1,19 @@
+# "Delta Objects"
+
+class DeltaObject(object):
+	def __init_(self):
+		self.attributes = ()
+	
+	def applyDelta(self, deltaObject):
+		"""Copy all the valid and existing attributes from detaObject into this object."""
+		for a in deltaObject.attributes:
+			if hasattr(deltaObject, a):
+				setattr(self, a, getattr(deltaObject, a))
+
+class User(DeltaObject):
+	def __init__(self):
+		self.attributes = ('firstName', 'lastName', 'online', 'NATStatus')
+
 # Account management stuff
 
 class CreateUserRequest(object):

@@ -1,11 +1,19 @@
+from twisted.internet import gtk3reactor
+gtk3reactor.install()
+
+from gi.repository import Gtk
 from twisted.internet import protocol, reactor
 from twisted.protocols import basic
 from gridtogo.shared import serialization, networkobjects
 from gridtogo.shared.networkobjects import *
 
 #TODO: Move this test code to a different module and make this the real client
-class GridToGoClient:
+class GridToGoClient(object):
 	def run(self):
+		win = Gtk.Window()
+		win.connect("delete-event", Gtk.main_quit)
+		win.show_all()
+
 		reactor.connectTCP("localhost", 8017, GTGClientFactory())
 		reactor.run()
 
