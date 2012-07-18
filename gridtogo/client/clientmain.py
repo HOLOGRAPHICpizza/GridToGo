@@ -10,6 +10,10 @@ from ui.windows import *
 
 #TODO: Move this test code to a different module and make this the real client
 class GridToGoClient(object):
+	"""
+	One instance of this class should exist in our application.
+	This holds shared state for the whole program.
+	"""
 	def __init__(self, projectRoot):
 		self.projectRoot = projectRoot
 		self.factory = GTGClientFactory()

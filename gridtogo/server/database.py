@@ -55,12 +55,12 @@ class IDatabase(Interface):
 		"""Create or update the record for the given UserAccount object."""
 		pass
 
-	def getGrid(self, gridName):
-		"""Pull a full grid object from the database."""
+	def storeGridAssociation(self, userUUID, gridName):
+		"""Create or update the """
 		pass
 
-	def storeGrid(self, grid):
-		"""Create or update the record for the given Grid object."""
+	def getGrid(self, gridName):
+		"""Pull a full grid object from the database."""
 		pass
 
 	def close(self):
@@ -86,26 +86,34 @@ class SQLiteDatabase(object):
 		               'hashedPassword VARCHAR(64) NOT NULL,' +
 		               'email VARCHAR(64) NOT NULL' +
 		               ')')
+
+		cursor.execute('CREATE TABLE IF NOT EXISTS grids(' +
+		               'name VARCHAR(64) PRIMARY KEY NOT NULL'
+		               ')')
+
 		cursor.execute('CREATE TABLE IF NOT EXISTS regions(' +
 		               'name VARCHAR(64) PRIMARY KEY NOT NULL,' +
-		               'firstName VARCHAR(64) NOT NULL,' +
-		               'lastName VARCHAR(64) NOT NULL,' +
-		               'hashedPassword VARCHAR(64) NOT NULL,' +
-		               'email VARCHAR(64) NOT NULL' +
+		               'grid VARCHAR(64) NOT NULL,' +
+		               'FOREIGN KEY(grid) REFERENCES grids(name)' +
 		               ')')
+
+		# connects user accounts to grids
 		cursor.execute('CREATE TABLE IF NOT EXISTS gridUsers(' +
 		               'gridName VARCHAR(64) NOT NULL,' +
 		               'user CHAR(36) NOT NULL,' +
-		               'FOREIGN KEY(user) REFRENCES users(UUID),' +
 		               'moderator BOOLEAN NOT NULL,' +
-		               'gridHost BOOLEAN NOT NULL' +
+		               'gridHost BOOLEAN NOT NULL,' +
+		               'FOREIGN KEY(gridName) REFERENCES grids(name),' +
+		               'FOREIGN KEY(user) REFERENCES users(UUID)' +
 		               ')')
-		cursor.execute('CREATE TABLE IF NOT EXISTS gridRegions' +
-		               'gridName VARCHAR(64) NOT NULL,' +
+
+		# connects user accounts to regions
+		cursor.execute('CREATE TABLE IF NOT EXISTS regionHosts(' +
+		               'regionName VARCHAR(64) NOT NULL,' +
 		               'user CHAR(36) NOT NULL,' +
-		               'FOREIGN KEY(user) REFRENCES users(UUID),' +
-		               'moderator BOOLEAN NOT NULL,' +
-		               'gridHost BOOLEAN NOT NULL' +
+		               'regionHost BOOLEAN NOT NULL,' +
+		               'FOREIGN KEY(regionName) REFERENCES regions(name),' +
+		               'FOREIGN KEY(user) REFERENCES users(UUID)' +
 		               ')')
 
 	def getUserAccountByName(self, firstName, lastName):
@@ -128,12 +136,18 @@ class SQLiteDatabase(object):
 
 	def getGrid(self, gridName):
 		cursor = self.connection.cursor()
-		cursor.execute('SELECT * FROM gridData WHERE gridName=?')
+		cursor.execute('SELECT users.UUID, users.firstName, users.lastName, gridUsers.moderator, gridUsers.gridHost ' +
+		               'FROM users INNER JOIN gridUsers ON users.UUID=gridUsers.user WHERE gridUsers.gridName=?', [gridName])
 
-	def storeGrid(self, grid):
+		list = cursor.fetchall()
 		pass
+
 
 	def close(self):
 		if self.connection:
 			self.connection.commit()
 			self.connection.close()
+
+if __name__ == "__main__":
+	db = IDatabase(SQLiteDatabase('gridtogoserver.db'))
+	db.getGrid('testgrid')
