@@ -55,8 +55,8 @@ class CreateUserWindowHandler(WindowHandler):
 
 		if passwordEntry != passwordRetypeEntry:
 			dialog = Gtk.MessageDialog(self.window,
-						Gtk.DialogFlags.DestroyWithParent,
-						Gtk.MessageType.MessageError,
+						Gtk.DialogFlags.DESTROY_WITH_PARENT,
+						Gtk.MessageType.ERROR,
 						Gtk.ButtonsType.OK,
 						"Passwords are not identical.")
 			dialog.run()
