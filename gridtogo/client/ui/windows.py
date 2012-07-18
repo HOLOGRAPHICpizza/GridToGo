@@ -9,12 +9,16 @@ class WindowFactory(object):
 		builder = Gtk.Builder()
 		global PROJECT_ROOT_DIRECTORY
 		builder.add_from_file(os.path.join(self.clientObject.projectRoot, "gridtogo", 'client', 'ui', windowName + '.glade'))
-		builder.connect_signals(handlerClass(self.clientObject))
-		return builder.get_object(windowName)
+		handler = handlerClass(builder, self.clientObject, self, builder.get_object(windowName))
+		builder.connect_signals(handler)
+		return handler.window
 
 class WindowHandler(object):
-	def __init__(self, clientObject):
+	def __init__(self, builder, clientObject, factory, window):
+		self.builder = builder
 		self.clientObject = clientObject
+		self.factory = factory
+		self.window = window
 
 class LoginWindowHandler(WindowHandler):
 	def LANModeClicked(self, *args):
