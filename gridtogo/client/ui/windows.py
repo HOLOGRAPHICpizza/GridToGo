@@ -1,5 +1,9 @@
 from gi.repository import Gtk
 import os
+from gridtogo.shared.networkobjects import *
+import gridtogo.client.clientmain
+
+from twisted.internet import reactor
 
 class WindowFactory(object):
 	def __init__(self, clientObject):
@@ -46,10 +50,18 @@ class CreateUserWindowHandler(WindowHandler):
 		self.passwordEntry = builder.get_object("entryPassword")
 		self.passwordRetypeEntry = builder.get_object("entryRetypePassword")
 
-	def createUserClicked(self, *args):
+	def connectionEstablished(self):
 		email = self.emailEntry.get_text()
 		firstName = self.firstNameEntry.get_text()
 		lastName = self.firstNameEntry.get_text()
+		passwordEntry = self.passwordEntry.get_text()
+
+		request = CreateUserRequest(firstName, lastName, passwordEntry, email)
+		self.clientObject.writeRequest(request)
+
+		self.clientObject.factory.currentProtocol.transport.loseConnection()
+
+	def createUserClicked(self, *args):
 		passwordEntry = self.passwordEntry.get_text()
 		passwordRetypeEntry = self.passwordRetypeEntry.get_text()
 
@@ -62,6 +74,9 @@ class CreateUserWindowHandler(WindowHandler):
 			dialog.run()
 			dialog.destroy()
 			return
+
+		self.clientObject.factory.onConnectionEstablished = self.connectionEstablished
+		reactor.connectTCP("localhost", 8017, self.clientObject.factory) 
 
 	def cancelClicked(self, *args):
 		self.window.destroy()

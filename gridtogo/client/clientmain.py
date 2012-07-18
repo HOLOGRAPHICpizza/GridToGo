@@ -2,7 +2,7 @@ from twisted.internet import gtk3reactor
 gtk3reactor.install()
 
 from gi.repository import Gtk
-from twisted.internet import protocol, reactor
+from twisted.internet import protocol, reactor, defer
 from twisted.protocols import basic
 from gridtogo.shared import serialization, networkobjects
 from gridtogo.shared.networkobjects import *
@@ -29,12 +29,14 @@ class GridToGoClient(object):
 		self.factory.currentProtocol.writeRequest(request)
 
 class GTGClientProtocol(basic.LineReceiver):
-	def __init__(self, serializer):
+	def __init__(self, factory, serializer):
 		# Alias for convenience
+		self.factory = factory
 		self.serializer = serializer
 
 	def connectionMade(self):
-		pass
+		if not self.factory.onConnectionEstablished is None:
+			self.factory.onConnectionEstablished()
 
 	def lineReceived(self, line):
 
@@ -60,10 +62,11 @@ class GTGClientFactory(protocol.ClientFactory):
 	def __init__(self):
 		self.serializer = serialization.ILineSerializer(serialization.JSONSerializer(networkobjects))
 		self.currentProtocol = None
+		self.onConnectionEstablished = None
 
 	def buildProtocol(self, addr):
 		if not self.currentProtocol:
-			self.currentProtocol = GTGClientProtocol(self.serializer)
+			self.currentProtocol = GTGClientProtocol(self, self.serializer)
 			return self.currentProtocol
 		else:
 			raise Exception("BUG: Attempted to build a second protocol, client should not do this.")

@@ -53,7 +53,7 @@ class GTGProtocol(basic.LineReceiver):
 
 	def lineReceived(self, line):
 
-		#print("IN : " + line)
+		print("IN : " + line)
 
 		try:
 			#TODO: Perhaps in the future we should make (de)serialization operations asynchronous,

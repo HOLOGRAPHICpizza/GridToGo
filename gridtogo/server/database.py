@@ -86,7 +86,7 @@ class SQLiteDatabase(object):
 		               'hashedPassword VARCHAR(64) NOT NULL,' +
 		               'email VARCHAR(64) NOT NULL' +
 		               ')')
-		cursor.execute('CREATE TABLE IF NOT EXISTS regions(' +
+		"""cursor.execute('CREATE TABLE IF NOT EXISTS regions(' +
 		               'name VARCHAR(64) PRIMARY KEY NOT NULL,' +
 		               'firstName VARCHAR(64) NOT NULL,' +
 		               'lastName VARCHAR(64) NOT NULL,' +
@@ -96,17 +96,17 @@ class SQLiteDatabase(object):
 		cursor.execute('CREATE TABLE IF NOT EXISTS gridUsers(' +
 		               'gridName VARCHAR(64) NOT NULL,' +
 		               'user CHAR(36) NOT NULL,' +
-		               'FOREIGN KEY(user) REFRENCES users(UUID),' +
+		               'FOREIGN KEY(user) REFERENCES users(UUID),' +
 		               'moderator BOOLEAN NOT NULL,' +
 		               'gridHost BOOLEAN NOT NULL' +
 		               ')')
-		cursor.execute('CREATE TABLE IF NOT EXISTS gridRegions' +
+		cursor.execute('CREATE TABLE IF NOT EXISTS gridRegions(' +
 		               'gridName VARCHAR(64) NOT NULL,' +
 		               'user CHAR(36) NOT NULL,' +
-		               'FOREIGN KEY(user) REFRENCES users(UUID),' +
+		               'FOREIGN KEY(user) REFERENCES users(UUID),' +
 		               'moderator BOOLEAN NOT NULL,' +
 		               'gridHost BOOLEAN NOT NULL' +
-		               ')')
+		               ')')"""
 
 	def getUserAccountByName(self, firstName, lastName):
 		cursor = self.connection.cursor()
