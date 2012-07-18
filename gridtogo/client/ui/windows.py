@@ -25,7 +25,8 @@ class LoginWindowHandler(WindowHandler):
 		print("LAN Mode")
 
 	def createUserClicked(self, *args):
-		print("Create User")
+		w = self.factory.buildWindow("createUserWindow", CreateUserWindowHandler)
+		w.show_all()
 
 	def loginClicked(self, *args):
 		print("login")
