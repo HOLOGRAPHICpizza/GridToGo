@@ -38,6 +38,14 @@ class LoginWindowHandler(WindowHandler):
 		self.clientObject.stop()
 
 class CreateUserWindowHandler(WindowHandler):
+	def __init__(self, builder, clientObject, factory, window):
+		super(CreateUserWindowHandler, self).__init__(builder, clientObject, factory, window)
+		self.emailEntry = builder.get_object("entryEMail")
+		self.firstNameEntry = builder.get_object("entryFirstName")
+		self.lastNameEntry = builder.get_object("entryLastName")
+		self.passwordEntry = builder.get_object("entryPassword")
+		self.passwordRetypeEntry = builder.get_object("entryRetypePassword")
+
 	def createUserClicked(self, *args):
 		pass
 
