@@ -12,12 +12,22 @@ class WindowFactory(object):
 		builder.connect_signals(handlerClass(self.clientObject))
 		return builder.get_object(windowName)
 
-class ExampleHandler(object):
+class WindowHandler(object):
 	def __init__(self, clientObject):
 		self.clientObject = clientObject
 
-	def onButtonPressed(self, button):
-		print("Hello, world!")
+class LoginWindowHandler(WindowHandler):
+	def LANModeClicked(self, *args):
+		print("LAN Mode")
 
-	def onDeleteWindow(self, *args):
+	def createUserClicked(self, *args):
+		print("Create User")
+
+	def loginClicked(self, *args):
+		print("login")
+
+	def forgotPasswordClicked(self, *args):
+		print("forgot password")
+
+	def quitClicked(self, *args):
 		self.clientObject.stop()

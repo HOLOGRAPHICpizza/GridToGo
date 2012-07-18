@@ -15,8 +15,8 @@ class GridToGoClient(object):
 
 	def run(self):
 		windowFactory = WindowFactory(self)
-		exampleWindow = windowFactory.buildWindow('exampleWindow', ExampleHandler)
-		exampleWindow.show_all()
+		loginWindow = windowFactory.buildWindow('loginWindow', LoginWindowHandler)
+		loginWindow.show_all()
 
 		#reactor.connectTCP("localhost", 8017, GTGClientFactory())
 		reactor.run()
