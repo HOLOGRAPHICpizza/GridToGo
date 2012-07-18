@@ -50,17 +50,6 @@ class CreateUserWindowHandler(WindowHandler):
 		self.passwordEntry = builder.get_object("entryPassword")
 		self.passwordRetypeEntry = builder.get_object("entryRetypePassword")
 
-	def connectionEstablished(self):
-		email = self.emailEntry.get_text()
-		firstName = self.firstNameEntry.get_text()
-		lastName = self.firstNameEntry.get_text()
-		passwordEntry = self.passwordEntry.get_text()
-
-		request = CreateUserRequest(firstName, lastName, passwordEntry, email)
-		self.clientObject.writeRequest(request)
-
-		self.clientObject.factory.currentProtocol.transport.loseConnection()
-
 	def createUserClicked(self, *args):
 		passwordEntry = self.passwordEntry.get_text()
 		passwordRetypeEntry = self.passwordRetypeEntry.get_text()
@@ -76,7 +65,36 @@ class CreateUserWindowHandler(WindowHandler):
 			return
 
 		self.clientObject.factory.onConnectionEstablished = self.connectionEstablished
+		self.clientObject.factory.onUsernameConflict = self.onUsernameConflict
+		self.clientObject.factory.onCreateUserSuccess = self.onCreateUserSuccess
 		reactor.connectTCP("localhost", 8017, self.clientObject.factory) 
+	
+	def onUsernameConflict(self):
+		dialog = Gtk.MessageDialog(self.window,
+					Gtk.DialogFlags.DESTROY_WITH_PARENT,
+					Gtk.MessageType.ERROR,
+					Gtk.ButtonsType.OK,
+					"Username conflict.")
+		dialog.run()
+		dialog.destroy()
+		
+	def onCreateUserSuccess(self):
+		dialog = Gtk.MessageDialog(self.window,
+					Gtk.DialogFlags.DESTROY_WITH_PARENT,
+					Gtk.MessageType.SUCCESS,
+					Gtk.ButtonsType.OK,
+					"User created successfully!")
+		dialog.run()
+		dialog.destroy()
+
+	def connectionEstablished(self):
+		email = self.emailEntry.get_text()
+		firstName = self.firstNameEntry.get_text()
+		lastName = self.firstNameEntry.get_text()
+		passwordEntry = self.passwordEntry.get_text()
+
+		request = CreateUserRequest(firstName, lastName, passwordEntry, email)
+		self.clientObject.writeRequest(request)
 
 	def cancelClicked(self, *args):
 		self.window.destroy()

@@ -40,7 +40,7 @@ class GTGClientProtocol(basic.LineReceiver):
 
 	def lineReceived(self, line):
 
-		#print("IN : " + line)
+		print("IN : " + line)
 
 		try:
 			#TODO: Perhaps in the future we should make (de)serialization operations asynchronous,
@@ -53,6 +53,16 @@ class GTGClientProtocol(basic.LineReceiver):
 			print("Server sent bad data.")
 			self.transport.loseConnection()
 
+		if isinstance(response, UsernameConflict):
+			if not self.factory.onUsernameConflict is None:
+				self.factory.onUsernameConflict()
+		elif isinstance(response, CreateUserSuccess):
+			if not self.factory.onCreateUserSuccess is None:
+				self.factory.onCreateUserSuccess()
+		elif isinstance(response, CreateUserResponse):
+			print response.message
+			self.transport.loseConnection()
+
 	def writeRequest(self, request):
 		line = self.serializer.serialize(request)
 		#print("OUT: " + line)
@@ -63,6 +73,8 @@ class GTGClientFactory(protocol.ClientFactory):
 		self.serializer = serialization.ILineSerializer(serialization.JSONSerializer(networkobjects))
 		self.currentProtocol = None
 		self.onConnectionEstablished = None
+		self.onUsernameConflict = None
+		self.onCreateUserSuccess = None
 
 	def buildProtocol(self, addr):
 		if not self.currentProtocol:
