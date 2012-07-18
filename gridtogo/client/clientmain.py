@@ -24,6 +24,9 @@ class GridToGoClient(object):
 
 	def stop(self):
 		reactor.stop()
+	
+	def writeRequest(self, request):
+		self.factory.currentProtocol.writeRequest(request)
 
 class GTGClientProtocol(basic.LineReceiver):
 	def __init__(self, serializer):
