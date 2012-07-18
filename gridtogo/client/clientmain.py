@@ -12,13 +12,14 @@ from ui.windows import *
 class GridToGoClient(object):
 	def __init__(self, projectRoot):
 		self.projectRoot = projectRoot
+		self.factory = GTGClientFactory()
 
 	def run(self):
 		windowFactory = WindowFactory(self)
 		loginWindow = windowFactory.buildWindow('loginWindow', LoginWindowHandler)
 		loginWindow.show_all()
 
-		#reactor.connectTCP("localhost", 8017, GTGClientFactory())
+		#reactor.connectTCP("localhost", 8017, self.factory)
 		reactor.run()
 
 	def stop(self):
@@ -47,7 +48,7 @@ class GTGClientProtocol(basic.LineReceiver):
 			print("Server sent bad data.")
 			self.transport.loseConnection()
 
-	def _writeRequest(self, request):
+	def writeRequest(self, request):
 		line = self.serializer.serialize(request)
 		#print("OUT: " + line)
 		self.transport.write(line + "\r\n")
@@ -55,6 +56,11 @@ class GTGClientProtocol(basic.LineReceiver):
 class GTGClientFactory(protocol.ClientFactory):
 	def __init__(self):
 		self.serializer = serialization.ILineSerializer(serialization.JSONSerializer(networkobjects))
+		self.currentProtocol = None
 
 	def buildProtocol(self, addr):
-		return GTGClientProtocol(self.serializer)
+		if not self.currentProtocol:
+			self.currentProtocol = GTGClientProtocol(self.serializer)
+			return self.currentProtocol
+		else:
+			raise Exception("BUG: Attempted to build a second protocol, client should not do this.")
