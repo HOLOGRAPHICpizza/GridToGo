@@ -86,6 +86,7 @@ class CreateUserWindowHandler(WindowHandler):
 					"User created successfully!")
 		dialog.run()
 		dialog.destroy()
+		self.window.destroy()
 
 	def connectionEstablished(self):
 		email = self.emailEntry.get_text()
