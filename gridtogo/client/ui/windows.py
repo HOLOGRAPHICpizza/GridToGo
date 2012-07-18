@@ -35,3 +35,10 @@ class LoginWindowHandler(WindowHandler):
 
 	def quitClicked(self, *args):
 		self.clientObject.stop()
+
+class CreateUserWindowHandler(WindowHandler):
+	def createUserClicked(self, *args):
+		pass
+
+	def cancelClicked(self, *args):
+		pass
