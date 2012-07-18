@@ -51,7 +51,17 @@ class CreateUserWindowHandler(WindowHandler):
 		firstName = self.firstNameEntry.get_text()
 		lastName = self.firstNameEntry.get_text()
 		passwordEntry = self.passwordEntry.get_text()
-		passwordRetypeEntry = self.passwordEntry.get_text()
+		passwordRetypeEntry = self.passwordRetypeEntry.get_text()
+
+		if passwordEntry != passwordRetypeEntry:
+			dialog = Gtk.MessageDialog(self.window,
+						Gtk.DialogFlags.DestroyWithParent,
+						Gtk.MessageType.MessageError,
+						Gtk.ButtonsType.OK,
+						"Passwords are not identical.")
+			dialog.run()
+			dialog.destroy()
+			return
 
 	def cancelClicked(self, *args):
 		self.window.destroy()
