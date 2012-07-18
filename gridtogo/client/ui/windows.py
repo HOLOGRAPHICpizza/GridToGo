@@ -47,7 +47,11 @@ class CreateUserWindowHandler(WindowHandler):
 		self.passwordRetypeEntry = builder.get_object("entryRetypePassword")
 
 	def createUserClicked(self, *args):
-		pass
+		email = self.emailEntry.get_text()
+		firstName = self.firstNameEntry.get_text()
+		lastName = self.firstNameEntry.get_text()
+		passwordEntry = self.passwordEntry.get_text()
+		passwordRetypeEntry = self.passwordEntry.get_text()
 
 	def cancelClicked(self, *args):
 		self.window.destroy()
