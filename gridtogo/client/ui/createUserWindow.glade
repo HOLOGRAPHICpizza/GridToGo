@@ -75,6 +75,7 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_action_appearance">False</property>
+                <signal name="clicked" handler="createUserClicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -231,6 +232,7 @@
                 <property name="margin_left">60</property>
                 <property name="use_action_appearance">False</property>
                 <property name="yalign">1</property>
+                <signal name="clicked" handler="cancelClicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
