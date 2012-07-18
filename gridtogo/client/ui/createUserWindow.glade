@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
-  <object class="GtkWindow" id="CreateUserWindow">
+  <object class="GtkWindow" id="createUserWindow">
     <property name="can_focus">False</property>
     <property name="border_width">10</property>
     <property name="title" translatable="yes">Grid To Go - Create New User</property>
@@ -75,6 +75,7 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_action_appearance">False</property>
+                <signal name="clicked" handler="createUserClicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -231,6 +232,7 @@
                 <property name="margin_left">60</property>
                 <property name="use_action_appearance">False</property>
                 <property name="yalign">1</property>
+                <signal name="clicked" handler="cancelClicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>

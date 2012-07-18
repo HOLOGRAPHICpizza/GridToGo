@@ -30,22 +30,7 @@ class GTGClientProtocol(basic.LineReceiver):
 		self.serializer = serializer
 
 	def connectionMade(self):
-		# try to create the same user twice
-		createUserRequest = CreateUserRequest('generated', 'user', 'testpass', 'gridtgo@mailinator.com')
-		self._writeRequest(createUserRequest)
-		self._writeRequest(createUserRequest)
-
-		# reset password request
-		resetPasswordRequest = ResetPasswordRequest('generated', 'user')
-		self._writeRequest(resetPasswordRequest)
-
-		# log in to the user incorrectly, then correctly
-		loginRequest = LoginRequest('wrong', 'user', 'testpass', 'testgrid')
-		self._writeRequest(loginRequest)
-		loginRequest = LoginRequest('generated', 'user', 'wrongpass', 'testgrid')
-		self._writeRequest(loginRequest)
-		loginRequest = LoginRequest('generated', 'user', 'testpass', 'testgrid')
-		self._writeRequest(loginRequest)
+		pass
 
 	def lineReceived(self, line):
 
