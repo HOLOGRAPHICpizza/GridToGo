@@ -55,12 +55,12 @@ class IDatabase(Interface):
 		"""Create or update the record for the given UserAccount object."""
 		pass
 
-	def storeGridAssociation(self, userUUID, gridName):
-		"""Create or update the """
+	def storeGridAssociation(self, user, gridName):
+		"""Create or update the association of this User object to this grid."""
 		pass
 
-	def getGrid(self, gridName):
-		"""Pull a full grid object from the database."""
+	def getGridUsers(self, gridName):
+		"""Return a list of User objects which are members of the given grid name."""
 		pass
 
 	def close(self):
@@ -98,14 +98,17 @@ class SQLiteDatabase(object):
 		               ')')
 
 		# connects user accounts to grids
-		cursor.execute('CREATE TABLE IF NOT EXISTS gridUsers(' +
-		               'gridName VARCHAR(64) NOT NULL,' +
-		               'user CHAR(36) NOT NULL,' +
-		               'moderator BOOLEAN NOT NULL,' +
-		               'gridHost BOOLEAN NOT NULL,' +
-		               'FOREIGN KEY(gridName) REFERENCES grids(name),' +
-		               'FOREIGN KEY(user) REFERENCES users(UUID)' +
-		               ')')
+		cursor.execute("""
+			CREATE TABLE IF NOT EXISTS gridUsers(
+		        gridName VARCHAR(64) NOT NULL,
+				user CHAR(36) NOT NULL,
+				moderator BOOLEAN NOT NULL,
+				gridHost BOOLEAN NOT NULL,
+				FOREIGN KEY(gridName) REFERENCES grids(name),
+				FOREIGN KEY(user) REFERENCES users(UUID),
+				UNIQUE (gridName, user)
+		    )
+		""")
 
 		# connects user accounts to regions
 		cursor.execute('CREATE TABLE IF NOT EXISTS regionHosts(' +
@@ -134,14 +137,39 @@ class SQLiteDatabase(object):
 			userAccount.email))
 		self.connection.commit()
 
-	def getGrid(self, gridName):
+	def storeGridAssociation(self, user, gridName):
+		data = {'gridName': gridName, 'UUID': str(user.UUID), 'moderator': None, 'gridHost': None}
+
+		if hasattr(user, 'moderator'):
+			data['moderator'] = user.moderator
+		if hasattr(user, 'gridHost'):
+			data['gridHost'] = user.gridHost
+
+		cursor = self.connection.cursor()
+		cursor.execute("""
+			INSERT OR REPLACE INTO gridUsers VALUES (
+				:gridName,
+				:UUID,
+				COALESCE(:moderator, (SELECT moderator FROM gridUsers WHERE gridName=:gridName AND user=:UUID), 0),
+				COALESCE(:gridHost, (SELECT gridHost FROM gridUsers WHERE gridName=:gridName AND user=:UUID), 0)
+			)
+		""", data)
+		self.connection.commit()
+
+	def getGridUsers(self, gridName):
 		cursor = self.connection.cursor()
 		cursor.execute('SELECT users.UUID, users.firstName, users.lastName, gridUsers.moderator, gridUsers.gridHost ' +
 		               'FROM users INNER JOIN gridUsers ON users.UUID=gridUsers.user WHERE gridUsers.gridName=?', [gridName])
 
-		list = cursor.fetchall()
-		pass
-
+		users = []
+		for record in cursor.fetchall():
+			user = User(record[0])
+			user.firstName = record[1]
+			user.lastName = record[2]
+			user.moderator = record[3]
+			user.gridHost = record[4]
+			users.append(user)
+		return users
 
 	def close(self):
 		if self.connection:
@@ -150,4 +178,15 @@ class SQLiteDatabase(object):
 
 if __name__ == "__main__":
 	db = IDatabase(SQLiteDatabase('gridtogoserver.db'))
-	db.getGrid('testgrid')
+
+	import authentication
+	auth = authentication.Authenticator(db)
+	request = CreateUserRequest('generated', 'user', 'testpass', 'bademail')
+	auth.createUser(request)
+
+	account = db.getUserAccountByName('generated', 'user')
+	user = User(account.UUID)
+	user.gridHost = True
+	db.storeGridAssociation(user, 'testgrid')
+	users = db.getGridUsers('testgrid')
+	db.close()

@@ -15,8 +15,9 @@ class User(DeltaObject):
 	These are only relevant in the context of a grid.
 	UserAccount is the record of the user independent of a grid.
 	"""
-	def __init__(self):
+	def __init__(self, UUID):
 		self.attributes = ('UUID', 'firstName', 'lastName', 'online', 'NATStatus', 'moderator', 'gridHost')
+		self.UUID = UUID
 
 # Account management stuff
 
