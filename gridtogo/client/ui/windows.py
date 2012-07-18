@@ -42,4 +42,5 @@ class CreateUserWindowHandler(WindowHandler):
 		pass
 
 	def cancelClicked(self, *args):
+		self.window.destroy()
 		pass
