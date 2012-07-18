@@ -103,26 +103,10 @@ class GTGFactory(protocol.ServerFactory):
 		self.authenticator = authentication.Authenticator(self.database)
 		self.serializer = serialization.ILineSerializer(serialization.JSONSerializer(networkobjects))
 
+		# A set of Grid objects
+		self.grids = set()
+
 	def buildProtocol(self, addr):
 		return GTGProtocol(self.serializer, self.authenticator)
 
-#TODO: Use service and twistd to daemonize
-#      Or perhaps not, there are drawbacks with command args and return codes
-#
-#class GTGService(service.Service):
-#	"""
-#	Creates GTGFactory instances.
-#	This is a service in the actual UNIX sense, this is the server proper which serves the protocol.
-#	It can be run on any port by the reactor.
-#	"""
-#	def __init__(self):
-#		self.database = database.IDatabase(database.DummyDatabase())
-#		self.authenticator = authentication.Authenticator(self.database)
-#		self.serializer = serialization.ILineSerializer(serialization.JSONSerializer(networkobjects))
-#
-#	def getGTGFactory(self):
-#		f = protocol.ServerFactory()
-#		f.protocol = GTGProtocol
-#		f.serializer = self.serializer
-#		f.authenticator = self.authenticator
-#		return f
+

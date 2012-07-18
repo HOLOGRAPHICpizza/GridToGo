@@ -1,7 +1,7 @@
 from zope.interface import implements, Interface
 import uuid
-import hashlib
 import sqlite3
+from gridtogo.shared.networkobjects import *
 
 class UserAccount(object):
 	def __init__(self, UUID, firstName, lastName, hashedPassword, email):
@@ -15,6 +15,26 @@ class UserAccount(object):
 
 		self.hashedPassword = hashedPassword
 		self.email = email
+
+	def getUser(self):
+		"""Return a full User object created from this UserAccount."""
+		user = User()
+		user.UUID = self.UUID
+		user.firstName = self.firstName
+		user.lastName = self.lastName
+		user.online = False
+		user.NATStatus = False
+		return user
+
+class Grid(object):
+
+	def __init__(self, name):
+		self.name = name
+
+		# list of User objects
+		self.users = []
+
+		self.regions = []
 
 class DatabaseException(Exception):
 	"""Thrown on a problem with the database."""
@@ -33,6 +53,15 @@ class IDatabase(Interface):
 
 	def storeUserAccount(self, userAccount):
 		"""Create or update the record for the given UserAccount object."""
+		pass
+
+	def getGrid(self, gridName):
+		"""Pull a full grid object from the database."""
+		pass
+
+	def storeGrid(self, grid):
+		"""Create or update the record for the given Grid object."""
+		pass
 
 	def close(self):
 		"""Commits all database changes and releases all resources, if applicable."""
@@ -57,6 +86,27 @@ class SQLiteDatabase(object):
 		               'hashedPassword VARCHAR(64) NOT NULL,' +
 		               'email VARCHAR(64) NOT NULL' +
 		               ')')
+		cursor.execute('CREATE TABLE IF NOT EXISTS regions(' +
+		               'name VARCHAR(64) PRIMARY KEY NOT NULL,' +
+		               'firstName VARCHAR(64) NOT NULL,' +
+		               'lastName VARCHAR(64) NOT NULL,' +
+		               'hashedPassword VARCHAR(64) NOT NULL,' +
+		               'email VARCHAR(64) NOT NULL' +
+		               ')')
+		cursor.execute('CREATE TABLE IF NOT EXISTS gridUsers(' +
+		               'gridName VARCHAR(64) NOT NULL,' +
+		               'user CHAR(36) NOT NULL,' +
+		               'FOREIGN KEY(user) REFRENCES users(UUID),' +
+		               'moderator BOOLEAN NOT NULL,' +
+		               'gridHost BOOLEAN NOT NULL' +
+		               ')')
+		cursor.execute('CREATE TABLE IF NOT EXISTS gridRegions' +
+		               'gridName VARCHAR(64) NOT NULL,' +
+		               'user CHAR(36) NOT NULL,' +
+		               'FOREIGN KEY(user) REFRENCES users(UUID),' +
+		               'moderator BOOLEAN NOT NULL,' +
+		               'gridHost BOOLEAN NOT NULL' +
+		               ')')
 
 	def getUserAccountByName(self, firstName, lastName):
 		cursor = self.connection.cursor()
@@ -76,37 +126,14 @@ class SQLiteDatabase(object):
 			userAccount.email))
 		self.connection.commit()
 
+	def getGrid(self, gridName):
+		cursor = self.connection.cursor()
+		cursor.execute('SELECT * FROM gridData WHERE gridName=?')
+
+	def storeGrid(self, grid):
+		pass
+
 	def close(self):
 		if self.connection:
 			self.connection.commit()
 			self.connection.close()
-
-class DummyDatabase(object):
-	implements(IDatabase)
-
-	def __init__(self):
-		UUID = uuid.UUID('cde17991-3122-464a-8dc0-65cad9b9dd67')
-		hashedPassword = hashlib.sha224('testpass').hexdigest()
-		userAccount = UserAccount(UUID, 'Michael', 'Craft', hashedPassword, True, False)
-		# Maps full names to UserAccount objects
-		self.users = {userAccount.firstName+' '+userAccount.lastName: userAccount}
-
-	def getUserAccountByName(self, firstName, lastName):
-		return self.users.get(firstName+' '+lastName)
-
-	def storeUserAccount(self, userAccount):
-		raise DatabaseException("Method not implemented.")
-
-	def close(self):
-		del self.users
-
-# Main for testing
-if __name__ == "__main__":
-	UUID = uuid.UUID('cde17991-3122-464a-8dc0-65cad9b9dd67')
-	hashedPassword = hashlib.sha224('testpass').hexdigest()
-	userAccount = UserAccount(UUID, 'Michael', 'Craft', hashedPassword, True, False)
-
-	db = IDatabase(SQLiteDatabase('gridtogoserver.db'))
-	db.storeUserAccount(userAccount)
-	userAccount2 = db.getUserAccountByName('Michael', 'Craft')
-	pass

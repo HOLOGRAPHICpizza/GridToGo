@@ -11,8 +11,12 @@ class DeltaObject(object):
 				setattr(self, a, getattr(deltaObject, a))
 
 class User(DeltaObject):
+	"""
+	These are only relevant in the context of a grid.
+	UserAccount is the record of the user independent of a grid.
+	"""
 	def __init__(self):
-		self.attributes = ('firstName', 'lastName', 'online', 'NATStatus')
+		self.attributes = ('UUID', 'firstName', 'lastName', 'online', 'NATStatus', 'moderator')
 
 # Account management stuff
 
