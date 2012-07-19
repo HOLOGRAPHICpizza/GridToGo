@@ -80,6 +80,17 @@ class GTGClientProtocol(basic.LineReceiver):
 			# not sure if this is worth the effort/overhead or not.
 			response = self.serializer.deserialize(line)
 
+			#if the message is about a successful login, then open the main form.
+			#If not, simply generate a response as to why.
+			if isinstance(response, LoginSuccess):
+				print response
+			elif isinstance(response, IncorrectPassword):
+				print response
+			elif isinstance(response, UnknownUser):
+				print response
+
+				
+
 			print(line + " | " + repr(response))
 
 		except serialization.InvalidSerializedDataException:
