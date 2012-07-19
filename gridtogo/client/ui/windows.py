@@ -22,6 +22,12 @@ class WindowHandler(object):
 		self.window = window
 
 class LoginWindowHandler(WindowHandler):
+	def __init__(self, builder, clientObject, factory, window):
+		super(LoginWindowHandler, self).__init__(builder, clientObject, factory, 			window)
+		self.firstNameEntry = builder.get_object("firstName")
+		self.lastNameEntry = builder.get_object("lastName")
+		self.passwordEntry = builder.get_object("password")
+
 	def LANModeClicked(self, *args):
 		print("LAN Mode")
 
@@ -30,7 +36,15 @@ class LoginWindowHandler(WindowHandler):
 		w.show_all()
 
 	def loginClicked(self, *args):
-		print("login")
+		reactor.connectTCP('localhost', 8017, self.factory)
+		self.factory.onConnectionEstablished = self.onConnectionEstablished()
+
+	def onConnectionEstablished(self):
+		firname = self.firstNameEntry.get_text()
+		lasname = self.lastNameEntry.get_text()
+		passwd = self.passwordEntry.get_text()
+		request = LoginRequest(firname, lasname, passwd, grid)
+		self.clientObject.writeRequest(request)
 
 	def forgotPasswordClicked(self, *args):
 		print("forgot password")
@@ -92,7 +106,7 @@ class CreateUserWindowHandler(WindowHandler):
 	def connectionEstablished(self):
 		email = self.emailEntry.get_text()
 		firstName = self.firstNameEntry.get_text()
-		lastName = self.firstNameEntry.get_text()
+		lastName = self.lastNameEntry.get_text()
 		passwordEntry = self.passwordEntry.get_text()
 
 		request = CreateUserRequest(firstName, lastName, passwordEntry, email)
