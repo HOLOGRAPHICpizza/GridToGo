@@ -27,7 +27,7 @@ class LoginWindowHandler(WindowHandler):
 		self.firstNameEntry = builder.get_object("firstName")
 		self.lastNameEntry = builder.get_object("lastName")
 		self.passwordEntry = builder.get_object("password")
-		
+		self.gridEntry = builder.get_object("grid")
 
 		# register our stuff to be called
 		self.clientObject.callOnConnected.append(self.onConnectionEstablished)
@@ -49,7 +49,7 @@ class LoginWindowHandler(WindowHandler):
 		firname = self.firstNameEntry.get_text()
 		lasname = self.lastNameEntry.get_text()
 		passwd = self.passwordEntry.get_text()
-		grid = "testgrid"
+		grid = self.gridEntry.get_text()
 		request = LoginRequest(firname, lasname, passwd, grid)
 		self.clientObject.protocol.writeRequest(request)
 
