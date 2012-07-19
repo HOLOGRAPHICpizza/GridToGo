@@ -1,3 +1,4 @@
+from gridtogo.shared.networkobjects import *
 from gi.repository import Gtk
 import os
 
@@ -37,6 +38,7 @@ class LoginWindowHandler(WindowHandler):
 	def quitClicked(self, *args):
 		self.clientObject.stop()
 
+#TODO: Put this code in the right place.
 class CreateUserWindowHandler(WindowHandler):
 	def __init__(self, builder, clientObject, factory, window):
 		super(CreateUserWindowHandler, self).__init__(builder, clientObject, factory, window)
@@ -58,11 +60,43 @@ class CreateUserWindowHandler(WindowHandler):
 						Gtk.DialogFlags.DestroyWithParent,
 						Gtk.MessageType.MessageError,
 						Gtk.ButtonsType.OK,
-						"Passwords are not identical.")
+						"Passwords do not match.")
 			dialog.run()
 			dialog.destroy()
 			return
 
+		self.clientObject.factory.onConnectionEstablished = self.connectionEstablished
+		self.clientObject.factory.onUsernameConflict = self.onUsernameConflict
+		self.clientObject.factory.onCreateUserSuccess = self.onCreateUserSuccess
+		#reactor.connectTCP("localhost", 8017, self.clientObject.factory)
+	
+	def onUsernameConflict(self):
+		dialog = Gtk.MessageDialog(self.window,
+					Gtk.DialogFlags.DESTROY_WITH_PARENT,
+					Gtk.MessageType.ERROR,
+					Gtk.ButtonsType.OK,
+					"Username conflict.")
+		dialog.run()
+		dialog.destroy()
+		
+	def onCreateUserSuccess(self):
+		dialog = Gtk.MessageDialog(self.window,
+					Gtk.DialogFlags.DESTROY_WITH_PARENT,
+					Gtk.MessageType.SUCCESS,
+					Gtk.ButtonsType.OK,
+					"User created successfully!")
+		dialog.run()
+		dialog.destroy()
+		self.window.destroy()
+
+	def connectionEstablished(self):
+		email = self.emailEntry.get_text()
+		firstName = self.firstNameEntry.get_text()
+		lastName = self.firstNameEntry.get_text()
+		passwordEntry = self.passwordEntry.get_text()
+
+		request = CreateUserRequest(firstName, lastName, passwordEntry, email)
+		self.clientObject.writeRequest(request)
+
 	def cancelClicked(self, *args):
 		self.window.destroy()
-		pass
