@@ -202,6 +202,7 @@
                 <property name="margin_right">24</property>
                 <property name="use_action_appearance">False</property>
                 <property name="use_underline">True</property>
+                <signal name="clicked" handler="quitClicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -219,6 +220,7 @@
                 <property name="receives_default">True</property>
                 <property name="margin_left">29</property>
                 <property name="use_action_appearance">False</property>
+                <signal name="clicked" handler="loginClicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -235,6 +237,7 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_action_appearance">False</property>
+                <signal name="clicked" handler="createUserClicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -252,6 +255,7 @@
                 <property name="receives_default">True</property>
                 <property name="use_action_appearance">False</property>
                 <property name="yalign">0.47999998927116394</property>
+                <signal name="clicked" handler="LANModeClicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">True</property>
