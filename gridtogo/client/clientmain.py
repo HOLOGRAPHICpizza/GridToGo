@@ -22,6 +22,8 @@ class GridToGoClient(object):
 		self.attempt = None
 		self.protocol = None
 
+		self.loginHandler = None
+
 		# list of functions to call when we get a connection
 		# passes a reference to a Protocol to each
 		self.callOnConnected = []
@@ -53,7 +55,8 @@ class GridToGoClient(object):
 		print("connected")
 		self.protocol = protocol
 		for f in self.callOnConnected:
-			f(protocol)
+			if callable(f):
+				f(protocol)
 
 	def onConnectionFailed(self, failure):
 		self.attempt = None
@@ -83,13 +86,11 @@ class GTGClientProtocol(basic.LineReceiver):
 			#if the message is about a successful login, then open the main form.
 			#If not, simply generate a response as to why.
 			if isinstance(response, LoginSuccess):
-				print response
+				print response.message
 			elif isinstance(response, IncorrectPassword):
-				print response
+				print response.message
 			elif isinstance(response, UnknownUser):
-				print response
-
-				
+				print response.message
 
 			print(line + " | " + repr(response))
 

@@ -84,17 +84,20 @@ class GTGProtocol(basic.LineReceiver):
 							user = User(userAccount.UUID)
 							user.firstName = userAccount.firstName
 							user.lastName = userAccount.lastName
-							user.online = True
+							# The user will be set online when we apply the delta below, not here
+							user.online = False
 							user.moderator = (len(grid.users) < 1)
 							user.gridHost = user.moderator
 							grid.users[user.UUID] = user
 							self.database.storeGridAssociation(user, request.grid)
 							print("added user to grid")
 
-						# send the client all the User objects in the grid
+						# send the client all the other User objects in the grid
 						for id in grid.users:
 							u = grid.users[id]
-							self._writeResponse(u)
+							if not u is user:
+								self._writeResponse(u)
+
 
 
 

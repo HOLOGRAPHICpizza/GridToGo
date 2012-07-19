@@ -37,7 +37,7 @@ class LoginWindowHandler(WindowHandler):
 
 	def createUserClicked(self, *args):
 		w = self.factory.buildWindow("createUserWindow", CreateUserWindowHandler)
-		w.show_all()
+		w.window.show_all()
 
 	def loginClicked(self, *args):
 		#TODO: Read host:port from "Coordination Server" box
@@ -78,17 +78,18 @@ class CreateUserWindowHandler(WindowHandler):
 
 		if passwordEntry != passwordRetypeEntry:
 			dialog = Gtk.MessageDialog(self.window,
-						Gtk.DialogFlags.DestroyWithParent,
-						Gtk.MessageType.MessageError,
+						Gtk.DialogFlags.DESTROY_WITH_PARENT,
+						Gtk.MessageType.ERROR,
 						Gtk.ButtonsType.OK,
 						"Passwords do not match.")
 			dialog.run()
 			dialog.destroy()
 			return
 
-		self.clientObject.factory.onConnectionEstablished = self.connectionEstablished
-		self.clientObject.factory.onUsernameConflict = self.onUsernameConflict
-		self.clientObject.factory.onCreateUserSuccess = self.onCreateUserSuccess
+		#TODO: Update this code to be like LoginWindowHandler
+#		self.clientObject.factory.onConnectionEstablished = self.connectionEstablished
+#		self.clientObject.factory.onUsernameConflict = self.onUsernameConflict
+#		self.clientObject.factory.onCreateUserSuccess = self.onCreateUserSuccess
 		#reactor.connectTCP("localhost", 8017, self.clientObject.factory)
 	
 	def onUsernameConflict(self):
