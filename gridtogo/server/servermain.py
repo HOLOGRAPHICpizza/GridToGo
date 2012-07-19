@@ -65,7 +65,8 @@ class GTGProtocol(basic.LineReceiver):
 
 			if not self.authenticated:
 				if isinstance(request, LoginRequest):
-					response = self.authenticator.authenticateUser(request)
+					response, userAccount = self.authenticator.authenticateUser(request)
+					self._writeResponse(response)
 
 					if isinstance(response, LoginSuccess):
 						self.authenticated = True
@@ -73,8 +74,29 @@ class GTGProtocol(basic.LineReceiver):
 						# Load this user's grid if we haven't already
 						if not request.grid in self.grids:
 							self.grids[request.grid] = Grid(request.grid, self.database.getGridUsers(request.grid))
+						grid = self.grids[request.grid]
 
-					self._writeResponse(response)
+						# Join the user to this grid if they are not a member
+						#TODO: Implement "restricted" grids that have an access list
+						user = grid.users.get(userAccount.UUID)
+						if not user:
+							# Create a new user. If first user, give mod and host.
+							user = User(userAccount.UUID)
+							user.firstName = userAccount.firstName
+							user.lastName = userAccount.lastName
+							user.online = True
+							user.moderator = (len(grid.users) < 1)
+							user.gridHost = user.moderator
+							grid.users[user.UUID] = user
+							self.database.storeGridAssociation(user, request.grid)
+							print("added user to grid")
+
+						# send the client all the User objects in the grid
+						for id in grid.users:
+							u = grid.users[id]
+							self._writeResponse(u)
+
+
 
 				elif isinstance(request, ResetPasswordRequest):
 					response = self.authenticator.resetPassword(request)

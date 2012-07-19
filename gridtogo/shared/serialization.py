@@ -1,3 +1,4 @@
+import uuid
 from zope.interface import Interface, implements
 from networkobjects import *
 import json
@@ -35,6 +36,8 @@ class JSONSerializer(object):
 	def deserialize(self, string):
 		try:
 			data = json.loads(string)
+			if not data:
+				raise ValueError("Data is null.")
 		except ValueError:
 			raise InvalidSerializedDataException(self)
 
@@ -58,6 +61,21 @@ class JSONSerializer(object):
 
 		elif class_ is ResetPasswordRequest:
 			return class_(data['firstName'], data['lastName'])
+
+		elif class_ is uuid.UUID:
+			return class_(data['value'])
+
+		elif issubclass(class_, DeltaObject):
+			obj = None
+			if class_ is User:
+				obj = User(data['UUID'])
+			else:
+				obj = class_()
+
+			for key in data:
+				if key != 'className':
+					setattr(obj, key, data[key])
+			return obj
 
 		else:
 			try:
@@ -88,6 +106,16 @@ class JSONSerializer(object):
 			elif isinstance(obj, ResetPasswordRequest):
 				data['firstName'] = obj.firstName
 				data['lastName'] = obj.lastName
+				return data
+
+			elif isinstance(obj, uuid.UUID):
+				data['value'] = str(obj)
+				return data
+
+			elif isinstance(obj, DeltaObject):
+				for a in obj.attributes:
+					if hasattr(obj, a):
+						data[a] = getattr(obj, a)
 				return data
 			
 			else:

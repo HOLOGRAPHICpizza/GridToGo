@@ -16,12 +16,12 @@ class Authenticator(object):
 		hashedPassword = hashlib.sha224(loginRequest.password).hexdigest()
 		userAccount = self.database.getUserAccountByName(loginRequest.firstName, loginRequest.lastName)
 		if not userAccount:
-			return UnknownUser()
+			return UnknownUser(), None
 
 		if userAccount.hashedPassword == hashedPassword:
-			return LoginSuccess()
+			return LoginSuccess(), userAccount
 		else:
-			return IncorrectPassword()
+			return IncorrectPassword(), None
 
 	def createUser(self, createUserRequest):
 		userAccount = self.database.getUserAccountByName(createUserRequest.firstName, createUserRequest.lastName)

@@ -36,11 +36,11 @@ class GridToGoClient(object):
 		reactor.run()
 
 	def attemptConnection(self, host, port, timeout):
-		if self.attempt:
-			print("attempt already in progress!")
-			return
 		if self.endpoint:
 			print("already connected!")
+			return
+		if self.attempt:
+			print("attempt already in progress!")
 			return
 
 		self.endpoint = endpoints.TCP4ClientEndpoint(reactor, host, port, timeout)
