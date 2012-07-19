@@ -26,16 +26,6 @@ class UserAccount(object):
 		user.NATStatus = False
 		return user
 
-class Grid(object):
-
-	def __init__(self, name):
-		self.name = name
-
-		# list of User objects
-		self.users = []
-
-		self.regions = []
-
 class DatabaseException(Exception):
 	"""Thrown on a problem with the database."""
 	pass
@@ -60,7 +50,7 @@ class IDatabase(Interface):
 		pass
 
 	def getGridUsers(self, gridName):
-		"""Return a list of User objects which are members of the given grid name."""
+		"""Return a dictionary of User objects which are members of the given grid name, keys are UUIDs."""
 		pass
 
 	def close(self):
@@ -161,14 +151,14 @@ class SQLiteDatabase(object):
 		cursor.execute('SELECT users.UUID, users.firstName, users.lastName, gridUsers.moderator, gridUsers.gridHost ' +
 		               'FROM users INNER JOIN gridUsers ON users.UUID=gridUsers.user WHERE gridUsers.gridName=?', [gridName])
 
-		users = []
+		users = {}
 		for record in cursor.fetchall():
 			user = User(record[0])
 			user.firstName = record[1]
 			user.lastName = record[2]
 			user.moderator = record[3]
 			user.gridHost = record[4]
-			users.append(user)
+			users[user.UUID] = user
 		return users
 
 	def close(self):

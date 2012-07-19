@@ -2,7 +2,7 @@ from twisted.internet import gtk3reactor
 gtk3reactor.install()
 
 from gi.repository import Gtk
-from twisted.internet import protocol, reactor
+from twisted.internet import protocol, reactor, endpoints, defer
 from twisted.protocols import basic
 from gridtogo.shared import serialization, networkobjects
 from gridtogo.shared.networkobjects import *
@@ -18,13 +18,47 @@ class GridToGoClient(object):
 		self.projectRoot = projectRoot
 		self.factory = GTGClientFactory()
 
+		self.endpoint = None
+		self.attempt = None
+		self.protocol = None
+
+		# list of functions to call when we get a connection
+		# passes a reference to a Protocol to each
+		self.callOnConnected = []
+		#TODO: implement a callOnConnectionFailed list
+
 	def run(self):
 		windowFactory = WindowFactory(self)
-		loginWindow = windowFactory.buildWindow('loginWindow', LoginWindowHandler)
-		loginWindow.show_all()
+		self.loginHandler = windowFactory.buildWindow('loginWindow', LoginWindowHandler)
+		self.loginHandler.window.show_all()
 
 		#reactor.connectTCP("localhost", 8017, self.factory)
 		reactor.run()
+
+	def attemptConnection(self, host, port, timeout):
+		if self.attempt:
+			print("attempt already in progress!")
+			return
+		if self.endpoint:
+			print("already connected!")
+			return
+
+		self.endpoint = endpoints.TCP4ClientEndpoint(reactor, host, port, timeout)
+		self.attempt = self.endpoint.connect(self.factory)
+		self.attempt.addCallback(self.onConnected)
+		self.attempt.addErrback(self.onConnectionFailed)
+		print("attempting connection...")
+
+	def onConnected(self, protocol):
+		print("connected")
+		self.protocol = protocol
+		for f in self.callOnConnected:
+			f(protocol)
+
+	def onConnectionFailed(self, failure):
+		self.attempt = None
+		self.endpoint = None
+		print(failure.value)
 
 	def stop(self):
 		reactor.stop()
@@ -60,11 +94,12 @@ class GTGClientProtocol(basic.LineReceiver):
 class GTGClientFactory(protocol.ClientFactory):
 	def __init__(self):
 		self.serializer = serialization.ILineSerializer(serialization.JSONSerializer(networkobjects))
-		self.currentProtocol = None
+		#self.currentProtocol = None
 
 	def buildProtocol(self, addr):
-		if not self.currentProtocol:
-			self.currentProtocol = GTGClientProtocol(self.serializer)
-			return self.currentProtocol
-		else:
-			raise Exception("BUG: Attempted to build a second protocol, client should not do this.")
+		return GTGClientProtocol(self.serializer)
+		#if not self.currentProtocol:
+		#	self.currentProtocol = GTGClientProtocol(self.serializer)
+		#	return self.currentProtocol
+		#else:
+		#	raise Exception("BUG: Attempted to build a second protocol, client should not do this.")

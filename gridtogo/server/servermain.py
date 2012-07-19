@@ -41,10 +41,12 @@ class GTGProtocol(basic.LineReceiver):
 	Any serialization can be used, default implementation is JSON.
 	One of these is created for each client connection.
 	"""
-	def __init__(self, serializer, authenticator):
+	def __init__(self, serializer, database, authenticator, grids):
 		# Aliases for convenience
 		self.serializer = serializer
+		self.database = database
 		self.authenticator = authenticator
+		self.grids = grids
 
 		self.authenticated = False
 
@@ -64,8 +66,14 @@ class GTGProtocol(basic.LineReceiver):
 			if not self.authenticated:
 				if isinstance(request, LoginRequest):
 					response = self.authenticator.authenticateUser(request)
+
 					if isinstance(response, LoginSuccess):
 						self.authenticated = True
+
+						# Load this user's grid if we haven't already
+						if not request.grid in self.grids:
+							self.grids[request.grid] = Grid(request.grid, self.database.getGridUsers(request.grid))
+
 					self._writeResponse(response)
 
 				elif isinstance(request, ResetPasswordRequest):
@@ -103,10 +111,14 @@ class GTGFactory(protocol.ServerFactory):
 		self.authenticator = authentication.Authenticator(self.database)
 		self.serializer = serialization.ILineSerializer(serialization.JSONSerializer(networkobjects))
 
-		# A set of Grid objects
-		self.grids = set()
+		# A dictionary of Grid objects
+		self.grids = {}
 
 	def buildProtocol(self, addr):
-		return GTGProtocol(self.serializer, self.authenticator)
+		return GTGProtocol(self.serializer, self.database, self.authenticator, self.grids)
 
+class Grid(object):
 
+	def __init__(self, name, users):
+		self.name = name
+		self.users = users

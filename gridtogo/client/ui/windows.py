@@ -12,7 +12,7 @@ class WindowFactory(object):
 		builder.add_from_file(os.path.join(self.clientObject.projectRoot, "gridtogo", 'client', 'ui', windowName + '.glade'))
 		handler = handlerClass(builder, self.clientObject, self, builder.get_object(windowName))
 		builder.connect_signals(handler)
-		return handler.window
+		return handler
 
 class WindowHandler(object):
 	def __init__(self, builder, clientObject, factory, window):
@@ -23,10 +23,13 @@ class WindowHandler(object):
 
 class LoginWindowHandler(WindowHandler):
 	def __init__(self, builder, clientObject, factory, window):
-		super(LoginWindowHandler, self).__init__(builder, clientObject, factory, 			window)
+		super(LoginWindowHandler, self).__init__(builder, clientObject, factory, window)
 		self.firstNameEntry = builder.get_object("firstName")
 		self.lastNameEntry = builder.get_object("lastName")
 		self.passwordEntry = builder.get_object("password")
+
+		# register our stuff to be called
+		self.clientObject.callOnConnected.append(self.onConnectionEstablished)
 
 	def LANModeClicked(self, *args):
 		print("LAN Mode")
@@ -36,15 +39,18 @@ class LoginWindowHandler(WindowHandler):
 		w.show_all()
 
 	def loginClicked(self, *args):
-		reactor.connectTCP('localhost', 8017, self.factory)
-		self.factory.onConnectionEstablished = self.onConnectionEstablished()
+		#TODO: Read host:port from "Coordination Server" box
+		#TODO: remove the print statements from connection process and use a spinner and msg boxes
+		self.clientObject.attemptConnection('localhost', 8017, 5)
 
-	def onConnectionEstablished(self):
-		firname = self.firstNameEntry.get_text()
-		lasname = self.lastNameEntry.get_text()
-		passwd = self.passwordEntry.get_text()
-		request = LoginRequest(firname, lasname, passwd, grid)
-		self.clientObject.writeRequest(request)
+	def onConnectionEstablished(self, protocol):
+		#TODO: make this stuff work
+		pass
+#		firname = self.firstNameEntry.get_text()
+#		lasname = self.lastNameEntry.get_text()
+#		passwd = self.passwordEntry.get_text()
+#		request = LoginRequest(firname, lasname, passwd, grid)
+#		self.clientObject.protocol.writeRequest(request)
 
 	def forgotPasswordClicked(self, *args):
 		print("forgot password")
