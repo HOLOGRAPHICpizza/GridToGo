@@ -27,6 +27,7 @@ class LoginWindowHandler(WindowHandler):
 		self.firstNameEntry = builder.get_object("firstName")
 		self.lastNameEntry = builder.get_object("lastName")
 		self.passwordEntry = builder.get_object("password")
+		
 
 		# register our stuff to be called
 		self.clientObject.callOnConnected.append(self.onConnectionEstablished)
@@ -44,13 +45,13 @@ class LoginWindowHandler(WindowHandler):
 		self.clientObject.attemptConnection('localhost', 8017, 5)
 
 	def onConnectionEstablished(self, protocol):
-		#TODO: make this stuff work
-		pass
-#		firname = self.firstNameEntry.get_text()
-#		lasname = self.lastNameEntry.get_text()
-#		passwd = self.passwordEntry.get_text()
-#		request = LoginRequest(firname, lasname, passwd, grid)
-#		self.clientObject.protocol.writeRequest(request)
+		
+		firname = self.firstNameEntry.get_text()
+		lasname = self.lastNameEntry.get_text()
+		passwd = self.passwordEntry.get_text()
+		grid = "testgrid"
+		request = LoginRequest(firname, lasname, passwd, grid)
+		self.clientObject.protocol.writeRequest(request)
 
 	def forgotPasswordClicked(self, *args):
 		print("forgot password")
