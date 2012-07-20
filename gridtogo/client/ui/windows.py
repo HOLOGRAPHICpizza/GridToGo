@@ -2,6 +2,10 @@ from gridtogo.shared.networkobjects import *
 from gi.repository import Gtk
 import os
 
+class SpinnerPopup(Gtk.Window):
+	def __init__(self, message):
+		pass
+
 class WindowFactory(object):
 	def __init__(self, clientObject):
 		self.clientObject = clientObject
@@ -37,10 +41,11 @@ class LoginWindowHandler(WindowHandler):
 		self.clientObject.createUserWindowHandler.window.show_all()
 
 	def loginClicked(self, *args):
-		#TODO: Read host:port from "Coordination Server" box
-		#TODO: remove the print statements from connection process and use a spinner and msg boxes
+
+
 		# register our stuff to be called then attempt connection
 		self.clientObject.callOnConnected.append(self.onConnectionEstablished)
+		#TODO: Read host:port from "Coordination Server" box
 		self.clientObject.attemptConnection('localhost', 8017, 5)
 
 	def onConnectionEstablished(self, protocol):
@@ -60,7 +65,6 @@ class LoginWindowHandler(WindowHandler):
 	def quitClicked(self, *args):
 		self.clientObject.stop()
 
-#TODO: Put this code in the right place.
 class CreateUserWindowHandler(WindowHandler):
 	def __init__(self, builder, clientObject, factory, window):
 		super(CreateUserWindowHandler, self).__init__(builder, clientObject, factory, window)
@@ -82,7 +86,7 @@ class CreateUserWindowHandler(WindowHandler):
 
 		if passwordEntry != passwordRetypeEntry:
 			dialog = Gtk.MessageDialog(self.window,
-						Gtk.DialogFlags.DESTROY_WITH_PARENT,
+						Gtk.DialogFlags.MODAL,
 						Gtk.MessageType.ERROR,
 						Gtk.ButtonsType.OK,
 						"Passwords do not match.")
@@ -97,7 +101,7 @@ class CreateUserWindowHandler(WindowHandler):
 		
 	def onCreateUserSuccess(self):
 		dialog = Gtk.MessageDialog(self.window,
-					Gtk.DialogFlags.DESTROY_WITH_PARENT,
+					Gtk.DialogFlags.MODAL,
 					Gtk.MessageType.INFO,
 					Gtk.ButtonsType.OK,
 					CreateUserSuccess().message)

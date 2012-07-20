@@ -37,7 +37,8 @@ class GridToGoClient(object):
 		self.loginHandler = windowFactory.buildWindow('loginWindow', LoginWindowHandler)
 		self.loginHandler.window.show_all()
 
-		#reactor.connectTCP("localhost", 8017, self.factory)
+		popup = Gtk.Window()
+
 		reactor.run()
 
 	def attemptConnection(self, host, port, timeout):
@@ -88,7 +89,7 @@ class GTGClientProtocol(basic.LineReceiver):
 					self.clientObject.createUserWindowHandler.onCreateUserSuccess()
 				else:
 					dialog = Gtk.MessageDialog(self.clientObject.createUserWindowHandler.window,
-						Gtk.DialogFlags.DESTROY_WITH_PARENT,
+						Gtk.DialogFlags.MODAL,
 						Gtk.MessageType.ERROR,
 						Gtk.ButtonsType.OK,
 						response.message)
