@@ -8,6 +8,8 @@ from gridtogo.shared import serialization, networkobjects
 from gridtogo.shared.networkobjects import *
 from ui.windows import *
 
+PRINT_PACKETS = True
+
 #TODO: Move this test code to a different module and make this the real client
 class GridToGoClient(object):
 	"""
@@ -75,13 +77,12 @@ class GTGClientProtocol(basic.LineReceiver):
 		pass
 
 	def lineReceived(self, line):
-
-		#print("IN : " + line)
-
 		try:
 			#TODO: Perhaps in the future we should make (de)serialization operations asynchronous,
 			# not sure if this is worth the effort/overhead or not.
 			response = self.serializer.deserialize(line)
+			if PRINT_PACKETS:
+				print("IN : %s | %s" % (response.__class__.__name__, line))
 
 			#if the message is about a successful login, then open the main form.
 			#If not, simply generate a response as to why.
@@ -92,15 +93,14 @@ class GTGClientProtocol(basic.LineReceiver):
 			elif isinstance(response, UnknownUser):
 				print response.message
 
-			print(line + " | " + repr(response))
-
 		except serialization.InvalidSerializedDataException:
 			print("Server sent bad data.")
 			self.transport.loseConnection()
 
 	def writeRequest(self, request):
 		line = self.serializer.serialize(request)
-		#print("OUT: " + line)
+		if PRINT_PACKETS:
+			print("OUT: %s | %s" % (request.__class__.__name__, line))
 		self.transport.write(line + "\r\n")
 
 class GTGClientFactory(protocol.ClientFactory):
