@@ -24,6 +24,12 @@ class Authenticator(object):
 			return IncorrectPassword(), None
 
 	def createUser(self, createUserRequest):
+		if createUserRequest.firstName == ""\
+			or createUserRequest.lastName == ""\
+			or createUserRequest.email == ""\
+			or createUserRequest.password == "":
+			return InvalidData()
+
 		userAccount = self.database.getUserAccountByName(createUserRequest.firstName, createUserRequest.lastName)
 		#TODO: Possibly do additional checking such as password complexity, email validity, flood checking
 		if userAccount:

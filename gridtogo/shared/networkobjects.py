@@ -33,6 +33,10 @@ class CreateUserResponse(object):
 	def __init__(self):
 		self.message = 'Unknown error creating account, this is probably a bug.'
 
+class InvalidData(CreateUserResponse):
+	def __init__(self):
+		self.message = 'The name, password, or email you specified is not valid.'
+
 class UsernameConflict(CreateUserResponse):
 	def __init__(self):
 		self.message = 'Someone with the same name already exists in the database.'

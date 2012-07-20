@@ -29,29 +29,30 @@ class LoginWindowHandler(WindowHandler):
 		self.passwordEntry = builder.get_object("password")
 		self.gridEntry = builder.get_object("grid")
 
-		# register our stuff to be called
-		self.clientObject.callOnConnected.append(self.onConnectionEstablished)
-
 	def LANModeClicked(self, *args):
 		print("LAN Mode")
 
 	def createUserClicked(self, *args):
-		w = self.factory.buildWindow("createUserWindow", CreateUserWindowHandler)
-		w.window.show_all()
+		self.clientObject.createUserWindowHandler = self.factory.buildWindow("createUserWindow", CreateUserWindowHandler)
+		self.clientObject.createUserWindowHandler.window.show_all()
 
 	def loginClicked(self, *args):
 		#TODO: Read host:port from "Coordination Server" box
 		#TODO: remove the print statements from connection process and use a spinner and msg boxes
+		# register our stuff to be called then attempt connection
+		self.clientObject.callOnConnected.append(self.onConnectionEstablished)
 		self.clientObject.attemptConnection('localhost', 8017, 5)
 
 	def onConnectionEstablished(self, protocol):
-		
 		firname = self.firstNameEntry.get_text()
 		lasname = self.lastNameEntry.get_text()
 		passwd = self.passwordEntry.get_text()
 		grid = self.gridEntry.get_text()
 		request = LoginRequest(firname, lasname, passwd, grid)
 		self.clientObject.protocol.writeRequest(request)
+
+		# de-register this method
+		self.clientObject.callOnConnected.remove(self.onConnectionEstablished)
 
 	def forgotPasswordClicked(self, *args):
 		print("forgot password")
@@ -68,6 +69,9 @@ class CreateUserWindowHandler(WindowHandler):
 		self.lastNameEntry = builder.get_object("entryLastName")
 		self.passwordEntry = builder.get_object("entryPassword")
 		self.passwordRetypeEntry = builder.get_object("entryRetypePassword")
+
+	def destroy(self):
+		self.window.destroy()
 
 	def createUserClicked(self, *args):
 		email = self.emailEntry.get_text()
@@ -86,39 +90,32 @@ class CreateUserWindowHandler(WindowHandler):
 			dialog.destroy()
 			return
 
-		#TODO: Update this code to be like LoginWindowHandler
-#		self.clientObject.factory.onConnectionEstablished = self.connectionEstablished
-#		self.clientObject.factory.onUsernameConflict = self.onUsernameConflict
-#		self.clientObject.factory.onCreateUserSuccess = self.onCreateUserSuccess
-		#reactor.connectTCP("localhost", 8017, self.clientObject.factory)
-	
-	def onUsernameConflict(self):
-		dialog = Gtk.MessageDialog(self.window,
-					Gtk.DialogFlags.DESTROY_WITH_PARENT,
-					Gtk.MessageType.ERROR,
-					Gtk.ButtonsType.OK,
-					"Username conflict.")
-		dialog.run()
-		dialog.destroy()
+		# Register our method and attempt connection
+		self.clientObject.callOnConnected.append(self.connectionEstablished)
+		#TODO: Read host:port from "Coordination Server" box
+		self.clientObject.attemptConnection('localhost', 8017, 5)
 		
 	def onCreateUserSuccess(self):
 		dialog = Gtk.MessageDialog(self.window,
 					Gtk.DialogFlags.DESTROY_WITH_PARENT,
-					Gtk.MessageType.SUCCESS,
+					Gtk.MessageType.INFO,
 					Gtk.ButtonsType.OK,
-					"User created successfully!")
+					CreateUserSuccess().message)
 		dialog.run()
 		dialog.destroy()
-		self.window.destroy()
+		self.destroy()
 
-	def connectionEstablished(self):
+	def connectionEstablished(self, protocol):
 		email = self.emailEntry.get_text()
 		firstName = self.firstNameEntry.get_text()
 		lastName = self.lastNameEntry.get_text()
 		passwordEntry = self.passwordEntry.get_text()
 
 		request = CreateUserRequest(firstName, lastName, passwordEntry, email)
-		self.clientObject.writeRequest(request)
+		self.clientObject.protocol.writeRequest(request)
+
+		# de-register this method
+		self.clientObject.callOnConnected.remove(self.connectionEstablished)
 
 	def cancelClicked(self, *args):
-		self.window.destroy()
+		self.destroy()

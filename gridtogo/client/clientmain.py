@@ -18,13 +18,14 @@ class GridToGoClient(object):
 	"""
 	def __init__(self, projectRoot):
 		self.projectRoot = projectRoot
-		self.factory = GTGClientFactory()
+		self.factory = GTGClientFactory(self)
 
 		self.endpoint = None
 		self.attempt = None
 		self.protocol = None
 
 		self.loginHandler = None
+		self.createUserWindowHandler = None
 
 		# list of functions to call when we get a connection
 		# passes a reference to a Protocol to each
@@ -40,21 +41,20 @@ class GridToGoClient(object):
 		reactor.run()
 
 	def attemptConnection(self, host, port, timeout):
-		if self.endpoint:
-			print("already connected!")
-			return
+		if self.protocol:
+			# assume we are already connected and call onConnected again
+			self.onConnected(self.protocol)
 		if self.attempt:
-			print("attempt already in progress!")
+			print("connection attempt already in progress!")
 			return
 
 		self.endpoint = endpoints.TCP4ClientEndpoint(reactor, host, port, timeout)
 		self.attempt = self.endpoint.connect(self.factory)
 		self.attempt.addCallback(self.onConnected)
 		self.attempt.addErrback(self.onConnectionFailed)
-		print("attempting connection...")
 
 	def onConnected(self, protocol):
-		print("connected")
+		self.attempt = None
 		self.protocol = protocol
 		for f in self.callOnConnected:
 			if callable(f):
@@ -69,29 +69,42 @@ class GridToGoClient(object):
 		reactor.stop()
 
 class GTGClientProtocol(basic.LineReceiver):
-	def __init__(self, serializer):
+	def __init__(self, clientObject, serializer):
 		# Alias for convenience
 		self.serializer = serializer
-
-	def connectionMade(self):
-		pass
+		self.clientObject = clientObject
 
 	def lineReceived(self, line):
 		try:
 			#TODO: Perhaps in the future we should make (de)serialization operations asynchronous,
 			# not sure if this is worth the effort/overhead or not.
 			response = self.serializer.deserialize(line)
+
 			if PRINT_PACKETS:
 				print("IN : %s | %s" % (response.__class__.__name__, line))
 
-			#if the message is about a successful login, then open the main form.
-			#If not, simply generate a response as to why.
-			if isinstance(response, LoginSuccess):
-				print response.message
-			elif isinstance(response, IncorrectPassword):
-				print response.message
-			elif isinstance(response, UnknownUser):
-				print response.message
+			if isinstance(response, CreateUserResponse):
+				if isinstance(response, CreateUserSuccess):
+					self.clientObject.createUserWindowHandler.onCreateUserSuccess()
+				else:
+					dialog = Gtk.MessageDialog(self.clientObject.createUserWindowHandler.window,
+						Gtk.DialogFlags.DESTROY_WITH_PARENT,
+						Gtk.MessageType.ERROR,
+						Gtk.ButtonsType.OK,
+						response.message)
+					dialog.run()
+					dialog.destroy()
+
+			# if the message is about a successful login, then open the main form.
+			# If not, simply generate a response as to why.
+			if self.clientObject.loginHandler:
+				if isinstance(response, LoginSuccess):
+					pass
+					#self.clientObject.loginHandler.
+				elif isinstance(response, IncorrectPassword):
+					print response.message
+				elif isinstance(response, UnknownUser):
+					print response.message
 
 		except serialization.InvalidSerializedDataException:
 			print("Server sent bad data.")
@@ -104,12 +117,12 @@ class GTGClientProtocol(basic.LineReceiver):
 		self.transport.write(line + "\r\n")
 
 class GTGClientFactory(protocol.ClientFactory):
-	def __init__(self):
+	def __init__(self, clientObject):
 		self.serializer = serialization.ILineSerializer(serialization.JSONSerializer(networkobjects))
-		#self.currentProtocol = None
+		self.clientObject = clientObject
 
 	def buildProtocol(self, addr):
-		return GTGClientProtocol(self.serializer)
+		return GTGClientProtocol(self.clientObject, self.serializer)
 		#if not self.currentProtocol:
 		#	self.currentProtocol = GTGClientProtocol(self.serializer)
 		#	return self.currentProtocol
