@@ -1,5 +1,5 @@
 from gridtogo.shared.networkobjects import *
-from gi.repository import Gtk
+from gi.repository import Gtk, Gdk
 import os
 
 def showModalDialog(parent, messageType, message):
@@ -12,8 +12,28 @@ def showModalDialog(parent, messageType, message):
 	dialog.destroy()
 
 class SpinnerPopup(Gtk.Window):
-	def __init__(self, message):
-		pass
+	def __init__(self, parent, message):
+		#TODO: Get some kind of padding on the outer edge of the window.
+		Gtk.Window.__init__(
+			self,
+			type = Gtk.WindowType.POPUP,
+			window_position = Gtk.WindowPosition.CENTER_ON_PARENT)
+
+		self.set_transient_for(parent)
+
+		self.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(255, 255, 255, 255))
+
+		box = Gtk.VBox()
+		self.add(box)
+
+		spinner = Gtk.Spinner(width_request=75, height_request=75)
+		#TODO: Override the spinner foreground color to black. Spinner needs special treatment.
+		spinner.start()
+		box.pack_start(spinner, False, False, 0)
+
+		label = Gtk.Label(message)
+		label.override_color(Gtk.StateType.NORMAL, Gdk.RGBA(0, 0, 0, 255))
+		box.pack_start(label, False, False, 0)
 
 class WindowFactory(object):
 	def __init__(self, clientObject):
@@ -55,7 +75,7 @@ class LoginWindowHandler(WindowHandler):
 		# register our stuff to be called then attempt connection
 		self.clientObject.callOnConnected.append(self.onConnectionEstablished)
 		#TODO: Read host:port from "Coordination Server" box
-		self.clientObject.attemptConnection('localhost', 8017, 5)
+		self.clientObject.attemptConnection(self.window, 'localhost', 8017, 5)
 
 	def onConnectionEstablished(self, protocol):
 		firname = self.firstNameEntry.get_text()
@@ -100,7 +120,7 @@ class CreateUserWindowHandler(WindowHandler):
 		# Register our method and attempt connection
 		self.clientObject.callOnConnected.append(self.connectionEstablished)
 		#TODO: Read host:port from "Coordination Server" box
-		self.clientObject.attemptConnection('localhost', 8017, 5)
+		self.clientObject.attemptConnection(self.window, 'localhost', 8017, 5)
 		
 	def onCreateUserSuccess(self):
 		showModalDialog(self.window, Gtk.MessageType.INFO, CreateUserSuccess().message)

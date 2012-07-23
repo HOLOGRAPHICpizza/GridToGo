@@ -26,6 +26,7 @@ class GridToGoClient(object):
 
 		self.loginHandler = None
 		self.createUserWindowHandler = None
+		self.spinner = None
 
 		# list of functions to call when we get a connection
 		# passes a reference to a Protocol to each
@@ -41,7 +42,7 @@ class GridToGoClient(object):
 
 		reactor.run()
 
-	def attemptConnection(self, host, port, timeout):
+	def attemptConnection(self, spinnerParent, host, port, timeout):
 		if self.protocol:
 			# assume we are already connected and call onConnected again
 			self.onConnected(self.protocol)
@@ -49,12 +50,17 @@ class GridToGoClient(object):
 			print("connection attempt already in progress!")
 			return
 
+		self.spinner = SpinnerPopup(spinnerParent, 'Connecting...')
+		self.spinner.show_all()
+
 		self.endpoint = endpoints.TCP4ClientEndpoint(reactor, host, port, timeout)
 		self.attempt = self.endpoint.connect(self.factory)
 		self.attempt.addCallback(self.onConnected)
 		self.attempt.addErrback(self.onConnectionFailed)
+		self.attempt.window = spinnerParent
 
 	def onConnected(self, protocol):
+		self.spinner.destroy()
 		self.attempt = None
 		self.protocol = protocol
 		for f in self.callOnConnected:
@@ -62,9 +68,10 @@ class GridToGoClient(object):
 				f(protocol)
 
 	def onConnectionFailed(self, failure):
+		self.spinner.destroy()
+		showModalDialog(self.attempt.window, Gtk.MessageType.ERROR, failure.value)
 		self.attempt = None
 		self.endpoint = None
-		print(failure.value)
 
 	def destroyWindow(self, handler):
 		if handler and handler.window:
