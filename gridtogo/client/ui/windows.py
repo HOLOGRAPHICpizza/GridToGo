@@ -120,3 +120,18 @@ class CreateUserWindowHandler(WindowHandler):
 
 	def cancelClicked(self, *args):
 		self.destroy()
+
+class MainWindowHandler(WindowHandler):
+
+	def __init__(self, builder, clientObject, factory, window):
+		super(MainWindowHandler, self).__init__(builder, clientObject, factory, window)
+		
+		self.box = Gtk.Box(spacing=6)
+		
+
+
+
+	def PopulateTable(self):
+
+	def destroy(self):
+		self.window.destroy()

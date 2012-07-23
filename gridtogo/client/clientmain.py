@@ -93,10 +93,13 @@ class GTGClientProtocol(basic.LineReceiver):
 			if isinstance(response, LoginResponse) and self.clientObject.loginHandler:
 				if isinstance(response, LoginSuccess):
 					#TODO: Spawn main window instead of this dialog
-					showModalDialog(
-						self.clientObject.loginHandler.window,
-						Gtk.MessageType.INFO,
-						response.message)
+						GridToGoClient.destroyWindow(self, LoginWindowHandler)
+						
+						WindowFactory(self, "MainWindow", MainWindowHandler)
+						#showModalDialog(
+						#self.clientObject.loginHandler.window,
+						#Gtk.MessageType.INFO,
+						#response.message)
 				else:
 					showModalDialog(
 						self.clientObject.loginHandler.window,
