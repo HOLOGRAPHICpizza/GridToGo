@@ -66,6 +66,11 @@ class GridToGoClient(object):
 		self.endpoint = None
 		print(failure.value)
 
+	def destroyWindow(self, handler):
+		if handler and handler.window:
+			handler.window.destroy()
+		handler = None
+
 	def stop(self):
 		reactor.stop()
 
@@ -84,28 +89,30 @@ class GTGClientProtocol(basic.LineReceiver):
 			if PRINT_PACKETS:
 				print("IN : %s | %s" % (response.__class__.__name__, line))
 
-			if isinstance(response, CreateUserResponse):
+			# Login Stuff
+			if isinstance(response, LoginResponse) and self.clientObject.loginHandler:
+				if isinstance(response, LoginSuccess):
+					#TODO: Spawn main window instead of this dialog
+					showModalDialog(
+						self.clientObject.loginHandler.window,
+						Gtk.MessageType.INFO,
+						response.message)
+				else:
+					showModalDialog(
+						self.clientObject.loginHandler.window,
+						Gtk.MessageType.ERROR,
+						response.message)
+
+			# Create User Stuff
+			elif isinstance(response, CreateUserResponse) and self.clientObject.createUserWindowHandler:
 				if isinstance(response, CreateUserSuccess):
 					self.clientObject.createUserWindowHandler.onCreateUserSuccess()
+					self.clientObject.destroyWindow(self.clientObject.createUserWindowHandler)
 				else:
-					dialog = Gtk.MessageDialog(self.clientObject.createUserWindowHandler.window,
-						Gtk.DialogFlags.MODAL,
+					showModalDialog(
+						self.clientObject.createUserWindowHandler.window,
 						Gtk.MessageType.ERROR,
-						Gtk.ButtonsType.OK,
 						response.message)
-					dialog.run()
-					dialog.destroy()
-
-			# if the message is about a successful login, then open the main form.
-			# If not, simply generate a response as to why.
-			if self.clientObject.loginHandler:
-				if isinstance(response, LoginSuccess):
-					pass
-					#self.clientObject.loginHandler.
-				elif isinstance(response, IncorrectPassword):
-					print response.message
-				elif isinstance(response, UnknownUser):
-					print response.message
 
 		except serialization.InvalidSerializedDataException:
 			print("Server sent bad data.")

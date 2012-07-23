@@ -2,6 +2,15 @@ from gridtogo.shared.networkobjects import *
 from gi.repository import Gtk
 import os
 
+def showModalDialog(parent, messageType, message):
+	dialog = Gtk.MessageDialog(parent,
+		Gtk.DialogFlags.MODAL,
+		messageType,
+		Gtk.ButtonsType.OK,
+		message)
+	dialog.run()
+	dialog.destroy()
+
 class SpinnerPopup(Gtk.Window):
 	def __init__(self, message):
 		pass
@@ -85,13 +94,7 @@ class CreateUserWindowHandler(WindowHandler):
 		passwordRetypeEntry = self.passwordRetypeEntry.get_text()
 
 		if passwordEntry != passwordRetypeEntry:
-			dialog = Gtk.MessageDialog(self.window,
-						Gtk.DialogFlags.MODAL,
-						Gtk.MessageType.ERROR,
-						Gtk.ButtonsType.OK,
-						"Passwords do not match.")
-			dialog.run()
-			dialog.destroy()
+			showModalDialog(self.window, Gtk.MessageType.ERROR, "Passwords do not match.")
 			return
 
 		# Register our method and attempt connection
@@ -100,13 +103,7 @@ class CreateUserWindowHandler(WindowHandler):
 		self.clientObject.attemptConnection('localhost', 8017, 5)
 		
 	def onCreateUserSuccess(self):
-		dialog = Gtk.MessageDialog(self.window,
-					Gtk.DialogFlags.MODAL,
-					Gtk.MessageType.INFO,
-					Gtk.ButtonsType.OK,
-					CreateUserSuccess().message)
-		dialog.run()
-		dialog.destroy()
+		showModalDialog(self.window, Gtk.MessageType.INFO, CreateUserSuccess().message)
 		self.destroy()
 
 	def connectionEstablished(self, protocol):
