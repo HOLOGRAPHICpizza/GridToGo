@@ -24,9 +24,11 @@ class GridToGoClient(object):
 		self.attempt = None
 		self.protocol = None
 
+		self.windowFactory = None
 		self.loginHandler = None
 		self.createUserWindowHandler = None
 		self.spinner = None
+		self.mainWindowHandler = None
 
 		# list of functions to call when we get a connection
 		# passes a reference to a Protocol to each
@@ -34,8 +36,8 @@ class GridToGoClient(object):
 		#TODO: implement a callOnConnectionFailed list
 
 	def run(self):
-		windowFactory = WindowFactory(self)
-		self.loginHandler = windowFactory.buildWindow('loginWindow', LoginWindowHandler)
+		self.windowFactory = WindowFactory(self)
+		self.loginHandler = self.windowFactory.buildWindow('loginWindow', LoginWindowHandler)
 		self.loginHandler.window.show_all()
 
 		popup = Gtk.Window()
@@ -73,11 +75,6 @@ class GridToGoClient(object):
 		self.attempt = None
 		self.endpoint = None
 
-	def destroyWindow(self, handler):
-		if handler and handler.window:
-			handler.window.destroy()
-		handler = None
-
 	def stop(self):
 		reactor.stop()
 
@@ -99,14 +96,12 @@ class GTGClientProtocol(basic.LineReceiver):
 			# Login Stuff
 			if isinstance(response, LoginResponse) and self.clientObject.loginHandler:
 				if isinstance(response, LoginSuccess):
-					#TODO: Spawn main window instead of this dialog
-						GridToGoClient.destroyWindow(self, LoginWindowHandler)
-						
-						WindowFactory(self, "MainWindow", MainWindowHandler)
-						#showModalDialog(
-						#self.clientObject.loginHandler.window,
-						#Gtk.MessageType.INFO,
-						#response.message)
+					self.clientObject.loginHandler.window.destroy()
+					self.clientObject.loginHandler = None
+
+					self.clientObject.mainWindowHandler = \
+						self.clientObject.windowFactory.buildWindow("mainWindow", MainWindowHandler)
+					self.clientObject.mainWindowHandler.window.show_all()
 				else:
 					showModalDialog(
 						self.clientObject.loginHandler.window,
@@ -117,7 +112,8 @@ class GTGClientProtocol(basic.LineReceiver):
 			elif isinstance(response, CreateUserResponse) and self.clientObject.createUserWindowHandler:
 				if isinstance(response, CreateUserSuccess):
 					self.clientObject.createUserWindowHandler.onCreateUserSuccess()
-					self.clientObject.destroyWindow(self.clientObject.createUserWindowHandler)
+					self.clientObject.createUserWindowHandler.window.destroy()
+					self.clientObject.createUserWindowHandler = None
 				else:
 					showModalDialog(
 						self.clientObject.createUserWindowHandler.window,
@@ -141,8 +137,3 @@ class GTGClientFactory(protocol.ClientFactory):
 
 	def buildProtocol(self, addr):
 		return GTGClientProtocol(self.clientObject, self.serializer)
-		#if not self.currentProtocol:
-		#	self.currentProtocol = GTGClientProtocol(self.serializer)
-		#	return self.currentProtocol
-		#else:
-		#	raise Exception("BUG: Attempted to build a second protocol, client should not do this.")

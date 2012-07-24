@@ -75,7 +75,7 @@ class LoginWindowHandler(WindowHandler):
 		# register our stuff to be called then attempt connection
 		self.clientObject.callOnConnected.append(self.onConnectionEstablished)
 		#TODO: Read host:port from "Coordination Server" box
-		self.clientObject.attemptConnection(self.window, 'localhost', 8017, 5)
+		self.clientObject.attemptConnection(self.window, '172.16.2.9', 8017, 5)
 
 	def onConnectionEstablished(self, protocol):
 		firname = self.firstNameEntry.get_text()
@@ -120,7 +120,7 @@ class CreateUserWindowHandler(WindowHandler):
 		# Register our method and attempt connection
 		self.clientObject.callOnConnected.append(self.connectionEstablished)
 		#TODO: Read host:port from "Coordination Server" box
-		self.clientObject.attemptConnection(self.window, 'localhost', 8017, 5)
+		self.clientObject.attemptConnection(self.window, '172.16.2.8', 8017, 5)
 		
 	def onCreateUserSuccess(self):
 		showModalDialog(self.window, Gtk.MessageType.INFO, CreateUserSuccess().message)
@@ -146,12 +146,22 @@ class MainWindowHandler(WindowHandler):
 	def __init__(self, builder, clientObject, factory, window):
 		super(MainWindowHandler, self).__init__(builder, clientObject, factory, window)
 		
-		self.box = Gtk.Box(spacing=6)
 		
 
 
 
 	def PopulateTable(self):
+<<<<<<< HEAD
+		#take the data recieved and sort it accordingly
+		self.box = Gtk.Box(spacing=6)
+		if self.vbox:
+			self.vbox.destroy()
+		self.VBox = gtk.VBox(False)
 		
+		hbox = gtk.Hbox()
+
+		pass
+
+>>>>>>> c72c2ec8eeb67ba0a31ee847ccb05457d92bfc58
 	def destroy(self):
 		self.window.destroy()
