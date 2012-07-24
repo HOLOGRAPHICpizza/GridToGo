@@ -3,6 +3,7 @@
   <!-- interface-requires gtk+ 3.0 -->
   <object class="GtkWindow" id="mainWindow">
     <property name="can_focus">False</property>
+    <signal name="destroy" handler="destroy" swapped="no"/>
     <child>
       <object class="GtkNotebook" id="notebookGridToGo">
         <property name="visible">True</property>
@@ -151,7 +152,7 @@
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="use_action_appearance">False</property>
-                    <signal name="clicked" handler="onbtnNewRegionClicked()" swapped="no"/>
+                    <signal name="clicked" handler="onbtnNewRegionClicked" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>

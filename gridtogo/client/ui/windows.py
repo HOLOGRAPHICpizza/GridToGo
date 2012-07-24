@@ -11,7 +11,7 @@ def showModalDialog(parent, messageType, message):
 	dialog.run()
 	dialog.destroy()
 
-class BoxCreator(self):
+class BoxCreator(object):
 	def __init__(self):
 		vbox = Gtk.Box(spacing=7)
 		self.vbox = gtk.VBox(False)
@@ -156,7 +156,7 @@ class MainWindowHandler(WindowHandler):
 		
 
 	def onbtnNewRegionClicked(self, *args):
-		self.clientObject.windowCreateRegionHandler = self.factory.buildWindow("windowCreateRegion", CreateUserWindowHandler)
+		self.clientObject.windowCreateRegionHandler = self.factory.buildWindow("createRegionWindow", windowCreateRegionHandler)
 		self.clientObject.windowCreateRegionHandler.window.show_all()
 
 
@@ -173,7 +173,7 @@ class MainWindowHandler(WindowHandler):
 		pass
 
 	def destroy(self):
-		self.window.destroy()
+		self.destroy()
 
 class windowCreateRegionHandler(WindowHandler):
 	
@@ -191,7 +191,7 @@ class windowCreateRegionHandler(WindowHandler):
 
 		
 	def onbtnCancelClicked(self, *args):
-		self.destroy()
+		self.window.destroy()
 
 	def destroy(self):
-		self.destroy()
+		self.window.destroy()
