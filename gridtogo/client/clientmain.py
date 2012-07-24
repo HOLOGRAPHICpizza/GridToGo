@@ -39,9 +39,6 @@ class GridToGoClient(object):
 		self.loginHandler = self.windowFactory.buildWindow('loginWindow', LoginWindowHandler)
 		self.loginHandler.window.show_all()
 
-		#self.mainWindowHandler = self.windowFactory.buildWindow('mainWindow', MainWindowHandler)
-		#self.mainWindowHandler.window.show_all()
-
 		reactor.run()
 
 	def attemptConnection(self, spinnerParent, host, port, timeout):

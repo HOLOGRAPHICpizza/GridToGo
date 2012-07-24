@@ -2,6 +2,8 @@ from gridtogo.shared.networkobjects import *
 from gi.repository import Gtk, Gdk
 import os
 
+PREFIL_LOGIN_SAMPLE_DATA = True
+
 def showModalDialog(parent, messageType, message):
 	dialog = Gtk.MessageDialog(parent,
 		Gtk.DialogFlags.MODAL,
@@ -10,6 +12,43 @@ def showModalDialog(parent, messageType, message):
 		message)
 	dialog.run()
 	dialog.destroy()
+
+def loadImage(imageName, clientObject):
+	return Gtk.Image.new_from_file(
+		os.path.join(
+			clientObject.projectRoot, "gridtogo", 'client', 'ui', imageName
+		)
+	)
+
+class UserList(Gtk.VBox):
+	"""This container will hold the visual list of users in the grid."""
+
+	def __init__(self, clientObject):
+		Gtk.VBox.__init__(self)
+
+		# Images
+		self.statusGrey = loadImage('status-grey.png', clientObject)
+		self.statusYellow = loadImage('status-yellow.png', clientObject)
+		self.statusGreen = loadImage('status-green.png', clientObject)
+		self.gridHostActive = loadImage('gridhost-active.png', clientObject)
+		self.gridHostInactive = loadImage('gridhost-inactive.png', clientObject)
+
+		# Dictionary mapping UUIDs to HBoxes
+		self.rows = {}
+
+	def updateUser(self, user):
+		"""Pass in a User object to add or update its entry."""
+		row = Gtk.HBox()
+
+		#TODO: Set tooltips for things, or our users will be confuzzeled
+		row.pack_start(self.statusYellow, False, False, 0)
+
+		name = Gtk.Label("test user")
+		row.pack_start(name, True, False, 0)
+
+		row.pack_start(self.gridHostInactive, False, False, 0)
+
+		self.pack_end(row, False, False, 0)
 
 class SpinnerPopup(Gtk.Window):
 	def __init__(self, parent, message):
@@ -61,6 +100,12 @@ class LoginWindowHandler(WindowHandler):
 		self.lastNameEntry = builder.get_object("lastName")
 		self.passwordEntry = builder.get_object("password")
 		self.gridEntry = builder.get_object("grid")
+
+		if PREFIL_LOGIN_SAMPLE_DATA:
+			self.firstNameEntry.set_text("test")
+			self.lastNameEntry.set_text("user")
+			self.passwordEntry.set_text("testpass")
+			self.gridEntry.set_text("testgrid")
 
 	def LANModeClicked(self, *args):
 		print("LAN Mode")
@@ -146,7 +191,10 @@ class MainWindowHandler(WindowHandler):
 	def __init__(self, builder, clientObject, factory, window):
 		super(MainWindowHandler, self).__init__(builder, clientObject, factory, window)
 		
-		self.box = Gtk.Box(spacing=6)
+		vbox = builder.get_object("vbox")
+		list = UserList(clientObject)
+		list.updateUser(None)
+		vbox.pack_start(list, False, False, 0)
 
 	def PopulateTable(self):
 		pass
