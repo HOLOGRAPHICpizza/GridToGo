@@ -11,6 +11,14 @@ def showModalDialog(parent, messageType, message):
 	dialog.run()
 	dialog.destroy()
 
+class BoxCreator(self):
+	def __init__(self):
+		vbox = Gtk.Box(spacing=7)
+		self.vbox = gtk.VBox(False)
+		
+		self.hbox = gtk.Hbox(False)
+
+
 class SpinnerPopup(Gtk.Window):
 	def __init__(self, parent, message):
 		#TODO: Get some kind of padding on the outer edge of the window.
@@ -153,12 +161,12 @@ class MainWindowHandler(WindowHandler):
 	def PopulateTable(self):
 
 		#take the data recieved and sort it accordingly
-		self.box = Gtk.Box(spacing=6)
-		if self.vbox:
-			self.vbox.destroy()
-		self.VBox = gtk.VBox(False)
 		
-		hbox = gtk.Hbox()
+		if self.Vbox:
+			self.vbox.destroy()
+		self.Vbox = gtk.VBox(False)
+		
+		hbox = gtk.Hbox(False)
 
 		pass
 
