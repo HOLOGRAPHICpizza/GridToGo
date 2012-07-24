@@ -37,3 +37,6 @@ nosetests.xml
 # SQLite Databases
 *.db
 
+# Gedit Swap Files
+*~
+

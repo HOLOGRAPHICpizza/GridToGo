@@ -191,13 +191,51 @@ class MainWindowHandler(WindowHandler):
 	def __init__(self, builder, clientObject, factory, window):
 		super(MainWindowHandler, self).__init__(builder, clientObject, factory, window)
 		
+<<<<<<< HEAD
 		vbox = builder.get_object("vbox")
 		list = UserList(clientObject)
 		list.updateUser(None)
 		vbox.pack_start(list, False, False, 0)
+=======
+
+	def onbtnNewRegionClicked(self, *args):
+		self.clientObject.windowCreateRegionHandler = self.factory.buildWindow("createRegionWindow", windowCreateRegionHandler)
+		self.clientObject.windowCreateRegionHandler.window.show_all()
+
+>>>>>>> 035ae4aafa9f99e0e4c85cc3a7792c1d444bda40
 
 	def PopulateTable(self):
+
+		#take the data recieved and sort it accordingly
+		
+		#if self.Vbox:
+		#	self.vbox.destroy()
+		#self.Vbox = gtk.VBox(False)
+		
+		#hbox = gtk.Hbox(False)
+
 		pass
+
+	def destroy(self):
+		self.destroy()
+
+class windowCreateRegionHandler(WindowHandler):
+	
+	def __init__(self, builder, clientObject, factory, window):
+		super(windowCreateRegionHandler, self).__init__(builder, clientObject, factory, window)
+		
+		self.regionName = builder.get_object("entRegionName")
+		self.location = builder.get_object("entLocation")
+		self.externalHostname = builder.get_object("entExtHostname")
+
+	def onbtnCreateRegionClicked(self, *args):
+		region = self.regionName.get_text()
+		coordinates = self.location.get_text()
+		hostname = self.externalHostname.get_text()
+
+		
+	def onbtnCancelClicked(self, *args):
+		self.window.destroy()
 
 	def destroy(self):
 		self.window.destroy()
