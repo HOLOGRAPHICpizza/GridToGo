@@ -10,7 +10,6 @@ from ui.windows import *
 
 PRINT_PACKETS = True
 
-#TODO: Move this test code to a different module and make this the real client
 class GridToGoClient(object):
 	"""
 	One instance of this class should exist in our application.
@@ -33,14 +32,15 @@ class GridToGoClient(object):
 		# list of functions to call when we get a connection
 		# passes a reference to a Protocol to each
 		self.callOnConnected = []
-		#TODO: implement a callOnConnectionFailed list
+		#TODO: implement a callOnConnectionFailed list - MAYBE, IF NECESSARY
 
 	def run(self):
 		self.windowFactory = WindowFactory(self)
 		self.loginHandler = self.windowFactory.buildWindow('loginWindow', LoginWindowHandler)
 		self.loginHandler.window.show_all()
 
-		popup = Gtk.Window()
+		#self.mainWindowHandler = self.windowFactory.buildWindow('mainWindow', MainWindowHandler)
+		#self.mainWindowHandler.window.show_all()
 
 		reactor.run()
 
@@ -96,12 +96,12 @@ class GTGClientProtocol(basic.LineReceiver):
 			# Login Stuff
 			if isinstance(response, LoginResponse) and self.clientObject.loginHandler:
 				if isinstance(response, LoginSuccess):
-					self.clientObject.loginHandler.window.destroy()
-					self.clientObject.loginHandler = None
-
 					self.clientObject.mainWindowHandler = \
 						self.clientObject.windowFactory.buildWindow("mainWindow", MainWindowHandler)
 					self.clientObject.mainWindowHandler.window.show_all()
+
+					self.clientObject.loginHandler.window.destroy()
+					self.clientObject.loginHandler = None
 				else:
 					showModalDialog(
 						self.clientObject.loginHandler.window,

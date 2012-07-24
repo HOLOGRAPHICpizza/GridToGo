@@ -78,12 +78,10 @@ class LoginWindowHandler(WindowHandler):
 		self.clientObject.createUserWindowHandler.window.show_all()
 
 	def loginClicked(self, *args):
-
-
 		# register our stuff to be called then attempt connection
 		self.clientObject.callOnConnected.append(self.onConnectionEstablished)
 		#TODO: Read host:port from "Coordination Server" box
-		self.clientObject.attemptConnection(self.window, '172.16.2.9', 8017, 5)
+		self.clientObject.attemptConnection(self.window, 'localhost', 8017, 5)
 
 	def onConnectionEstablished(self, protocol):
 		firname = self.firstNameEntry.get_text()
@@ -100,7 +98,9 @@ class LoginWindowHandler(WindowHandler):
 		print("forgot password")
 
 	def quitClicked(self, *args):
-		self.clientObject.stop()
+		# Make sure we don't shut down the whole application if we are logged in
+		if not self.clientObject.mainWindowHandler:
+			self.clientObject.stop()
 
 class CreateUserWindowHandler(WindowHandler):
 	def __init__(self, builder, clientObject, factory, window):
@@ -128,7 +128,7 @@ class CreateUserWindowHandler(WindowHandler):
 		# Register our method and attempt connection
 		self.clientObject.callOnConnected.append(self.connectionEstablished)
 		#TODO: Read host:port from "Coordination Server" box
-		self.clientObject.attemptConnection(self.window, '172.16.2.8', 8017, 5)
+		self.clientObject.attemptConnection(self.window, 'localhost', 8017, 5)
 		
 	def onCreateUserSuccess(self):
 		showModalDialog(self.window, Gtk.MessageType.INFO, CreateUserSuccess().message)
@@ -154,8 +154,6 @@ class MainWindowHandler(WindowHandler):
 	def __init__(self, builder, clientObject, factory, window):
 		super(MainWindowHandler, self).__init__(builder, clientObject, factory, window)
 		
-		
-
 
 
 	def PopulateTable(self):
