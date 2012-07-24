@@ -155,18 +155,43 @@ class MainWindowHandler(WindowHandler):
 		super(MainWindowHandler, self).__init__(builder, clientObject, factory, window)
 		
 
+	def onbtnNewRegionClicked(self, *args):
+		self.clientObject.windowCreateRegionHandler = self.factory.buildWindow("windowCreateRegion", CreateUserWindowHandler)
+		self.clientObject.windowCreateRegionHandler.window.show_all()
+
 
 	def PopulateTable(self):
 
 		#take the data recieved and sort it accordingly
 		
-		if self.Vbox:
-			self.vbox.destroy()
-		self.Vbox = gtk.VBox(False)
+		#if self.Vbox:
+		#	self.vbox.destroy()
+		#self.Vbox = gtk.VBox(False)
 		
-		hbox = gtk.Hbox(False)
+		#hbox = gtk.Hbox(False)
 
 		pass
 
 	def destroy(self):
 		self.window.destroy()
+
+class windowCreateRegionHandler(WindowHandler):
+	
+	def __init__(self, builder, clientObject, factory, window):
+		super(windowCreateRegionHandler, self).__init__(builder, clientObject, factory, window)
+		
+		self.regionName = builder.get_object("entRegionName")
+		self.location = builder.get_object("entLocation")
+		self.externalHostname = builder.get_object("entExtHostname")
+
+	def onbtnCreateRegionClicked(self, *args):
+		region = self.regionName.get_text()
+		coordinates = self.location.get_text()
+		hostname = self.externalHostname.get_text()
+
+		
+	def onbtnCancelClicked(self, *args):
+		self.destroy()
+
+	def destroy(self):
+		self.destroy()

@@ -144,13 +144,14 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton" id="btnCreateRegion">
+                  <object class="GtkButton" id="btnNewRegion">
                     <property name="label" translatable="yes">New Region</property>
                     <property name="use_action_appearance">False</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="use_action_appearance">False</property>
+                    <signal name="clicked" handler="onbtnNewRegionClicked()" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
