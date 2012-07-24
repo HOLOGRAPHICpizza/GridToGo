@@ -152,7 +152,6 @@ class MainWindowHandler(WindowHandler):
 
 
 	def PopulateTable(self):
-		#take the data recieved and sort it accordingly
 		
 	def destroy(self):
 		self.window.destroy()
