@@ -246,12 +246,6 @@ class MainWindowHandler(WindowHandler):
 	def __init__(self, builder, clientObject, factory, window):
 		super(MainWindowHandler, self).__init__(builder, clientObject, factory, window)
 
-		
-		vbox = builder.get_object("vbox")
-		list = UserList(clientObject)
-		list.updateUser(None)
-		vbox.pack_start(list, False, False, 0)
-
 		# Create UserList
 		vbox = builder.get_object("vbox")
 		self.userList = UserList(clientObject)
