@@ -40,16 +40,16 @@ class Grid(object):
 		# This is a dictionary mapping UUIDs to User objects
 		self.users = users
 
-		# This is a list of connected protocols
-		self.protocols = []
+		# maps UUIDs to Protocol objects
+		self.protocols = {}
 
 	def applyUserDelta(self, user):
 		self.users[user.UUID].applyDelta(user)
 		self.writeResponseToAll(user)
 
 	def writeResponseToAll(self, response):
-		for p in self.protocols:
-			p.writeResponse(response)
+		for uuid in self.protocols:
+			self.protocols[uuid].writeResponse(response)
 
 # Protocol example of successful login
 # Client        -   Server
@@ -114,12 +114,18 @@ class GTGProtocol(basic.LineReceiver):
 							self.grid.users[self.user.UUID] = self.user
 							self.database.storeGridAssociation(self.user, request.grid)
 
+						# Duplicate instance checking
+						#TODO: Kick old user off with a message instead of this hacky refusal
+						if self.grid.protocols.get(self.user.UUID):
+							self.transport.write('No multiple instances! >:O')
+							self.transport.loseConnection()
+
 						# send the client all the User objects in the grid
 						for id in self.grid.users:
 							self.writeResponse(self.grid.users[id])
 
 						# register this user's connection in our list
-						self.grid.protocols.append(self)
+						self.grid.protocols[self.user.UUID] = self
 
 						# mark this user online with a delta object
 						delta = User(self.user.UUID)
@@ -142,7 +148,14 @@ class GTGProtocol(basic.LineReceiver):
 			self.transport.write("Stop sending me bad data! >:|\r\n")
 			self.transport.loseConnection()
 
-	#TODO: onConnectionLost
+	def connectionLost(self, reason):
+		if self.user:
+			if self.grid.protocols.get(self.user.UUID):
+				del self.grid.protocols[self.user.UUID]
+			delta = User(self.user.UUID)
+			delta.online = False
+			delta.NATStatus = False
+			self.grid.applyUserDelta(delta)
 
 	def writeResponse(self, response):
 		line = self.serializer.serialize(response)

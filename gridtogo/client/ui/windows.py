@@ -7,6 +7,11 @@ from twisted.python import log
 PREFIL_LOGIN_SAMPLE_DATA = True
 
 def showModalDialog(parent, messageType, message):
+	"""
+	Examples of calls, blocks until user hits OK:
+		showModalDialog(self.window, Gtk.MessageType.ERROR, "Passwords do not match.")
+		showModalDialog(None, Gtk.MessageType.INFO, "Hello, world!")
+	"""
 	dialog = Gtk.MessageDialog(parent,
 		Gtk.DialogFlags.MODAL,
 		messageType,
@@ -92,6 +97,13 @@ class UserList(Gtk.VBox):
 		row.show_all()
 
 class SpinnerPopup(Gtk.Window):
+	"""
+	Example of call, does not block, parent can be None:
+		spinner = SpinnerPopup(spinnerParent, 'Connecting...')
+		spinner.show_all()
+		# do stuff
+		spinner.destroy()
+	"""
 	def __init__(self, parent, message):
 		#TODO: Get some kind of padding on the outer edge of the window.
 		Gtk.Window.__init__(
@@ -178,6 +190,7 @@ class LoginWindowHandler(WindowHandler):
 	def quitClicked(self, *args):
 		# Make sure we don't shut down the whole application if we are logged in
 		if not self.clientObject.mainWindowHandler:
+			self.clientObject.dieing = True
 			self.clientObject.stop()
 
 class CreateUserWindowHandler(WindowHandler):
@@ -190,7 +203,8 @@ class CreateUserWindowHandler(WindowHandler):
 		self.passwordRetypeEntry = builder.get_object("entryRetypePassword")
 
 	def destroy(self):
-		self.window.destroy()
+		if self.window:
+			self.window.destroy()
 
 	def createUserClicked(self, *args):
 		email = self.emailEntry.get_text()
@@ -240,6 +254,7 @@ class MainWindowHandler(WindowHandler):
 
 	def destroy(self, arg):
 		self.window.destroy()
+		self.clientObject.dieing = True
 		self.clientObject.stop()
 
 	def onbtnNewRegionClicked(self, *args):
@@ -266,4 +281,5 @@ class CreateRegionWindowHandler(WindowHandler):
 		self.window.destroy()
 
 	def destroy(self):
-		self.window.destroy()
+		if self.window:
+			self.window.destroy()
