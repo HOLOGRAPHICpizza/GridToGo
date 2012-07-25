@@ -246,6 +246,12 @@ class MainWindowHandler(WindowHandler):
 	def __init__(self, builder, clientObject, factory, window):
 		super(MainWindowHandler, self).__init__(builder, clientObject, factory, window)
 
+		
+		vbox = builder.get_object("vbox")
+		list = UserList(clientObject)
+		list.updateUser(None)
+		vbox.pack_start(list, False, False, 0)
+
 		# Create UserList
 		vbox = builder.get_object("vbox")
 		self.userList = UserList(clientObject)
@@ -262,6 +268,37 @@ class MainWindowHandler(WindowHandler):
 		self.factory.buildWindow("createRegionWindow", CreateRegionWindowHandler)
 		print self.clientObject.createRegionWindowHandler
 		self.clientObject.createRegionWindowHandler.window.show_all()
+
+	def PopulateTable(self):
+
+		#take the data recieved and sort it accordingly
+		
+		#if self.Vbox:
+		#	self.vbox.destroy()
+		#self.Vbox = gtk.VBox(False)
+		
+		#hbox = gtk.Hbox(False)
+
+		pass
+
+	def destroy(self):
+		self.destroy()
+
+
+		# Create UserList
+		vbox = builder.get_object("vbox")
+		self.userList = UserList(clientObject)
+		vbox.pack_start(self.userList, False, False, 0)
+		self.userList.show_all()
+
+	def onbtnNewRegionClicked(self, *args):
+		self.clientObject.CreateRegionWindowHandler = self.factory.buildWindow("createRegionWindow", CreateRegionWindowHandler)
+		self.clientObject.CreateRegionWindowHandler.window.show_all()
+
+	def destroy(self, arg):
+		self.window.destroy()
+		self.clientObject.stop()
+
 
 class CreateRegionWindowHandler(WindowHandler):
 	def __init__(self, builder, clientObject, factory, window):

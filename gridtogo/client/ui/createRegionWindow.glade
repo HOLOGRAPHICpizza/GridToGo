@@ -5,6 +5,7 @@
     <property name="can_focus">False</property>
     <property name="border_width">10</property>
     <property name="title" translatable="yes">Create a New Region</property>
+    <signal name="destroy" handler="destroy" swapped="no"/>
     <child>
       <object class="GtkBox" id="box1">
         <property name="visible">True</property>
@@ -128,7 +129,7 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_action_appearance">False</property>
-                <signal name="clicked" handler="onbtnCreateRegionClicked()" swapped="no"/>
+                <signal name="clicked" handler="onbtnCreateRegionClicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -144,7 +145,7 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_action_appearance">False</property>
-                <signal name="clicked" handler="onbtnCancelClicked()" swapped="no"/>
+                <signal name="clicked" handler="onbtnCancelClicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
