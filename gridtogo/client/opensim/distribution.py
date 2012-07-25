@@ -16,6 +16,7 @@ class Distribution(object):
 		self.directory = directory
 		self.opensimtar = directory + "/opensim.tar.gz"
 		self.opensimdir = directory + "/opensim"
+		self.opensimreg = directory + "/opensim/bin/Regions"
 		self.configdir = directory + "/config"
 		self.load()
 	
@@ -49,6 +50,28 @@ class Distribution(object):
 			self.projectroot + "/gridtogo/client/opensim/OpenSim.ini",
 			self.opensimdir + "/bin/OpenSim.ini")
 		
+	def createRegion(self.opensimdir, self.opensimreg, regionName, Location, extHostname):
+		#TODO: check for duplicate regions		
+		#Create a region's .ini file, then move it to opensim.
+		#for knownRegions in self.opensimreg:
+
+			#if regionName + ".ini" == knownRegions:
+				#return False
+
+		newRegion = open(regionName + ".ini", 'w')
+		newRegion.write("[" + regionName + "]\n")
+		UUID = str(uuid.uuid4())
+		newRegion.write("RegionUUID = " + UUID  + "\n")
+		newRegion.write("Location = " + Location + "\n")
+		newRegion.write("InternalAddress = 0.0.0.0\n")
+		newRegion.write("InternalPort = 9000\n")
+		newRegion.write("AllowAlternatePorts = False\n")
+		newRegion.write("ExternalHostname = " + extHostname + "\n")
+		
+		shutil.copy2(os.path.join(self.opensimdir, regionName + ".ini"), self.opensimreg)
+		newRegion.close()
+		
+
 	def download(self):
 		log.msg("Downloading file: " + self.opensimtar)
 		log.msg("Establishing connection to: dist.opensimulator.org")
@@ -123,3 +146,4 @@ if __name__ == "__main__":
 	log.startLogging(sys.stdout)
 	dist = Distribution(".", "/home/jared/.gridtogo")
 	dist.configure("MyGrid", "localhost")
+
