@@ -191,18 +191,16 @@ class MainWindowHandler(WindowHandler):
 	def __init__(self, builder, clientObject, factory, window):
 		super(MainWindowHandler, self).__init__(builder, clientObject, factory, window)
 		
-<<<<<<< HEAD
 		vbox = builder.get_object("vbox")
 		list = UserList(clientObject)
 		list.updateUser(None)
 		vbox.pack_start(list, False, False, 0)
-=======
 
 	def onbtnNewRegionClicked(self, *args):
-		self.clientObject.windowCreateRegionHandler = self.factory.buildWindow("createRegionWindow", windowCreateRegionHandler)
-		self.clientObject.windowCreateRegionHandler.window.show_all()
-
->>>>>>> 035ae4aafa9f99e0e4c85cc3a7792c1d444bda40
+		self.clientObject.createRegionWindowHandler = \
+		self.factory.buildWindow("createRegionWindow", createRegionWindowHandler)
+		print self.clientObject.createRegionWindowHandler
+		self.clientObject.createRegionWindowHandler.window.show_all()
 
 	def PopulateTable(self):
 
@@ -219,10 +217,9 @@ class MainWindowHandler(WindowHandler):
 	def destroy(self):
 		self.destroy()
 
-class windowCreateRegionHandler(WindowHandler):
-	
+class createRegionWindowHandler(WindowHandler):
 	def __init__(self, builder, clientObject, factory, window):
-		super(windowCreateRegionHandler, self).__init__(builder, clientObject, factory, window)
+		super(createRegionWindowHandler, self).__init__(builder, clientObject, factory, window)
 		
 		self.regionName = builder.get_object("entRegionName")
 		self.location = builder.get_object("entLocation")

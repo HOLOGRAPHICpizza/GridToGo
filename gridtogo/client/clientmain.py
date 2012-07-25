@@ -28,6 +28,7 @@ class GridToGoClient(object):
 		self.createUserWindowHandler = None
 		self.spinner = None
 		self.mainWindowHandler = None
+		self.createRegionWindowHandler = None
 
 		# list of functions to call when we get a connection
 		# passes a reference to a Protocol to each
