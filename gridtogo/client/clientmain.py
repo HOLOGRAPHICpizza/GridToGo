@@ -2,8 +2,10 @@ from twisted.internet import gtk3reactor
 gtk3reactor.install()
 
 from gi.repository import Gtk
+import sys
 from twisted.internet import protocol, reactor, endpoints, defer
 from twisted.protocols import basic
+from twisted.python import log
 from gridtogo.shared import serialization, networkobjects
 from gridtogo.shared.networkobjects import *
 from ui.windows import *
@@ -28,11 +30,14 @@ class GridToGoClient(object):
 		self.createUserWindowHandler = None
 		self.spinner = None
 		self.mainWindowHandler = None
+		self.createRegionWindowHandler = None
 
 		# list of functions to call when we get a connection
 		# passes a reference to a Protocol to each
 		self.callOnConnected = []
 		#TODO: implement a callOnConnectionFailed list - MAYBE, IF NECESSARY
+
+		log.startLogging(sys.stdout)
 
 	def run(self):
 		self.windowFactory = WindowFactory(self)
@@ -46,7 +51,7 @@ class GridToGoClient(object):
 			# assume we are already connected and call onConnected again
 			self.onConnected(self.protocol)
 		if self.attempt:
-			print("connection attempt already in progress!")
+			log.msg("connection attempt already in progress!")
 			return
 
 		self.spinner = SpinnerPopup(spinnerParent, 'Connecting...')
@@ -88,7 +93,7 @@ class GTGClientProtocol(basic.LineReceiver):
 			response = self.serializer.deserialize(line)
 
 			if PRINT_PACKETS:
-				print("IN : %s | %s" % (response.__class__.__name__, line))
+				log.msg("IN : %s | %s" % (response.__class__.__name__, line))
 
 			# User Objects
 			if isinstance(response, User) and self.clientObject.mainWindowHandler:
@@ -122,13 +127,13 @@ class GTGClientProtocol(basic.LineReceiver):
 						response.message)
 
 		except serialization.InvalidSerializedDataException:
-			print("Server sent bad data.")
+			log.msg("Server sent bad data.")
 			self.transport.loseConnection()
 
 	def writeRequest(self, request):
 		line = self.serializer.serialize(request)
 		if PRINT_PACKETS:
-			print("OUT: %s | %s" % (request.__class__.__name__, line))
+			log.msg("OUT: %s | %s" % (request.__class__.__name__, line))
 		self.transport.write(line + "\r\n")
 
 class GTGClientFactory(protocol.ClientFactory):
