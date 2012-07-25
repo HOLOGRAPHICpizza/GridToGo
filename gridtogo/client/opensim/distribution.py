@@ -2,6 +2,7 @@
 
 import httplib
 import os.path
+import string
 import sys
 import tarfile
 from twisted.python import log
@@ -24,13 +25,13 @@ class Distribution(object):
 			log.msg("Creating directory: " + self.opensimdir)
 
 		if not os.path.isfile(self.opensimtar):
-			download()
+			self._download()
 
-		extract()
+		self._extract()
 
 		log.msg("OpenSim Distribution loaded at: " + self.opensimdir)
 		
-	def download(self):
+	def _download(self):
 		log.msg("Downloading file: " + self.opensimtar)
 		log.msg("Establishing connection to: dist.opensim.org")
 		connection = httplib.HTTPConnection("dist.opensim.org")
@@ -48,13 +49,25 @@ class Distribution(object):
 		log.msg("Wrote file: " + self.opensimtar)
 		pass
 		
-	def extract(self):
+	def _extract(self):
 		log.msg("Extracting file: " + self.opensimtar)
 		tar = tarfile.open(self.opensimtar)
 		tar.extract(self.opensimdir)
 		tar.close()
 		log.msg("Extracted file: " + self.opensimtar)
 		pass
+
+class Template(object):
+	def __init__(self, gridname, ip)
+		self.gridname = gridname
+		self.ip = ip
+	
+	def run(self, fin, fout):
+		mappings = {
+			"GRID_NAME": gridname,
+			"IP_ADDRESS": ip
+			}
+		fout.write(string.Template(fin.read()).substitute(mappings))
 
 if __name__ == "__main__":
 	log.startLogging(sys.stdout)
