@@ -1,8 +1,10 @@
 import uuid
+from gridtogo.client.opensim.distribution import Distribution
 from gridtogo.shared.networkobjects import *
 from gi.repository import Gtk, Gdk, GdkPixbuf
 import os
 from twisted.python import log
+
 
 PREFIL_LOGIN_SAMPLE_DATA = True
 
@@ -307,6 +309,7 @@ class CreateRegionWindowHandler(WindowHandler):
 		coordinates = self.location.get_text()
 		hostname = self.externalHostname.get_text()
 
+		distribution = Distribution(clientObject.projectRoot)
 		
 	def onbtnCancelClicked(self, *args):
 		self.window.destroy()
