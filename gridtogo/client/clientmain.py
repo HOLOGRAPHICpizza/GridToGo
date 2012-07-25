@@ -50,7 +50,7 @@ class GridToGoClient(object):
 			# assume we are already connected and call onConnected again
 			self.onConnected(self.protocol)
 		if self.attempt:
-			msg.log("connection attempt already in progress!")
+			log.msg("connection attempt already in progress!")
 			return
 
 		self.spinner = SpinnerPopup(spinnerParent, 'Connecting...')
@@ -92,7 +92,7 @@ class GTGClientProtocol(basic.LineReceiver):
 			response = self.serializer.deserialize(line)
 
 			if PRINT_PACKETS:
-				msg.log("IN : %s | %s" % (response.__class__.__name__, line))
+				log.msg("IN : %s | %s" % (response.__class__.__name__, line))
 
 			# User Objects
 			if isinstance(response, User) and self.clientObject.mainWindowHandler:
@@ -126,13 +126,13 @@ class GTGClientProtocol(basic.LineReceiver):
 						response.message)
 
 		except serialization.InvalidSerializedDataException:
-			msg.log("Server sent bad data.")
+			log.msg("Server sent bad data.")
 			self.transport.loseConnection()
 
 	def writeRequest(self, request):
 		line = self.serializer.serialize(request)
 		if PRINT_PACKETS:
-			msg.log("OUT: %s | %s" % (request.__class__.__name__, line))
+			log.msg("OUT: %s | %s" % (request.__class__.__name__, line))
 		self.transport.write(line + "\r\n")
 
 class GTGClientFactory(protocol.ClientFactory):

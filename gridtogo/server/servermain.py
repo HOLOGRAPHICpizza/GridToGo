@@ -27,7 +27,7 @@ class GridToGoServer(object):
 		try:
 			#TODO: Use SSL so we're not sending passwords in plaintext anymore
 			GridToGoServer.reactor.listenTCP(config.port, GTGFactory(config))
-			log.msg("Listening on port %d." % config.port)
+			#log.msg("Listening on port %d." % config.port)
 			GridToGoServer.reactor.run()
 		except AttributeError:
 			pass
