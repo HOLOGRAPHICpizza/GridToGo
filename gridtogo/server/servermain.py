@@ -1,5 +1,7 @@
+import sys
 from twisted.internet import protocol, reactor
 from twisted.protocols import basic
+from twisted.python import log
 import authentication
 import configuration
 import database
@@ -13,18 +15,19 @@ class GridToGoServer(object):
 	def __init__(self):
 		GridToGoServer.exitcode = 0
 		GridToGoServer.reactor = reactor
+		log.startLogging(sys.stdout)
 
 	def run(self):
 		#testRequest = LoginRequest('Michael', 'Craft', 'testpass', 'testgrid')
 		#testSerializer = serialization.ILineSerializer(serialization.JSONSerializer(networkobjects))
-		#print(testSerializer.serialize(testRequest))
+		#log.msg(testSerializer.serialize(testRequest))
 	
 		config = configuration.ConfigurationLoader().load()
 
 		try:
 			#TODO: Use SSL so we're not sending passwords in plaintext anymore
 			GridToGoServer.reactor.listenTCP(config.port, GTGFactory(config))
-			print("Listening on port %d." % config.port)
+			log.msg("Listening on port %d." % config.port)
 			GridToGoServer.reactor.run()
 		except AttributeError:
 			pass
@@ -82,7 +85,7 @@ class GTGProtocol(basic.LineReceiver):
 			# The same can be said for all database lookups.
 			request = self.serializer.deserialize(line)
 			if PRINT_PACKETS:
-				print("IN : %s | %s" % (request.__class__.__name__, line))
+				log.msg("IN : %s | %s" % (request.__class__.__name__, line))
 
 			if not self.user:
 				if isinstance(request, LoginRequest):
@@ -90,11 +93,11 @@ class GTGProtocol(basic.LineReceiver):
 					self.writeResponse(response)
 
 					if isinstance(response, LoginSuccess):
-						print("%s %s has logged in to grid %s." % (request.firstName, request.lastName, request.grid))
+						log.msg("%s %s has logged in to grid %s." % (request.firstName, request.lastName, request.grid))
 
 						# Load this user's grid if we haven't already
 						if not request.grid in self.grids:
-							print("Loading grid %s from database..." % request.grid)
+							log.msg("Loading grid %s from database..." % request.grid)
 							self.grids[request.grid] = Grid(request.grid, self.database.getGridUsers(request.grid))
 						self.grid = self.grids[request.grid]
 
@@ -102,7 +105,7 @@ class GTGProtocol(basic.LineReceiver):
 						#TODO: Implement "restricted" grids that have an access list
 						self.user = self.grid.users.get(userAccount.UUID)
 						if not self.user:
-							print("Joining user to grid %s...", self.grid.name)
+							log.msg("Joining user to grid %s...", self.grid.name)
 							# Create a new user. If first user, give mod and host.
 							self.user = User(userAccount.UUID)
 							self.user.firstName = userAccount.firstName
@@ -145,7 +148,7 @@ class GTGProtocol(basic.LineReceiver):
 	def writeResponse(self, response):
 		line = self.serializer.serialize(response)
 		if PRINT_PACKETS:
-			print("OUT: %s | %s" % (response.__class__.__name__, line))
+			log.msg("OUT: %s | %s" % (response.__class__.__name__, line))
 		self.transport.write(line + "\r\n")
 
 class GTGFactory(protocol.ServerFactory):

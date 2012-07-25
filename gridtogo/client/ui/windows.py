@@ -2,6 +2,7 @@ import uuid
 from gridtogo.shared.networkobjects import *
 from gi.repository import Gtk, Gdk
 import os
+from twisted.python import log
 
 PREFIL_LOGIN_SAMPLE_DATA = True
 
@@ -147,7 +148,7 @@ class LoginWindowHandler(WindowHandler):
 			self.gridEntry.set_text("testgrid")
 
 	def LANModeClicked(self, *args):
-		print("LAN Mode")
+		log.msg("LAN Mode")
 
 	def createUserClicked(self, *args):
 		self.clientObject.createUserWindowHandler = self.factory.buildWindow("createUserWindow", CreateUserWindowHandler)
@@ -171,7 +172,7 @@ class LoginWindowHandler(WindowHandler):
 		self.clientObject.callOnConnected.remove(self.onConnectionEstablished)
 
 	def forgotPasswordClicked(self, *args):
-		print("forgot password")
+		log.msg("forgot password")
 
 	def quitClicked(self, *args):
 		# Make sure we don't shut down the whole application if we are logged in
