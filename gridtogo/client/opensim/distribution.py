@@ -29,6 +29,7 @@ class Distribution(object):
 		self.opensimtar = self.directory + "/opensim.tar.gz"
 		self.opensimdir = self.directory + "/opensim"
 		self.configdir = self.directory + "/config"
+		self.userconfigdir = self.opensimdir + "/bin/config-include/userconfig"
 		self.regionsdir = self.directory + "/opensim/bin/Regions"
 
 		self.parent = parent
@@ -53,13 +54,24 @@ class Distribution(object):
 
 		if not os.path.isdir(self.regionsdir):
 			log.msg("Creating directory: " + self.regionsdir)
-			os.mkdir(self.opensimreg)
+			os.mkdir(self.regionsdir)
+
+		if not os.path.isdir(self.userconfigdir):
+			log.msg("Creating directory: " + self.userconfigdir)
+			os.mkdir(self.userconfigdir)
 
 		log.msg("OpenSim Distribution loaded at: " + self.opensimdir)
 	
 	def configure(self, gridname, ip):
 		mappings = { "GRID_NAME": gridname, "IP_ADDRESS": ip }
 		log.msg("Configuring Region-Agnostic Configuration")
+		if not os.path.isfile(self.configdir + "/GridCommon.ini"):
+			log.msg("Create file: " + self.configdir + "/GridCommon.ini")
+			open(self.configdir + "/GridCommon.ini", "w").close()
+		if not os.path.isfile(self.configdir + "/OpenSim.ini"):
+			log.msg("Create file: " + self.configdir + "/OpenSim.ini")
+			open(self.configdir + "/OpenSim.ini", "w").close()
+
 		template = Template(mappings)
 		template.run(
 			self.projectroot + "/gridtogo/client/opensim/GridCommon.ini",
@@ -67,14 +79,30 @@ class Distribution(object):
 		template.run(
 			self.projectroot + "/gridtogo/client/opensim/OpenSim.ini",
 			self.opensimdir + "/bin/OpenSim.ini")
+		template.run(
+			self.configdir + "/GridCommon.ini",
+			self.userconfigdir + "/GridCommon.ini")
+		template.run(
+			self.configdir + "/OpenSim.ini",
+			self.userconfigdir + "/OpenSim.ini")
 		log.msg("Configured Region-Agnostic Configuration")
 	
 	def configureRobust(self, gridname, ip):
 		mappings = { "GRID_NAME": gridname, "IP_ADDRESS": ip }
+		log.msg("Configuring Robust")
+		if not os.path.isfile(self.configdir + "/Robust.ini"):
+			log.msg("Create file: " + self.configdir + "/Robust.ini")
+			open(self.configdir + "/Robust.ini").close()
+
 		template = Template(mappings)
 		template.run(
 			self.projectroot + "/gridtogo/client/opensim/Robust.ini",
 			self.opensimdir + "/bin/Robust.ini")
+		template.run(
+			self.configdir + "/Robust.ini",
+			self.userconfigdir + "/Robust.ini")
+
+		log.msg("Configured Robust")
 		
 	def configureRegion(self, regionName, location, extHostname, port):
 		mappings = { "NAME": regionName,
@@ -83,7 +111,18 @@ class Distribution(object):
 					 "PORT": port,
 					 "UUID": uuid.uuid4() }
 		template = Template(mappings)
+		if not os.path.isfile(self.configdir + "/Region.ini"):
+			log.msg("Create file: " + self.configdir + "/Region.ini")
+			open(self.configdir + "/Region.ini", "w").close()
+		if not os.path.isfile(self.configdir + "/Regions.ini"):
+			log.msg("Create file: " + self.configdir + "/Regions.ini")
+			open(self.configdir + "/Regions.ini", "w").close()
+		if not os.path.isfile(self.configdir + "/" + regionName + ".ini"):
+			log.msg("Create file: " + self.configdir + "/" + regionName + ".ini")
+			open(self.configdir + "/" + regionName + ".ini", "w").close()
+			
 		log.msg("Configuring Region: " + regionName)
+
 		template.run(
 			self.projectroot + "/gridtogo/client/opensim/Region.ini",
 			self.regionsdir + "/" + regionName + ".ini")
@@ -93,6 +132,15 @@ class Distribution(object):
 		template.run(
 			self.projectroot + "/gridtogo/client/opensim/Regions.ini",
 			self.regionsdir + "/" + regionName + "/Regions.ini")
+		template.run(
+			self.configdir + "/Region.ini",
+			self.userconfigdir + "/Region.ini")
+		template.run(
+			self.configdir + "/Regions.ini",
+			self.userconfigdir + "/Regions.ini")
+		template.run(
+			self.configdir + "/" + regionName + ".ini",
+			self.userconfigdir + "/" + regionName + ".ini")
 		log.msg("Configured Region: " + regionName)
 
 	def download(self):
@@ -154,10 +202,13 @@ class Template(object):
 		fin = open(inloc, "r")
 		fout = open(outloc, "w")
 
-		fout.write(string.Template(fin.read()).substitute(self.mappings))
+		fout.write(AtTemplate(fin.read()).substitute(self.mappings))
 
 		fin.close()
 		fout.close()
+
+class AtTemplate(string.Template):
+	delimiter = "@"
 
 if __name__ == "__main__":
 	log.startLogging(sys.stdout)
