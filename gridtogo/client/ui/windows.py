@@ -1,6 +1,6 @@
 import uuid
 from gridtogo.shared.networkobjects import *
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, GdkPixbuf
 import os
 from twisted.python import log
 
@@ -15,8 +15,8 @@ def showModalDialog(parent, messageType, message):
 	dialog.run()
 	dialog.destroy()
 
-def loadImage(imageName, clientObject):
-	return Gtk.Image.new_from_file(
+def loadPixbuf(imageName, clientObject):
+	return GdkPixbuf.Pixbuf.new_from_file(
 		os.path.join(
 			clientObject.projectRoot, "gridtogo", 'client', 'ui', imageName
 		)
@@ -29,11 +29,11 @@ class UserList(Gtk.VBox):
 		Gtk.VBox.__init__(self)
 
 		# Images
-		self.statusGrey = loadImage('status-grey.png', clientObject)
-		self.statusYellow = loadImage('status-yellow.png', clientObject)
-		self.statusGreen = loadImage('status-green.png', clientObject)
-		self.gridHostActive = loadImage('gridhost-active.png', clientObject)
-		self.gridHostInactive = loadImage('gridhost-inactive.png', clientObject)
+		self.statusGrey = loadPixbuf('status-grey.png', clientObject)
+		self.statusYellow = loadPixbuf('status-yellow.png', clientObject)
+		self.statusGreen = loadPixbuf('status-green.png', clientObject)
+		self.gridHostActive = loadPixbuf('gridhost-active.png', clientObject)
+		self.gridHostInactive = loadPixbuf('gridhost-inactive.png', clientObject)
 
 		# Dictionary mapping UUIDs to HBoxes
 		self.rows = {}
@@ -63,25 +63,26 @@ class UserList(Gtk.VBox):
 		#TODO: Set tooltips for things, or our users will be confuzzeled
 
 		# Build the widgets
-		status = self.statusGrey
-		if newUser.online:
-			status = self.statusYellow
-			if newUser.NATStatus:
-				status = self.statusGreen
+		if newUser.online and not newUser.NATStatus:
+			status = Gtk.Image.new_from_pixbuf(self.statusYellow)
+		elif newUser.online and newUser.NATStatus:
+			status = Gtk.Image.new_from_pixbuf(self.statusGreen)
+		else:
+			status = Gtk.Image.new_from_pixbuf(self.statusGrey)
 
 		nameStr = newUser.firstName+' '+newUser.lastName
 		if newUser.moderator:
 			nameStr = "<b>%s</b>" % nameStr
 		name = Gtk.Label(nameStr, use_markup=True)
 
-		gridHost = self.gridHostInactive
-		if newUser.gridHost:
-			gridHost = self.gridHostActive
+		#gridHost = self.gridHostInactive
+		#if newUser.gridHost:
+		#	gridHost = self.gridHostActive
 
 		# Pack the widgets
 		row.pack_start(status, False, False, 0)
 		row.pack_start(name, True, False, 0)
-		row.pack_start(gridHost, False, False, 0)
+		#row.pack_start(gridHost, False, False, 0)
 
 		# Map the UUID to the row
 		self.rows[newUser.UUID] = row
@@ -230,18 +231,32 @@ class MainWindowHandler(WindowHandler):
 
 	def __init__(self, builder, clientObject, factory, window):
 		super(MainWindowHandler, self).__init__(builder, clientObject, factory, window)
+<<<<<<< HEAD
 		
 		vbox = builder.get_object("vbox")
 		list = UserList(clientObject)
 		list.updateUser(None)
 		vbox.pack_start(list, False, False, 0)
+=======
+
+		# Create UserList
+		vbox = builder.get_object("vbox")
+		self.userList = UserList(clientObject)
+		vbox.pack_start(self.userList, False, False, 0)
+		self.userList.show_all()
+
+	def destroy(self, arg):
+		self.window.destroy()
+		self.clientObject.stop()
+>>>>>>> 2aea89bcb7e22fc0d94098456acecd31802e11be
 
 	def onbtnNewRegionClicked(self, *args):
 		self.clientObject.createRegionWindowHandler = \
-		self.factory.buildWindow("createRegionWindow", createRegionWindowHandler)
+		self.factory.buildWindow("createRegionWindow", CreateRegionWindowHandler)
 		print self.clientObject.createRegionWindowHandler
 		self.clientObject.createRegionWindowHandler.window.show_all()
 
+<<<<<<< HEAD
 	def PopulateTable(self):
 
 		#take the data recieved and sort it accordingly
@@ -265,16 +280,17 @@ class MainWindowHandler(WindowHandler):
 		self.userList.show_all()
 
 	def onbtnNewRegionClicked(self, *args):
-		self.clientObject.windowCreateRegionHandler = self.factory.buildWindow("createRegionWindow", windowCreateRegionHandler)
-		self.clientObject.windowCreateRegionHandler.window.show_all()
+		self.clientObject.CreateRegionWindowHandler = self.factory.buildWindow("createRegionWindow", CreateRegionWindowHandler)
+		self.clientObject.CreateRegionWindowHandler.window.show_all()
 
 	def destroy(self, arg):
 		self.window.destroy()
 		self.clientObject.stop()
 
-class createRegionWindowHandler(WindowHandler):
+
+class CreateRegionWindowHandler(WindowHandler):
 	def __init__(self, builder, clientObject, factory, window):
-		super(createRegionWindowHandler, self).__init__(builder, clientObject, factory, window)
+		super(CreateRegionWindowHandler, self).__init__(builder, clientObject, factory, window)
 		
 		self.regionName = builder.get_object("entRegionName")
 		self.location = builder.get_object("entLocation")

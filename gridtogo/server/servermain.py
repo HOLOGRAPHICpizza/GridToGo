@@ -27,7 +27,7 @@ class GridToGoServer(object):
 		try:
 			#TODO: Use SSL so we're not sending passwords in plaintext anymore
 			GridToGoServer.reactor.listenTCP(config.port, GTGFactory(config))
-			log.msg("Listening on port %d." % config.port)
+			#log.msg("Listening on port %d." % config.port)
 			GridToGoServer.reactor.run()
 		except AttributeError:
 			pass
@@ -74,9 +74,6 @@ class GTGProtocol(basic.LineReceiver):
 		# This is a reference to the grid object this protocol belongs to
 		self.grid = None
 		self.user = None
-
-	def connectionMade(self):
-		pass
 
 	def lineReceived(self, line):
 		try:
@@ -144,6 +141,8 @@ class GTGProtocol(basic.LineReceiver):
 		except serialization.InvalidSerializedDataException:
 			self.transport.write("Stop sending me bad data! >:|\r\n")
 			self.transport.loseConnection()
+
+	#TODO: onConnectionLost
 
 	def writeResponse(self, response):
 		line = self.serializer.serialize(response)
