@@ -231,13 +231,12 @@ class MainWindowHandler(WindowHandler):
 
 	def __init__(self, builder, clientObject, factory, window):
 		super(MainWindowHandler, self).__init__(builder, clientObject, factory, window)
-<<<<<<< HEAD
+
 		
 		vbox = builder.get_object("vbox")
 		list = UserList(clientObject)
 		list.updateUser(None)
 		vbox.pack_start(list, False, False, 0)
-=======
 
 		# Create UserList
 		vbox = builder.get_object("vbox")
@@ -248,7 +247,6 @@ class MainWindowHandler(WindowHandler):
 	def destroy(self, arg):
 		self.window.destroy()
 		self.clientObject.stop()
->>>>>>> 2aea89bcb7e22fc0d94098456acecd31802e11be
 
 	def onbtnNewRegionClicked(self, *args):
 		self.clientObject.createRegionWindowHandler = \
@@ -256,7 +254,6 @@ class MainWindowHandler(WindowHandler):
 		print self.clientObject.createRegionWindowHandler
 		self.clientObject.createRegionWindowHandler.window.show_all()
 
-<<<<<<< HEAD
 	def PopulateTable(self):
 
 		#take the data recieved and sort it accordingly
