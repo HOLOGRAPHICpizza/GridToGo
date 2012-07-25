@@ -90,8 +90,12 @@ class GTGClientProtocol(basic.LineReceiver):
 			if PRINT_PACKETS:
 				print("IN : %s | %s" % (response.__class__.__name__, line))
 
+			# User Objects
+			if isinstance(response, User) and self.clientObject.mainWindowHandler:
+				self.clientObject.mainWindowHandler.userList.updateUser(response)
+
 			# Login Stuff
-			if isinstance(response, LoginResponse) and self.clientObject.loginHandler:
+			elif isinstance(response, LoginResponse) and self.clientObject.loginHandler:
 				if isinstance(response, LoginSuccess):
 					self.clientObject.mainWindowHandler = \
 						self.clientObject.windowFactory.buildWindow("mainWindow", MainWindowHandler)

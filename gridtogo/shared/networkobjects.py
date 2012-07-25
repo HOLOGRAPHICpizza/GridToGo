@@ -9,6 +9,7 @@ class DeltaObject(object):
 		for a in deltaObject.attributes:
 			if hasattr(deltaObject, a):
 				setattr(self, a, getattr(deltaObject, a))
+		return self
 
 class User(DeltaObject):
 	"""

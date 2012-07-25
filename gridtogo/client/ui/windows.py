@@ -1,3 +1,4 @@
+import uuid
 from gridtogo.shared.networkobjects import *
 from gi.repository import Gtk, Gdk
 import os
@@ -36,19 +37,57 @@ class UserList(Gtk.VBox):
 		# Dictionary mapping UUIDs to HBoxes
 		self.rows = {}
 
+	def _getDefaultUser(self):
+		defaultUser = User(None)
+		defaultUser.firstName = '?'
+		defaultUser.lastName = '?'
+		defaultUser.online = False
+		defaultUser.NATStatus = False
+		defaultUser.gridHost = False
+		return defaultUser
+
 	def updateUser(self, user):
 		"""Pass in a User object to add or update its entry."""
 		row = Gtk.HBox()
 
+		# Destroy the existing row, get user object
+		oldRow = self.rows.get(user.UUID)
+		newUser = self._getDefaultUser()
+		if oldRow:
+			newUser = oldRow.user
+			oldRow.destroy()
+		newUser.applyDelta(user)
+		row.user = newUser
+
 		#TODO: Set tooltips for things, or our users will be confuzzeled
-		row.pack_start(self.statusYellow, False, False, 0)
 
-		name = Gtk.Label("test user")
+		# Build the widgets
+		status = self.statusGrey
+		if newUser.online:
+			status = self.statusYellow
+			if newUser.NATStatus:
+				status = self.statusGreen
+
+		nameStr = newUser.firstName+' '+newUser.lastName
+		if newUser.moderator:
+			nameStr = "<b>%s</b>" % nameStr
+		name = Gtk.Label(nameStr, use_markup=True)
+
+		gridHost = self.gridHostInactive
+		if newUser.gridHost:
+			gridHost = self.gridHostActive
+
+		# Pack the widgets
+		row.pack_start(status, False, False, 0)
 		row.pack_start(name, True, False, 0)
+		row.pack_start(gridHost, False, False, 0)
 
-		row.pack_start(self.gridHostInactive, False, False, 0)
+		# Map the UUID to the row
+		self.rows[newUser.UUID] = row
 
-		self.pack_end(row, False, False, 0)
+		# Pack the row
+		self.pack_start(row, False, False, 0)
+		row.show_all()
 
 class SpinnerPopup(Gtk.Window):
 	def __init__(self, parent, message):
@@ -191,29 +230,19 @@ class MainWindowHandler(WindowHandler):
 	def __init__(self, builder, clientObject, factory, window):
 		super(MainWindowHandler, self).__init__(builder, clientObject, factory, window)
 
+		# Create UserList
 		vbox = builder.get_object("vbox")
-		list = UserList(clientObject)
-		list.updateUser(None)
-		vbox.pack_start(list, False, False, 0)
+		self.userList = UserList(clientObject)
+		vbox.pack_start(self.userList, False, False, 0)
+		self.userList.show_all()
 
 	def onbtnNewRegionClicked(self, *args):
 		self.clientObject.windowCreateRegionHandler = self.factory.buildWindow("createRegionWindow", windowCreateRegionHandler)
 		self.clientObject.windowCreateRegionHandler.window.show_all()
 
-	def PopulateTable(self):
-
-		#take the data recieved and sort it accordingly
-		
-		#if self.Vbox:
-		#	self.vbox.destroy()
-		#self.Vbox = gtk.VBox(False)
-		
-		#hbox = gtk.Hbox(False)
-
-		pass
-
-	def destroy(self):
-		self.destroy()
+	def destroy(self, arg):
+		self.window.destroy()
+		self.clientObject.stop()
 
 class windowCreateRegionHandler(WindowHandler):
 	
