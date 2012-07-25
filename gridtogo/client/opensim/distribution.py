@@ -13,9 +13,13 @@ from gridtogo.client.ui.windows import SpinnerPopup
 VERSION = "0.7.3"
 
 class Distribution(object):
-	def __init__(self, projectroot, directory):
+	def __init__(self, projectroot, directory=None):
+		if directory is None:
+			homedir = os.environ["HOME"]
+			self.directory = homedir + "/.gridtogo"
+		else:
+			self.directory = directory
 		self.projectroot = projectroot
-		self.directory = directory
 		self.opensimtar = directory + "/opensim.tar.gz"
 		self.opensimdir = directory + "/opensim"
 		self.configdir = directory + "/config"
