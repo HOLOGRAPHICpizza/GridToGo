@@ -238,18 +238,19 @@ class MainWindowHandler(WindowHandler):
 		vbox.pack_start(self.userList, False, False, 0)
 		self.userList.show_all()
 
-	def onbtnNewRegionClicked(self, *args):
-		self.clientObject.windowCreateRegionHandler = self.factory.buildWindow("createRegionWindow", windowCreateRegionHandler)
-		self.clientObject.windowCreateRegionHandler.window.show_all()
-
 	def destroy(self, arg):
 		self.window.destroy()
 		self.clientObject.stop()
 
-class windowCreateRegionHandler(WindowHandler):
-	
+	def onbtnNewRegionClicked(self, *args):
+		self.clientObject.createRegionWindowHandler = \
+		self.factory.buildWindow("createRegionWindow", createRegionWindowHandler)
+		print self.clientObject.createRegionWindowHandler
+		self.clientObject.createRegionWindowHandler.window.show_all()
+
+class createRegionWindowHandler(WindowHandler):
 	def __init__(self, builder, clientObject, factory, window):
-		super(windowCreateRegionHandler, self).__init__(builder, clientObject, factory, window)
+		super(createRegionWindowHandler, self).__init__(builder, clientObject, factory, window)
 		
 		self.regionName = builder.get_object("entRegionName")
 		self.location = builder.get_object("entLocation")
