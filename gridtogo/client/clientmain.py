@@ -32,6 +32,9 @@ class GridToGoClient(object):
 		self.mainWindowHandler = None
 		self.createRegionWindowHandler = None
 
+		# Ghetto flag involved in
+		self.dieing = False
+
 		# list of functions to call when we get a connection
 		# passes a reference to a Protocol to each
 		self.callOnConnected = []
@@ -78,6 +81,17 @@ class GridToGoClient(object):
 		self.endpoint = None
 
 	def stop(self):
+		#TODO: Get this damn thing to stop in a graceful manner
+		if self.loginHandler and self.loginHandler.window:
+			self.loginHandler.window.destroy()
+		if self.createUserWindowHandler:
+			self.createUserWindowHandler.destroy()
+		if self.createRegionWindowHandler:
+			self.createRegionWindowHandler.destroy()
+		if self.mainWindowHandler and self.mainWindowHandler.window:
+			self.mainWindowHandler.window.destroy()
+
+		#TODO: Check if reactor is running before calling stop
 		reactor.stop()
 
 class GTGClientProtocol(basic.LineReceiver):
@@ -96,6 +110,9 @@ class GTGClientProtocol(basic.LineReceiver):
 				log.msg("IN : %s | %s" % (response.__class__.__name__, line))
 
 			# User Objects
+			#TODO: There is probably a race condition here,
+			# no gaurantee that this window will exist when User objects come in,
+			# needs a queue or something.
 			if isinstance(response, User) and self.clientObject.mainWindowHandler:
 				self.clientObject.mainWindowHandler.userList.updateUser(response)
 
@@ -129,6 +146,12 @@ class GTGClientProtocol(basic.LineReceiver):
 		except serialization.InvalidSerializedDataException:
 			log.msg("Server sent bad data.")
 			self.transport.loseConnection()
+
+	def connectionLost(self, reason):
+		if not self.clientObject.dieing:
+			showModalDialog(None, Gtk.MessageType.ERROR, 'Connection lost!')
+			self.clientObject.dieing = True
+			self.clientObject.stop()
 
 	def writeRequest(self, request):
 		line = self.serializer.serialize(request)
