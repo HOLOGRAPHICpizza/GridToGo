@@ -129,5 +129,5 @@ class Template(object):
 
 if __name__ == "__main__":
 	log.startLogging(sys.stdout)
-	dist = Distribution(".", "/home/jared/.gridtogo")
+	dist = Distribution(".", ".gridtogo")
 	dist.configure("MyGrid", "localhost")
