@@ -312,7 +312,8 @@ class CreateRegionWindowHandler(WindowHandler):
 		# TODO Don't hardcode gridname and localhost
 		distribution = Distribution(self.clientObject.projectRoot)
 		distribution.configure("GridName", "localhost")
-		distribution.configureRegion(region, coordinates, hostname)
+		# TODO Don't hardcore port
+		distribution.configureRegion(region, coordinates, hostname, 9000)
 		
 	def onbtnCancelClicked(self, *args):
 		self.window.destroy()
