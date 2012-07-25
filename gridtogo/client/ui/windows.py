@@ -244,13 +244,13 @@ class MainWindowHandler(WindowHandler):
 
 	def onbtnNewRegionClicked(self, *args):
 		self.clientObject.createRegionWindowHandler = \
-		self.factory.buildWindow("createRegionWindow", createRegionWindowHandler)
+		self.factory.buildWindow("createRegionWindow", CreateRegionWindowHandler)
 		print self.clientObject.createRegionWindowHandler
 		self.clientObject.createRegionWindowHandler.window.show_all()
 
-class createRegionWindowHandler(WindowHandler):
+class CreateRegionWindowHandler(WindowHandler):
 	def __init__(self, builder, clientObject, factory, window):
-		super(createRegionWindowHandler, self).__init__(builder, clientObject, factory, window)
+		super(CreateRegionWindowHandler, self).__init__(builder, clientObject, factory, window)
 		
 		self.regionName = builder.get_object("entRegionName")
 		self.location = builder.get_object("entLocation")
