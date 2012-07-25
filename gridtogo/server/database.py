@@ -156,8 +156,8 @@ class SQLiteDatabase(object):
 			user = User(uuid.UUID(record[0]))
 			user.firstName = record[1]
 			user.lastName = record[2]
-			user.moderator = record[3]
-			user.gridHost = record[4]
+			user.moderator = bool(record[3])
+			user.gridHost = bool(record[4])
 			users[user.UUID] = user
 		return users
 

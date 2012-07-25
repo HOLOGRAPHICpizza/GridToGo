@@ -62,18 +62,18 @@ class JSONSerializer(object):
 		elif class_ is ResetPasswordRequest:
 			return class_(data['firstName'], data['lastName'])
 
-		elif class_ is uuid.UUID:
-			return class_(data['value'])
+		#elif class_ is uuid.UUID:
+		#	return class_(data['value'])
 
 		elif issubclass(class_, DeltaObject):
 			obj = None
 			if class_ is User:
-				obj = User(data['UUID'])
+				obj = User(uuid.UUID(data['UUID']))
 			else:
 				obj = class_()
 
 			for key in data:
-				if key != 'className':
+				if key != 'className' and key != 'UUID':
 					setattr(obj, key, data[key])
 			return obj
 
@@ -109,8 +109,7 @@ class JSONSerializer(object):
 				return data
 
 			elif isinstance(obj, uuid.UUID):
-				data['value'] = str(obj)
-				return data
+				return str(obj)
 
 			elif isinstance(obj, DeltaObject):
 				for a in obj.attributes:

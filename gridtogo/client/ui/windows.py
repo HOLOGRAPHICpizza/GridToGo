@@ -1,6 +1,8 @@
+import uuid
 from gridtogo.shared.networkobjects import *
 from gi.repository import Gtk, Gdk
 import os
+from twisted.python import log
 
 PREFIL_LOGIN_SAMPLE_DATA = True
 
@@ -36,19 +38,57 @@ class UserList(Gtk.VBox):
 		# Dictionary mapping UUIDs to HBoxes
 		self.rows = {}
 
+	def _getDefaultUser(self):
+		defaultUser = User(None)
+		defaultUser.firstName = '?'
+		defaultUser.lastName = '?'
+		defaultUser.online = False
+		defaultUser.NATStatus = False
+		defaultUser.gridHost = False
+		return defaultUser
+
 	def updateUser(self, user):
 		"""Pass in a User object to add or update its entry."""
 		row = Gtk.HBox()
 
+		# Destroy the existing row, get user object
+		oldRow = self.rows.get(user.UUID)
+		newUser = self._getDefaultUser()
+		if oldRow:
+			newUser = oldRow.user
+			oldRow.destroy()
+		newUser.applyDelta(user)
+		row.user = newUser
+
 		#TODO: Set tooltips for things, or our users will be confuzzeled
-		row.pack_start(self.statusYellow, False, False, 0)
 
-		name = Gtk.Label("test user")
+		# Build the widgets
+		status = self.statusGrey
+		if newUser.online:
+			status = self.statusYellow
+			if newUser.NATStatus:
+				status = self.statusGreen
+
+		nameStr = newUser.firstName+' '+newUser.lastName
+		if newUser.moderator:
+			nameStr = "<b>%s</b>" % nameStr
+		name = Gtk.Label(nameStr, use_markup=True)
+
+		gridHost = self.gridHostInactive
+		if newUser.gridHost:
+			gridHost = self.gridHostActive
+
+		# Pack the widgets
+		row.pack_start(status, False, False, 0)
 		row.pack_start(name, True, False, 0)
+		row.pack_start(gridHost, False, False, 0)
 
-		row.pack_start(self.gridHostInactive, False, False, 0)
+		# Map the UUID to the row
+		self.rows[newUser.UUID] = row
 
-		self.pack_end(row, False, False, 0)
+		# Pack the row
+		self.pack_start(row, False, False, 0)
+		row.show_all()
 
 class SpinnerPopup(Gtk.Window):
 	def __init__(self, parent, message):
@@ -108,7 +148,7 @@ class LoginWindowHandler(WindowHandler):
 			self.gridEntry.set_text("testgrid")
 
 	def LANModeClicked(self, *args):
-		print("LAN Mode")
+		log.msg("LAN Mode")
 
 	def createUserClicked(self, *args):
 		self.clientObject.createUserWindowHandler = self.factory.buildWindow("createUserWindow", CreateUserWindowHandler)
@@ -132,7 +172,7 @@ class LoginWindowHandler(WindowHandler):
 		self.clientObject.callOnConnected.remove(self.onConnectionEstablished)
 
 	def forgotPasswordClicked(self, *args):
-		print("forgot password")
+		log.msg("forgot password")
 
 	def quitClicked(self, *args):
 		# Make sure we don't shut down the whole application if we are logged in
@@ -216,6 +256,21 @@ class MainWindowHandler(WindowHandler):
 
 	def destroy(self):
 		self.destroy()
+
+
+		# Create UserList
+		vbox = builder.get_object("vbox")
+		self.userList = UserList(clientObject)
+		vbox.pack_start(self.userList, False, False, 0)
+		self.userList.show_all()
+
+	def onbtnNewRegionClicked(self, *args):
+		self.clientObject.windowCreateRegionHandler = self.factory.buildWindow("createRegionWindow", windowCreateRegionHandler)
+		self.clientObject.windowCreateRegionHandler.window.show_all()
+
+	def destroy(self, arg):
+		self.window.destroy()
+		self.clientObject.stop()
 
 class createRegionWindowHandler(WindowHandler):
 	def __init__(self, builder, clientObject, factory, window):
