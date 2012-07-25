@@ -1,8 +1,10 @@
 import uuid
+from gridtogo.client.opensim.distribution import Distribution
 from gridtogo.shared.networkobjects import *
 from gi.repository import Gtk, Gdk, GdkPixbuf
 import os
 from twisted.python import log
+
 
 PREFIL_LOGIN_SAMPLE_DATA = True
 
