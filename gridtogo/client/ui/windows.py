@@ -254,10 +254,11 @@ class MainWindowHandler(WindowHandler):
 		vbox.pack_start(self.userList, False, False, 0)
 		self.userList.show_all()
 
-	def destroy(self, arg):
+	def destroy(self, *args):
 		self.window.destroy()
 		self.clientObject.dieing = True
 		self.clientObject.stop()
+		
 
 	def onbtnNewRegionClicked(self, *args):
 		self.clientObject.createRegionWindowHandler = \
@@ -277,24 +278,12 @@ class MainWindowHandler(WindowHandler):
 
 		pass
 
-	def destroy(self):
-		self.destroy()
-
 
 		# Create UserList
 		vbox = builder.get_object("vbox")
 		self.userList = UserList(clientObject)
 		vbox.pack_start(self.userList, False, False, 0)
 		self.userList.show_all()
-
-	def onbtnNewRegionClicked(self, *args):
-		self.clientObject.CreateRegionWindowHandler = self.factory.buildWindow("createRegionWindow", CreateRegionWindowHandler)
-		self.clientObject.CreateRegionWindowHandler.window.show_all()
-
-	def destroy(self, arg):
-		self.window.destroy()
-		self.clientObject.stop()
-
 
 class CreateRegionWindowHandler(WindowHandler):
 	def __init__(self, builder, clientObject, factory, window):
@@ -312,7 +301,7 @@ class CreateRegionWindowHandler(WindowHandler):
 		distribution = Distribution(self.clientObject.projectRoot)
 		
 	def onbtnCancelClicked(self, *args):
-		self.window.destroy()
+		self.destroy()
 
 	def destroy(self):
 		if self.window:
