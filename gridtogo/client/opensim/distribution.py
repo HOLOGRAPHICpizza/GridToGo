@@ -7,11 +7,15 @@ import string
 import sys
 import tarfile
 from twisted.python import log
+import uuid
 
 import gridtogo.client.ui.windows
 
 VERSION = "0.7.3"
 
+# It is okay to have more than one Distribution with the same directory, as
+# long as you don't do anything stupid like try to create the same file with
+# both...
 class Distribution(object):
 	def __init__(self, projectroot, directory=None, parent=None):
 		if directory is None:
@@ -47,6 +51,10 @@ class Distribution(object):
 				self.download()
 			self.extract()
 
+		if not os.path.isdir(self.opensimreg):
+			log.msg("Creating directory: " + self.opensimreg)
+			os.mkdir(self.opensimreg)
+
 		log.msg("OpenSim Distribution loaded at: " + self.opensimdir)
 	
 	def configure(self, gridname, ip):
@@ -55,19 +63,23 @@ class Distribution(object):
 			self.projectroot + "/gridtogo/client/opensim/GridCommon.ini",
 			self.opensimdir + "/bin/config-include/GridCommon.ini")
 		template.run(
-			self.projectroot + "/gridtogo/client/opensim/Robust.ini",
-			self.opensimdir + "/bin/Robust.ini")
-		template.run(
 			self.projectroot + "/gridtogo/client/opensim/OpenSim.ini",
 			self.opensimdir + "/bin/OpenSim.ini")
+	
+	def configureRobust(self, gridname, ip):
+		template.run(
+			self.projectroot + "/gridtogo/client/opensim/Robust.ini",
+			self.opensimdir + "/bin/Robust.ini")
 		
-	def createRegion(self, regionName, location, extHostname):
+	def configureRegion(self, regionName, location, extHostname):
 		#TODO: check for duplicate regions		
 		#Create a region's .ini file, then move it to opensim.
 		#for knownRegions in self.opensimreg:
 			#if regionName + ".ini" == knownRegions:
 				#return False
-		newRegion = open(regionName + ".ini", 'w')
+		log.msg("Configuring Region: " + regionName)
+		log.msg("Write file: " + self.opensimreg + "/" + regionName + ".ini")
+		newRegion = open(self.opensimreg + "/" + regionName + ".ini", 'w')
 		newRegion.write("[" + regionName + "]\n")
 		UUID = str(uuid.uuid4())
 		newRegion.write("RegionUUID = " + UUID  + "\n")
@@ -76,9 +88,7 @@ class Distribution(object):
 		newRegion.write("InternalPort = 9000\n")
 		newRegion.write("AllowAlternatePorts = False\n")
 		newRegion.write("ExternalHostname = " + extHostname + "\n")
-		shutil.copy2(os.path.join(self.opensimdir, regionName + ".ini"), self.opensimreg)
 		newRegion.close()
-		
 
 	def download(self):
 		log.msg("Downloading file: " + self.opensimtar)
