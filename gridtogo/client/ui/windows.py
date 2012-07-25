@@ -309,7 +309,7 @@ class CreateRegionWindowHandler(WindowHandler):
 		coordinates = self.location.get_text()
 		hostname = self.externalHostname.get_text()
 
-		distribution = Distribution(clientObject.projectRoot)
+		distribution = Distribution(self.clientObject.projectRoot)
 		
 	def onbtnCancelClicked(self, *args):
 		self.window.destroy()

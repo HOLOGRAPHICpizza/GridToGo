@@ -8,21 +8,22 @@ import sys
 import tarfile
 from twisted.python import log
 
-from gridtogo.client.ui.windows import SpinnerPopup
+import gridtogo.client.ui.windows
 
 VERSION = "0.7.3"
 
 class Distribution(object):
-	def __init__(self, projectroot, directory=None):
+	def __init__(self, projectroot, directory=None, parent=None):
 		if directory is None:
 			homedir = os.environ["HOME"]
 			self.directory = homedir + "/.gridtogo"
 		else:
 			self.directory = directory
 		self.projectroot = projectroot
-		self.opensimtar = directory + "/opensim.tar.gz"
-		self.opensimdir = directory + "/opensim"
-		self.configdir = directory + "/config"
+		self.opensimtar = self.directory + "/opensim.tar.gz"
+		self.opensimdir = self.directory + "/opensim"
+		self.configdir = self.directory + "/config"
+		self.parent = parent
 		self.load()
 	
 	def load(self):
@@ -56,10 +57,6 @@ class Distribution(object):
 			self.opensimdir + "/bin/OpenSim.ini")
 		
 	def download(self):
-		# TODO Currently this popup doesn't work
-		spinner = SpinnerPopup(None, "Downloading OpenSim " + VERSION)
-		spinner.show_all()
-
 		log.msg("Downloading file: " + self.opensimtar)
 		log.msg("Establishing connection to: dist.opensimulator.org")
 		connection = httplib.HTTPConnection("dist.opensimulator.org")
@@ -77,8 +74,6 @@ class Distribution(object):
 		f.write(response.read())
 		f.close()
 		log.msg("Wrote file: " + versionedtar)
-		
-		spinner.destroy()
 
 		if sys.platform != "win32":
 			os.symlink(versionedtar, self.opensimtar)
