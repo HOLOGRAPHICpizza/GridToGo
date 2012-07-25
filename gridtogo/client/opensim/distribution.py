@@ -19,12 +19,15 @@ class Distribution(object):
 			self.directory = homedir + "/.gridtogo"
 		else:
 			self.directory = directory
+
 		self.projectroot = projectroot
 
 		self.opensimtar = self.directory + "/opensim.tar.gz"
 		self.opensimdir = self.directory + "/opensim"
 		self.configdir = self.directory + "/config"
 		self.opensimreg = self.directory + "/opensim/bin/Regions"
+
+		self.parent = parent
 
 		self.load()
 	
