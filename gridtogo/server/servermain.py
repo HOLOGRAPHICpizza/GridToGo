@@ -75,9 +75,6 @@ class GTGProtocol(basic.LineReceiver):
 		self.grid = None
 		self.user = None
 
-	def connectionMade(self):
-		pass
-
 	def lineReceived(self, line):
 		try:
 			#TODO: Perhaps in the future we should make (de)serialization operations asynchronous,
@@ -144,6 +141,8 @@ class GTGProtocol(basic.LineReceiver):
 		except serialization.InvalidSerializedDataException:
 			self.transport.write("Stop sending me bad data! >:|\r\n")
 			self.transport.loseConnection()
+
+	#TODO: onConnectionLost
 
 	def writeResponse(self, response):
 		line = self.serializer.serialize(response)
