@@ -158,6 +158,11 @@ class SQLiteDatabase(object):
 			user.lastName = record[2]
 			user.moderator = bool(record[3])
 			user.gridHost = bool(record[4])
+
+			user.online = False
+			user.NATStatus = False
+			user.gridHostActive = False
+
 			users[user.UUID] = user
 		return users
 

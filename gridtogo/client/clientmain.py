@@ -48,6 +48,9 @@ class GridToGoClient(object):
 
 		log.startLogging(sys.stdout)
 
+	def getLocalUser(self):
+		return self.users[self.localUUID]
+
 	def run(self):
 		self.windowFactory = WindowFactory(self)
 		self.loginHandler = self.windowFactory.buildWindow('loginWindow', LoginWindowHandler)
