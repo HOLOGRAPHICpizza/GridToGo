@@ -165,6 +165,7 @@ class LoginWindowHandler(WindowHandler):
 		self.lastNameEntry = builder.get_object("lastName")
 		self.passwordEntry = builder.get_object("password")
 		self.gridEntry = builder.get_object("grid")
+		self.userCreateActive = False
 
 		if PREFIL_LOGIN_SAMPLE_DATA:
 			self.firstNameEntry.set_text("test")
@@ -176,8 +177,13 @@ class LoginWindowHandler(WindowHandler):
 		log.msg("LAN Mode")
 
 	def createUserClicked(self, *args):
-		self.clientObject.createUserWindowHandler = self.factory.buildWindow("createUserWindow", CreateUserWindowHandler)
-		self.clientObject.createUserWindowHandler.window.show_all()
+		
+		if self.userCreateActive == False:
+			self.clientObject.createUserWindowHandler = self.factory.buildWindow("createUserWindow", CreateUserWindowHandler)
+			self.clientObject.createUserWindowHandler.window.show_all()
+			self.userCreateActive = True
+		elif self.userCreateActive == True:
+			showModalDialog(self.window, Gtk.MessageType.ERROR, "The form is already up!")
 
 	def loginClicked(self, *args):
 		# register our stuff to be called then attempt connection
@@ -216,6 +222,7 @@ class CreateUserWindowHandler(WindowHandler):
 
 	def destroy(self):
 		if self.window:
+			LoginWindowHandler.userCreateActive = False
 			self.window.destroy()
 
 	def createUserClicked(self, *args):
@@ -236,6 +243,7 @@ class CreateUserWindowHandler(WindowHandler):
 		
 	def onCreateUserSuccess(self):
 		showModalDialog(self.window, Gtk.MessageType.INFO, CreateUserSuccess().message)
+		LoginWindowHandler.userCreateActive = False
 		self.destroy()
 
 	def connectionEstablished(self, protocol):
@@ -251,6 +259,7 @@ class CreateUserWindowHandler(WindowHandler):
 		self.clientObject.callOnConnected.remove(self.connectionEstablished)
 
 	def cancelClicked(self, *args):
+		LoginWindowHandler.userCreateActive = False
 		self.destroy()
 
 class MainWindowHandler(WindowHandler):
@@ -270,7 +279,7 @@ class MainWindowHandler(WindowHandler):
 		self.clientObject.stop()
 		
 	def onbtnNewRegionClicked(self, *args):
-		if self.
+		#if self.
 		self.clientObject.createRegionWindowHandler = \
 		self.factory.buildWindow("createRegionWindow", CreateRegionWindowHandler)
 		print self.clientObject.createRegionWindowHandler
@@ -301,11 +310,8 @@ class CreateRegionWindowHandler(WindowHandler):
 		#TODO: Don't hardcode gridname and localhost
 		distribution = Distribution(self.clientObject.projectRoot)
 		distribution.configure("GridName", "localhost")
-<<<<<<< HEAD
+
 		# TODO Don't hardcode port
-=======
-		#TODO: Don't hardcore port
->>>>>>> bd23faac18d464c33b101bff3459456c345668e5
 		distribution.configureRegion(region, coordinates, hostname, 9000)
 		
 	def btnCancelClicked(self, *args):
@@ -315,8 +321,6 @@ class CreateRegionWindowHandler(WindowHandler):
 		if self.window:
 			self.window.destroy()
 
-<<<<<<< HEAD
-=======
 class ConsoleWindow(Gtk.ScrolledWindow):
 	def __init__(self, protocol):
 		Gtk.ScrolledWindow.__init__(
@@ -333,4 +337,3 @@ class ConsoleWindow(Gtk.ScrolledWindow):
 	
 	def outReceived(self, data):
 		outputArea.get_buffer().set_text(self.protocol.allData)
->>>>>>> bd23faac18d464c33b101bff3459456c345668e5
