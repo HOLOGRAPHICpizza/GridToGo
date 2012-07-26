@@ -32,6 +32,12 @@ class GridToGoClient(object):
 		self.mainWindowHandler = None
 		self.createRegionWindowHandler = None
 
+		# dict mapping UUIDs to User objects
+		# The cleint's local list of all grid users
+		self.users = {}
+		# This is how we remember who we are.
+		self.localUUID = None
+
 		# Ghetto flag involved in
 		self.dieing = False
 
@@ -48,6 +54,14 @@ class GridToGoClient(object):
 		self.loginHandler.window.show_all()
 
 		reactor.run()
+
+	def updateUser(self, user):
+		if self.users.get(user.UUID):
+			self.users[user.UUID].applyDelta(user)
+		else:
+			self.users[user.UUID] = user
+		if self.mainWindowHandler:
+			self.mainWindowHandler.userList.updateUser(user)
 
 	def attemptConnection(self, spinnerParent, host, port, timeout):
 		if self.protocol:
@@ -110,15 +124,14 @@ class GTGClientProtocol(basic.LineReceiver):
 				log.msg("IN : %s | %s" % (response.__class__.__name__, line))
 
 			# User Objects
-			#TODO: There is probably a race condition here,
-			# no gaurantee that this window will exist when User objects come in,
-			# needs a queue or something.
 			if isinstance(response, User) and self.clientObject.mainWindowHandler:
-				self.clientObject.mainWindowHandler.userList.updateUser(response)
+				self.clientObject.updateUser(response)
 
 			# Login Stuff
 			elif isinstance(response, LoginResponse) and self.clientObject.loginHandler:
 				if isinstance(response, LoginSuccess):
+					self.clientObject.localUUID = response.UUID
+
 					self.clientObject.mainWindowHandler = \
 						self.clientObject.windowFactory.buildWindow("mainWindow", MainWindowHandler)
 					self.clientObject.mainWindowHandler.window.show_all()

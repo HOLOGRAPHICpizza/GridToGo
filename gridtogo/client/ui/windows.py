@@ -46,6 +46,10 @@ class UserList(Gtk.VBox):
 		# Dictionary mapping UUIDs to HBoxes
 		self.rows = {}
 
+		# Do initial population
+		for uuid in clientObject.users:
+			self.updateUser(clientObject.users[uuid])
+
 	def _getDefaultUser(self):
 		defaultUser = User(None)
 		defaultUser.firstName = '?'
@@ -271,6 +275,9 @@ class MainWindowHandler(WindowHandler):
 		self.factory.buildWindow("createRegionWindow", CreateRegionWindowHandler)
 		print self.clientObject.createRegionWindowHandler
 		self.clientObject.createRegionWindowHandler.window.show_all()
+
+	def becomeGridHost(self, *args):
+		pass
 
 class CreateRegionWindowHandler(WindowHandler):
 	def __init__(self, builder, clientObject, factory, window):

@@ -65,6 +65,9 @@ class JSONSerializer(object):
 		#elif class_ is uuid.UUID:
 		#	return class_(data['value'])
 
+		elif class_ is LoginSuccess:
+			return class_(data['UUID'])
+
 		elif issubclass(class_, DeltaObject):
 			obj = None
 			if class_ is User:
@@ -116,6 +119,10 @@ class JSONSerializer(object):
 					if hasattr(obj, a):
 						data[a] = getattr(obj, a)
 				return data
-			
+
+			elif isinstance(obj, LoginSuccess):
+				data['UUID'] = obj.UUID
+				return data
+
 			else:
 				return data
