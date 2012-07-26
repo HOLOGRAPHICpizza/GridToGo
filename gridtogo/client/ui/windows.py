@@ -40,9 +40,14 @@ class UserList(Gtk.VBox):
 		self.statusGreen = loadPixbuf('status-green.png', clientObject)
 		self.gridHostActive = loadPixbuf('gridhost-active.png', clientObject)
 		self.gridHostInactive = loadPixbuf('gridhost-inactive.png', clientObject)
+		self.blank = loadPixbuf('blank24.png', clientObject)
 
 		# Dictionary mapping UUIDs to HBoxes
 		self.rows = {}
+
+		# Do initial population
+		for uuid in clientObject.users:
+			self.updateUser(clientObject.users[uuid])
 
 	def _getDefaultUser(self):
 		defaultUser = User(None)
@@ -51,6 +56,7 @@ class UserList(Gtk.VBox):
 		defaultUser.online = False
 		defaultUser.NATStatus = False
 		defaultUser.gridHost = False
+		defaultUser.gridHostActive = False
 		return defaultUser
 
 	def updateUser(self, user):
@@ -69,6 +75,7 @@ class UserList(Gtk.VBox):
 		#TODO: Set tooltips for things, or our users will be confuzzeled
 
 		# Build the widgets
+		status = None
 		if newUser.online and not newUser.NATStatus:
 			status = Gtk.Image.new_from_pixbuf(self.statusYellow)
 		elif newUser.online and newUser.NATStatus:
@@ -81,14 +88,18 @@ class UserList(Gtk.VBox):
 			nameStr = "<b>%s</b>" % nameStr
 		name = Gtk.Label(nameStr, use_markup=True)
 
-		#gridHost = self.gridHostInactive
-		#if newUser.gridHost:
-		#	gridHost = self.gridHostActive
+		gridHost = None
+		if newUser.gridHost and not newUser.gridHostActive:
+			gridHost = Gtk.Image.new_from_pixbuf(self.gridHostInactive)
+		elif newUser.gridHost and newUser.gridHostActive:
+			gridHost = Gtk.Image.new_from_pixbuf(self.gridHostActive)
+		else:
+			gridHost = Gtk.Image.new_from_pixbuf(self.blank)
 
 		# Pack the widgets
 		row.pack_start(status, False, False, 0)
 		row.pack_start(name, True, False, 0)
-		#row.pack_start(gridHost, False, False, 0)
+		row.pack_start(gridHost, False, False, 0)
 
 		# Map the UUID to the row
 		self.rows[newUser.UUID] = row
@@ -265,16 +276,7 @@ class MainWindowHandler(WindowHandler):
 		print self.clientObject.createRegionWindowHandler
 		self.clientObject.createRegionWindowHandler.window.show_all()
 
-	def PopulateTable(self):
-
-		#take the data recieved and sort it accordingly
-		
-		#if self.Vbox:
-		#	self.vbox.destroy()
-		#self.Vbox = gtk.VBox(False)
-		
-		#hbox = gtk.Hbox(False)
-
+	def becomeGridHost(self, *args):
 		pass
 
 		# Create UserList
@@ -296,10 +298,14 @@ class CreateRegionWindowHandler(WindowHandler):
 		coordinates = self.location.get_text()
 		hostname = self.externalHostname.get_text()
 
-		# TODO Don't hardcode gridname and localhost
+		#TODO: Don't hardcode gridname and localhost
 		distribution = Distribution(self.clientObject.projectRoot)
 		distribution.configure("GridName", "localhost")
+<<<<<<< HEAD
 		# TODO Don't hardcode port
+=======
+		#TODO: Don't hardcore port
+>>>>>>> bd23faac18d464c33b101bff3459456c345668e5
 		distribution.configureRegion(region, coordinates, hostname, 9000)
 		
 	def btnCancelClicked(self, *args):
@@ -309,3 +315,22 @@ class CreateRegionWindowHandler(WindowHandler):
 		if self.window:
 			self.window.destroy()
 
+<<<<<<< HEAD
+=======
+class ConsoleWindow(Gtk.ScrolledWindow):
+	def __init__(self, protocol):
+		Gtk.ScrolledWindow.__init__(
+			self,
+			window_position = Gtk.WindowPosition.CENTER_ON_PARENT)
+
+		protocol.window = self
+		self.protocol = protocol
+		
+		self.outputArea = Gtk.TextEntry()
+		self.add(outputArea)
+
+		outputArea.get_buffer().set_text(self.protocol.allData)
+	
+	def outReceived(self, data):
+		outputArea.get_buffer().set_text(self.protocol.allData)
+>>>>>>> bd23faac18d464c33b101bff3459456c345668e5
