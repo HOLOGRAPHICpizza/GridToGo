@@ -98,7 +98,7 @@ class GridToGoClient(object):
 		self.endpoint = None
 
 	def stop(self):
-		#TODO: Get this darn thing to stop in a graceful manner
+		#TODO: Get the program to stop in a smooth fashion
 		if self.loginHandler and self.loginHandler.window:
 			self.loginHandler.window.destroy()
 		if self.createUserWindowHandler:

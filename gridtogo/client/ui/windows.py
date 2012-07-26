@@ -1,3 +1,5 @@
+#Windows.py
+#Holds the handlers for all of the forms, as well as their methods
 import uuid
 from gridtogo.client.opensim.distribution import Distribution
 from gridtogo.shared.networkobjects import *
@@ -34,7 +36,7 @@ class UserList(Gtk.VBox):
 	def __init__(self, clientObject):
 		Gtk.VBox.__init__(self)
 
-		# Images
+		# Images for the main window
 		self.statusGrey = loadPixbuf('status-grey.png', clientObject)
 		self.statusYellow = loadPixbuf('status-yellow.png', clientObject)
 		self.statusGreen = loadPixbuf('status-green.png', clientObject)
@@ -72,7 +74,7 @@ class UserList(Gtk.VBox):
 		newUser.applyDelta(user)
 		row.user = newUser
 
-		#TODO: Set tooltips for things, or our users will be confuzzeled
+		#TODO: Set tooltips for things, or our users will be confused
 
 		# Build the widgets
 		status = None
@@ -207,6 +209,7 @@ class LoginWindowHandler(WindowHandler):
 
 	def quitClicked(self, *args):
 		# Make sure we don't shut down the whole application if we are logged in
+		#The login window shouldn't be up when the main is
 		if not self.clientObject.mainWindowHandler:
 			self.clientObject.dieing = True
 			self.clientObject.stop()
@@ -279,7 +282,7 @@ class MainWindowHandler(WindowHandler):
 		self.clientObject.stop()
 		
 	def onbtnNewRegionClicked(self, *args):
-		#if self.
+		#TODO: Prevent users from opening the Create Region window multiple times. not a problem, but more of a common sense thing.
 		self.clientObject.createRegionWindowHandler = \
 		self.factory.buildWindow("createRegionWindow", CreateRegionWindowHandler)
 		print self.clientObject.createRegionWindowHandler
