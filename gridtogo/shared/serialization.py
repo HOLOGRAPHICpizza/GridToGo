@@ -66,7 +66,7 @@ class JSONSerializer(object):
 		#	return class_(data['value'])
 
 		elif class_ is LoginSuccess:
-			return class_(data['UUID'])
+			return class_(uuid.UUID(data['UUID']))
 
 		elif issubclass(class_, DeltaObject):
 			obj = None

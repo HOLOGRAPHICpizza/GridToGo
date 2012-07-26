@@ -142,6 +142,8 @@ class GTGProtocol(basic.LineReceiver):
 
 			else:
 				# User is authenticated.
+				#TODO: Listen for incoming User objects,
+				# replicate changes to all clients, CHECK PERMISSIONS
 				pass
 
 		except serialization.InvalidSerializedDataException:

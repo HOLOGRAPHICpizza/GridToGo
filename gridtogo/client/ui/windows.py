@@ -286,7 +286,28 @@ class MainWindowHandler(WindowHandler):
 		self.clientObject.createRegionWindowHandler.window.show_all()
 
 	def becomeGridHost(self, *args):
-		pass
+		if self.clientObject.getLocalUser().gridHost:
+			for uuid in self.clientObject.users:
+				if self.clientObject.users[uuid].gridHostActive:
+					#TODO: Allow moderators to steal gridhost from others.
+					showModalDialog(
+						self.window,
+						Gtk.MessageType.ERROR,
+						'The grid is already being hosted.'
+					)
+					return
+
+			delta = User(self.clientObject.getLocalUser().UUID)
+			delta.gridHostActive = True
+
+			self.clientObject.updateUser(delta)
+			self.clientObject.protocol.writeRequest(delta)
+		else:
+			showModalDialog(
+				self.window,
+				Gtk.MessageType.ERROR,
+				'You do not have permission to become the grid host.'
+			)
 
 		# Create UserList
 		vbox = builder.get_object("vbox")
@@ -331,9 +352,9 @@ class ConsoleWindow(Gtk.ScrolledWindow):
 		self.protocol = protocol
 		
 		self.outputArea = Gtk.TextEntry()
-		self.add(outputArea)
+		self.add(self.outputArea)
 
-		outputArea.get_buffer().set_text(self.protocol.allData)
+		self.outputArea.get_buffer().set_text(self.protocol.allData)
 	
 	def outReceived(self, data):
-		outputArea.get_buffer().set_text(self.protocol.allData)
+		self.outputArea.get_buffer().set_text(self.protocol.allData)
