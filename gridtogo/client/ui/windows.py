@@ -41,6 +41,7 @@ class UserList(Gtk.VBox):
 		self.statusGreen = loadPixbuf('status-green.png', clientObject)
 		self.gridHostActive = loadPixbuf('gridhost-active.png', clientObject)
 		self.gridHostInactive = loadPixbuf('gridhost-inactive.png', clientObject)
+		self.blank = loadPixbuf('blank24.png', clientObject)
 
 		# Dictionary mapping UUIDs to HBoxes
 		self.rows = {}
@@ -52,6 +53,7 @@ class UserList(Gtk.VBox):
 		defaultUser.online = False
 		defaultUser.NATStatus = False
 		defaultUser.gridHost = False
+		defaultUser.gridHostActive = False
 		return defaultUser
 
 	def updateUser(self, user):
@@ -70,6 +72,7 @@ class UserList(Gtk.VBox):
 		#TODO: Set tooltips for things, or our users will be confuzzeled
 
 		# Build the widgets
+		status = None
 		if newUser.online and not newUser.NATStatus:
 			status = Gtk.Image.new_from_pixbuf(self.statusYellow)
 		elif newUser.online and newUser.NATStatus:
@@ -82,14 +85,18 @@ class UserList(Gtk.VBox):
 			nameStr = "<b>%s</b>" % nameStr
 		name = Gtk.Label(nameStr, use_markup=True)
 
-		#gridHost = self.gridHostInactive
-		#if newUser.gridHost:
-		#	gridHost = self.gridHostActive
+		gridHost = None
+		if newUser.gridHost and not newUser.gridHostActive:
+			gridHost = Gtk.Image.new_from_pixbuf(self.gridHostInactive)
+		elif newUser.gridHost and newUser.gridHostActive:
+			gridHost = Gtk.Image.new_from_pixbuf(self.gridHostActive)
+		else:
+			gridHost = Gtk.Image.new_from_pixbuf(self.blank)
 
 		# Pack the widgets
 		row.pack_start(status, False, False, 0)
 		row.pack_start(name, True, False, 0)
-		#row.pack_start(gridHost, False, False, 0)
+		row.pack_start(gridHost, False, False, 0)
 
 		# Map the UUID to the row
 		self.rows[newUser.UUID] = row
