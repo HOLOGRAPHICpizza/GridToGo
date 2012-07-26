@@ -30,7 +30,7 @@ class GridToGoClient(object):
 		self.createUserWindowHandler = None
 		self.spinner = None
 		self.mainWindowHandler = None
-		self.createRegionWindowHandler = None
+		self.CreateRegionWindowHandler = None
 
 		# Ghetto flag involved in
 		self.dieing = False
@@ -81,13 +81,13 @@ class GridToGoClient(object):
 		self.endpoint = None
 
 	def stop(self):
-		#TODO: Get this damn thing to stop in a graceful manner
+		#TODO: Get this darn thing to stop in a graceful manner
 		if self.loginHandler and self.loginHandler.window:
 			self.loginHandler.window.destroy()
 		if self.createUserWindowHandler:
 			self.createUserWindowHandler.destroy()
-		if self.createRegionWindowHandler:
-			self.createRegionWindowHandler.destroy()
+		if self.CreateRegionWindowHandler:
+			self.CreateRegionWindowHandler.destroy()
 		if self.mainWindowHandler and self.mainWindowHandler.window:
 			self.mainWindowHandler.window.destroy()
 
