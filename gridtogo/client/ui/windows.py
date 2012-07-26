@@ -305,3 +305,20 @@ class CreateRegionWindowHandler(WindowHandler):
 	def destroy(self):
 		if self.window:
 			self.window.destroy()
+
+class ConsoleWindow(Gtk.ScrolledWindow):
+	def __init__(self, protocol):
+		Gtk.ScrolledWindow.__init__(
+			self,
+			window_position = Gtk.WindowPosition.CENTER_ON_PARENT)
+
+		protocol.window = self
+		self.protocol = protocol
+		
+		self.outputArea = Gtk.TextEntry()
+		self.add(outputArea)
+
+		outputArea.get_buffer().set_text(self.protocol.allData)
+	
+	def outReceived(self, data):
+		outputArea.get_buffer().set_text(self.protocol.allData)
