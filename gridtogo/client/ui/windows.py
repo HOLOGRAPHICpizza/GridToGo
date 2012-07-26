@@ -5,7 +5,6 @@ from gi.repository import Gtk, Gdk, GdkPixbuf
 import os
 from twisted.python import log
 
-
 PREFIL_LOGIN_SAMPLE_DATA = True
 
 def showModalDialog(parent, messageType, message):
@@ -259,8 +258,8 @@ class MainWindowHandler(WindowHandler):
 		self.clientObject.dieing = True
 		self.clientObject.stop()
 		
-
 	def onbtnNewRegionClicked(self, *args):
+		if self.
 		self.clientObject.createRegionWindowHandler = \
 		self.factory.buildWindow("createRegionWindow", CreateRegionWindowHandler)
 		print self.clientObject.createRegionWindowHandler
@@ -277,7 +276,6 @@ class MainWindowHandler(WindowHandler):
 		#hbox = gtk.Hbox(False)
 
 		pass
-
 
 		# Create UserList
 		vbox = builder.get_object("vbox")
@@ -301,12 +299,13 @@ class CreateRegionWindowHandler(WindowHandler):
 		# TODO Don't hardcode gridname and localhost
 		distribution = Distribution(self.clientObject.projectRoot)
 		distribution.configure("GridName", "localhost")
-		# TODO Don't hardcore port
+		# TODO Don't hardcode port
 		distribution.configureRegion(region, coordinates, hostname, 9000)
 		
-	def onbtnCancelClicked(self, *args):
+	def btnCancelClicked(self, *args):
 		self.destroy()
 
 	def destroy(self):
 		if self.window:
 			self.window.destroy()
+

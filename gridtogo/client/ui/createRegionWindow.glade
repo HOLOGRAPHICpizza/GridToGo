@@ -4,7 +4,7 @@
   <object class="GtkWindow" id="createRegionWindow">
     <property name="can_focus">False</property>
     <property name="border_width">10</property>
-    <property name="title" translatable="yes">Create a New Region</property>
+    <property name="title" translatable="yes">Grid To Go - Create a New Region</property>
     <signal name="destroy" handler="destroy" swapped="no"/>
     <child>
       <object class="GtkBox" id="box1">
@@ -16,10 +16,12 @@
           <object class="GtkBox" id="box4">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="spacing">3</property>
             <child>
               <object class="GtkLabel" id="label1">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="margin_left">39</property>
                 <property name="label" translatable="yes">Region Name:</property>
               </object>
               <packing>
@@ -55,6 +57,7 @@
               <object class="GtkLabel" id="label2">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="margin_left">36</property>
                 <property name="label" translatable="yes">Location(x, y):</property>
               </object>
               <packing>
@@ -72,6 +75,7 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
+                <property name="padding">3</property>
                 <property name="position">1</property>
               </packing>
             </child>
@@ -145,7 +149,7 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_action_appearance">False</property>
-                <signal name="clicked" handler="onbtnCancelClicked" swapped="no"/>
+                <signal name="clicked" handler="btnCancelClicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
