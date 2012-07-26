@@ -265,10 +265,11 @@ class MainWindowHandler(WindowHandler):
 		vbox.pack_start(self.userList, False, False, 0)
 		self.userList.show_all()
 
-	def destroy(self, arg):
+	def destroy(self, *args):
 		self.window.destroy()
 		self.clientObject.dieing = True
 		self.clientObject.stop()
+		
 
 	def onbtnNewRegionClicked(self, *args):
 		self.clientObject.createRegionWindowHandler = \
@@ -299,7 +300,7 @@ class CreateRegionWindowHandler(WindowHandler):
 		distribution.configureRegion(region, coordinates, hostname, 9000)
 		
 	def onbtnCancelClicked(self, *args):
-		self.window.destroy()
+		self.destroy()
 
 	def destroy(self):
 		if self.window:
