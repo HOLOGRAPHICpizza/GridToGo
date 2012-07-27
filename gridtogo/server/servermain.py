@@ -111,6 +111,7 @@ class GTGProtocol(basic.LineReceiver):
 							self.user.online = False
 							self.user.moderator = (len(self.grid.users) < 1)
 							self.user.gridHost = self.user.moderator
+							self.user.gridHostActive = False
 							self.grid.users[self.user.UUID] = self.user
 							self.database.storeGridAssociation(self.user, request.grid)
 
