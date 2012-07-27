@@ -195,8 +195,14 @@ class MongoDatabase(object):
 			log.err("Tried to use Mongo without PyMongo")
 	
 	def connect(self, config):
+		log.msg("Initiating Mongo Connection: " + config.dbhot + ":" + config.dbport)
 		self.connection = Connection(config.dbhost, config.dbport)
+		log.msg("Initiated Mongo Connection.")
+		log.msg("Using database: " + config.dbdatabase)
 		self.database = self.connection[config.dbdatabase]
+		self.database['user'].ensureIndex("uuid", unique=True)
+		self.database['user'].ensureIndex("first_name")
+		self.database['user'].ensureIndex("last_name")
 	
 	def getUserAccountByName(self, firstName, lastName):
 		result = self.database['user'].find_one(
