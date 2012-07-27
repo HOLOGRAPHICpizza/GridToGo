@@ -3,13 +3,16 @@ import ConfigParser
 import sys
 
 class Configuration(object):
-	def __init__(self, port, dbfile, dbtype="sqlite", dbhost="localhost", dbport=27017, dbdatabase="opensim"):
+	def __init__(self, port, dbfile, dbtype="sqlite", dbhost="localhost", dbport=27017, dbdatabase="opensim", dbauth=False, dbuser=None, dbpass=None):
 		self.port = port
 		self.dbfile = dbfile
 		self.dbtype = dbtype
 		self.dbhost = dbhost
 		self.dbport = dbport
 		self.dbdatabase = dbdatabase
+		self.dbauth = dbauth
+		self.dbuser = dbuser
+		self.dbpass = dbpass
 
 class ConfigurationLoader(object):
 	def __init__(self):
@@ -42,6 +45,12 @@ class ConfigurationLoader(object):
 			conf.dbport = int(configparser.get("mongo", "port"))
 		if configparser.has_option("mongo", "database"):
 			conf.dbdatabase = configparser.get("mongo", "database")
+		if configparser.has_option("mongo", "auth"):
+			conf.dbauth = bool(configparser.get("mongo", "auth"))
+		if configparser.has_option("mongo", "user"):
+			conf.dbuser = configparser.get("mongo", "user")
+		if configparser.has_option("mongo", "pass"):
+			conf.dbpass = configparser.get("mongo", "pass")
 
 		if not self.args.port is None:
 			conf.port = int(self.args.port)

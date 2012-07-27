@@ -200,6 +200,11 @@ class MongoDatabase(object):
 		log.msg("Initiated Mongo Connection.")
 		log.msg("Using database: " + config.dbdatabase)
 		self.database = self.connection[config.dbdatabase]
+		if config.dbauth:
+			log.msg("Logging into Mongo as " + config.dbuser)
+			self.database.authenticate(config.dbuser, config.dbpass)
+
+		log.msg("Ensuring indexes on uuid, first_name, last_name")
 		self.database['user'].ensure_index("uuid", unique=True)
 		self.database['user'].ensure_index("first_name")
 		self.database['user'].ensure_index("last_name")
