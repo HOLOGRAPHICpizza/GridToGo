@@ -1,10 +1,9 @@
 import os
 from twisted.internet import protocol, reactor
 from twisted.python import log
-import util
 
 class ConsoleProtocol(protocol.ProcessProtocol):
-	def connectionMade(self)
+	def connectionMade(self):
 		self.pid = self.transport.pid
 		self.window = None
 		self.allData = ""
@@ -16,12 +15,12 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 
 def spawnRobustProcess(opensimdir):
 	log.msg("Starting Robust")
-	util.spawnMonoProcess(ConsoleProtocol(), opensimdir + "/bin/" + "Robust.exe", [])
+	spawnMonoProcess(ConsoleProtocol(), opensimdir + "/bin/" + "Robust.exe", [])
 	log.msg("Started Robust")
 
 def spawnRegionProcess(opensimdir, region):
 	log.msg("Starting Region: " + region)
-	util.spawnRegionProcess(ConsoleProtocol(), opensimdir + "/bin/" + "OpenSim.exe", [
+	spawnMonoProcess(ConsoleProtocol(), opensimdir + "/bin/" + "OpenSim.exe", [
 		"-inimaster=" + opensimdir + "/bin/OpenSim.ini",
 		"-inifile=" + opensimdir +"/bin/Regions/" + region + ".ini",
 		"-name=" + region

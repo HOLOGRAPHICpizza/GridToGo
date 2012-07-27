@@ -1,5 +1,6 @@
 import uuid
 from gridtogo.client.opensim.distribution import Distribution
+import gridtogo.client.process as process
 from gridtogo.shared.networkobjects import *
 from gi.repository import Gtk, Gdk, GdkPixbuf
 import os
