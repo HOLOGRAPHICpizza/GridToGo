@@ -1,3 +1,5 @@
+#distribution.py
+#Downloads OpenSim, moves it, and packs in the files we need it to have
 # module gridtogo.client.opensim.distribution
 
 import httplib
@@ -18,6 +20,7 @@ VERSION = "0.7.3"
 # both...
 class Distribution(object):
 	def __init__(self, projectroot, directory=None, parent=None):
+		#Place the OpenSim distribution into a place where  the GridToGo program can find it
 		if directory is None:
 			homedir = os.environ["HOME"]
 			self.directory = homedir + "/.gridtogo"
@@ -37,6 +40,7 @@ class Distribution(object):
 		self.load()
 	
 	def load(self):
+		# Loads OpenSim and creates the directory to load it into
 		log.msg("OpenSim Distribution loading at: " + self.opensimdir)
 
 		if not os.path.isdir(self.directory):
@@ -171,6 +175,7 @@ class Distribution(object):
 			log.msg("Rename: " + versionedsimtar + " -> " + self.opensimtar)
 		
 	def extract(self):
+		#Extract OpenSim from the .tar file that contains it
 		log.msg("Extracting file: " + self.opensimtar)
 		tar = tarfile.open(self.opensimtar)
 		tar.extractall(self.directory)

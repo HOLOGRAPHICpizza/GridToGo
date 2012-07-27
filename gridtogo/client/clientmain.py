@@ -38,7 +38,7 @@ class GridToGoClient(object):
 		# This is how we remember who we are.
 		self.localUUID = None
 
-		# Ghetto flag involved in
+		# Ghetto flag involved in control of the form's
 		self.dieing = False
 
 		# list of functions to call when we get a connection

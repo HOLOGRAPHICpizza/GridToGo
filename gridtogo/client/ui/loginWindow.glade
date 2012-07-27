@@ -6,6 +6,7 @@
     <property name="title" translatable="yes">GridToGo Login Page</property>
     <property name="default_width">600</property>
     <signal name="destroy" handler="quitClicked" swapped="no"/>
+    <signal name="enter-notify-event" handler="LoginClicked" swapped="no"/>
     <child>
       <object class="GtkBox" id="boxLogin">
         <property name="visible">True</property>
@@ -220,6 +221,7 @@
                 <property name="receives_default">True</property>
                 <property name="margin_left">29</property>
                 <property name="use_action_appearance">False</property>
+                <signal name="enter" handler="loginClicked" swapped="no"/>
                 <signal name="clicked" handler="loginClicked" swapped="no"/>
               </object>
               <packing>
