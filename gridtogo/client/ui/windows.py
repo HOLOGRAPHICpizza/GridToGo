@@ -305,6 +305,10 @@ class MainWindowHandler(WindowHandler):
 
 			self.clientObject.updateUser(delta)
 			self.clientObject.protocol.writeRequest(delta)
+
+			protocol = process.spawnRobustProcess()
+			console = ConsoleWindow(protocol)
+			console.show_all()
 		else:
 			showModalDialog(
 				self.window,
