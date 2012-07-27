@@ -321,7 +321,6 @@ class MainWindowHandler(WindowHandler):
 class CreateRegionWindowHandler(WindowHandler):
 	def __init__(self, builder, clientObject, factory, window):
 		super(CreateRegionWindowHandler, self).__init__(builder, clientObject, factory, window)
-		
 		self.regionName = builder.get_object("entRegionName")
 		self.location = builder.get_object("entLocation")
 		self.externalHostname = builder.get_object("entExtHostname")
@@ -346,6 +345,7 @@ class CreateRegionWindowHandler(WindowHandler):
 			self.window.destroy()
 
 class ConsoleWindow(Gtk.ScrolledWindow):
+	
 	def __init__(self, protocol):
 		Gtk.ScrolledWindow.__init__(
 			self,
