@@ -74,7 +74,7 @@ class IDatabase(Interface):
 class SQLiteDatabase(object):
 	implements(IDatabase)
 
-	def __init__(self, databaseFilename):
+	def __init__(self):
 		pass
 	
 	def connect(self, config):
@@ -234,6 +234,10 @@ class MongoDatabase(object):
 
 	def storeGridAssociation(self, user, gridName):
 		userid = self.database['user'].find_one({'uuid': str(user.UUID)})['_id']
+		existingAssoc = self.database['grid_user'].find_one(
+			{'grid_name': gridName,
+			 'user': userid
+			})
 		data = {'grid_name': gridName, 'user': userid, 'moderator': False, 'grid_host': False}
 
 		if hasattr(user, 'moderator'):
@@ -242,7 +246,9 @@ class MongoDatabase(object):
 			data['grid_host'] = user.gridHost
 		pass
 
-		self.database['grid_user'].insert(data)
+		if not existingAssoc is None:
+			data['_id'] = existingAssoc['_id']
+		self.database['grid_user'].save(data)
 
 	def getGridUsers(self, gridName):
 		gridNameAssociations = self.database['grid_user'].find(
@@ -258,6 +264,12 @@ class MongoDatabase(object):
 			user.email = u['email']
 			user.moderator = gridNameAssoc['moderator']
 			user.gridHost = gridNameAssoc['grid_host']
+
+			# I got this part from the SQL section
+			user.online = False
+			user.NATStatus = False
+			user.gridHostActive = False
+
 			result[u['uuid']] = user
 		
 		return result
