@@ -167,7 +167,15 @@ class GTGFactory(protocol.ServerFactory):
 	def __init__(self, config):
 		try:
 			#TODO: Call the database's close() method on program exit.
-			self.database = database.IDatabase(database.SQLiteDatabase(config.dbfile))
+			if config.dbtype == "sqlite":
+				log.msg("Connecting to SQLite")
+				self.database = database.IDatabase(database.SQLiteDatabase())
+			elif config.dbtype == "mongo":
+				log.msg("Connecting to Mongo")
+				self.database = database.IDatabase(database.MongoDatabase())
+			else:
+				log.err("Bad Database Type. Probably going to crash and burn")
+			self.database.connect(config)
 		except database.DatabaseException as e:
 			# Believe it or not, this is our standard failure procedure.
 			GridToGoServer.exitcode = 1

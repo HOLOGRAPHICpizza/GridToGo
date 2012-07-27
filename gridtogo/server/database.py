@@ -2,6 +2,16 @@ from zope.interface import implements, Interface
 import uuid
 import sqlite3
 from gridtogo.shared.networkobjects import *
+from gridtogo.server.configuration import ConfigurationLoader
+import sys
+from twisted.python import log
+
+try:
+	from pymongo import Connection
+	havePyMongo = True
+except LoadException:
+	havePyMongo = False
+	
 
 class UserAccount(object):
 	def __init__(self, UUID, firstName, lastName, hashedPassword, email):
@@ -33,9 +43,13 @@ class DatabaseException(Exception):
 class IDatabase(Interface):
 	"""
 	Interface for accessing the server database.
-	__init__() should set up initial database structure if necessary.
-	All methods, including __init__() may throw a DatabaseException upon encountering problems.
+	connect should set up initial database structure if necessary.
+	All methods, except  __init__() may throw a DatabaseException upon encountering problems.
 	"""
+
+	def connect(self, config):
+		""" Set up connection to the database """
+		pass
 
 	def getUserAccountByName(self, firstName, lastName):
 		"""Returns None if no user found."""
@@ -61,8 +75,11 @@ class SQLiteDatabase(object):
 	implements(IDatabase)
 
 	def __init__(self, databaseFilename):
+		pass
+	
+	def connect(self, config):
 		try:
-			self.connection = sqlite3.connect(databaseFilename)
+			self.connection = sqlite3.connect(config.dbfile)
 		except sqlite3.Error as e:
 			raise DatabaseException(e)
 
@@ -166,8 +183,82 @@ class SQLiteDatabase(object):
 			self.connection.commit()
 			self.connection.close()
 
+class MongoDatabase(object):
+	implements(IDatabase)
+	def __init__(self):
+		if not havePyMongo:
+			log.err("Tried to use Mongo without PyMongo")
+	
+	def connect(self, config):
+		self.connection = Connection(config.dbhost, config.dbport)
+		self.database = self.connection[config.dbdatabase]
+	
+	def getUserAccountByName(self, firstName, lastName):
+		result = self.database['user'].find_one(
+			{"first_name": firstName,
+			 "last_name": lastName})
+		if result is None:
+			return result
+		return UserAccount(uuid.UUID(result['uuid']), result['first_name'],
+						   result['last_name'], result['hashed_password'],
+						   result['email'])
+
+	def storeUserAccount(self, user):
+		collection = self.database['user']
+		existingAccount = collection.find_one({'uuid': str(user.UUID)})
+		userData = {'uuid': str(user.UUID),
+					'first_name': user.firstName,
+					'last_name': user.lastName,
+					'hashed_password': user.hashedPassword,
+					'email': user.email }
+		if not existingAccount is None:
+			userData['_id'] = existingAccount['_id']
+		
+		collection.save(userData)
+
+	def storeGridAssociation(self, user, gridName):
+		userid = self.database['user'].find_one({'uuid': str(user.UUID)})['_id']
+		data = {'grid_name': gridName, 'user': userid, 'moderator': False, 'grid_host': False}
+
+		if hasattr(user, 'moderator'):
+			data['moderator'] = user.moderator
+		if hasattr(user, 'gridHost'):
+			data['grid_host'] = user.gridHost
+		pass
+
+		self.database['grid_user'].insert(data)
+
+	def getGridUsers(self, gridName):
+		gridNameAssociations = self.database['grid_user'].find(
+			{'grid_name': gridName})
+		result = {}
+		for gridNameAssoc in gridNameAssociations:
+			u = self.database['user'].find_one(
+				{'_id': gridNameAssoc['user']})
+			user = User(uuid.UUID(u['uuid']))
+			user.firstName = u['first_name']
+			user.lastName = u['last_name']
+			user.hashedPassword = u['hashed_password']
+			user.email = u['email']
+			user.moderator = gridNameAssoc['moderator']
+			user.gridHost = gridNameAssoc['grid_host']
+			result[u['uuid']] = user
+		
+		return result
+
+	def close(self):
+		self.connection.close()
+
+
 if __name__ == "__main__":
-	db = IDatabase(SQLiteDatabase('gridtogoserver.db'))
+	log.startLogging(sys.stdout)
+	configloader = ConfigurationLoader()
+	config = configloader.load()
+	if config.dbtype == "sqlite":
+		db = IDatabase(SQLiteDatabase())
+	elif config.dbtype == "mongo":
+		db = IDatabase(MongoDatabase())
+	db.connect(config)
 
 	import authentication
 	auth = authentication.Authenticator(db)
