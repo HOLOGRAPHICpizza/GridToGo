@@ -208,7 +208,7 @@ class MongoDatabase(object):
 		self.database['user'].ensure_index("uuid", unique=True)
 		self.database['user'].ensure_index("first_name")
 		self.database['user'].ensure_index("last_name")
-		self.database['grid'].ensure_index('name')
+		self.database['grid'].ensure_index('name', unique=True)
 	
 	def getUserAccountByName(self, firstName, lastName):
 		result = self.database['user'].find_one(
