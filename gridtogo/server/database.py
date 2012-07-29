@@ -208,6 +208,7 @@ class MongoDatabase(object):
 		self.database['user'].ensure_index("uuid", unique=True)
 		self.database['user'].ensure_index("first_name")
 		self.database['user'].ensure_index("last_name")
+		self.database['grid'].ensure_index('name')
 	
 	def getUserAccountByName(self, firstName, lastName):
 		result = self.database['user'].find_one(
@@ -234,11 +235,12 @@ class MongoDatabase(object):
 
 	def storeGridAssociation(self, user, gridName):
 		userid = self.database['user'].find_one({'uuid': str(user.UUID)})['_id']
+		gridid = self.database['grid'].find_one({'name': gridName})['_id']
 		existingAssoc = self.database['grid_user'].find_one(
-			{'grid_name': gridName,
+			{'grid': gridid,
 			 'user': userid
 			})
-		data = {'grid_name': gridName, 'user': userid, 'moderator': False, 'grid_host': False}
+		data = {'grid': gridid, 'user': userid, 'moderator': False, 'grid_host': False}
 
 		if hasattr(user, 'moderator'):
 			data['moderator'] = user.moderator
@@ -251,8 +253,9 @@ class MongoDatabase(object):
 		self.database['grid_user'].save(data)
 
 	def getGridUsers(self, gridName):
+		gridid = self.database['grid'].find_one({'name': gridName})
 		gridNameAssociations = self.database['grid_user'].find(
-			{'grid_name': gridName})
+			{'grid': gridid})
 		result = {}
 		for gridNameAssoc in gridNameAssociations:
 			u = self.database['user'].find_one(
