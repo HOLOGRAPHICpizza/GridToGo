@@ -70,6 +70,10 @@ class IDatabase(Interface):
 	def createRegion(self, gridName, regionName, userUuid):
 		"""Creates a region with the specified regionName referencing the specified name and gives the user a regionHost association with the grid"""
 		pass
+	
+	def getGridRegions(self, gridName):
+		"""Returns a dictionary of Region Name -> Region where all regions are in the specified grid"""
+		pass
 
 	def close(self):
 		"""Commits all database changes and releases all resources, if applicable."""
@@ -284,6 +288,17 @@ class MongoDatabase(object):
 		self.database['region_host'].insert(
 			{"user": userid,
 			 "region": regionid})
+	
+	def getGridRegions(self, gridName):
+		gridid = self.database['grid'].find_one({"name": gridName})["_id"]
+		regions = self.database['region'].find({"grid":gridid})
+		result = {}
+
+		for r in regions:
+			# The False is that it is not currently being hosted.
+			result[r['name']] = Region(r['name'], r['location'], r['external_host'], False)
+
+		return result
 
 	def close(self):
 		self.connection.close()

@@ -35,6 +35,7 @@ class GridToGoClient(object):
 		# dict mapping UUIDs to User objects
 		# The cleint's local list of all grid users
 		self.users = {}
+		self.regions = {}
 		# This is how we remember who we are.
 		self.localUUID = None
 
@@ -70,6 +71,19 @@ class GridToGoClient(object):
 				self.mainWindowHandler.userList.updateUser(self.users[user.UUID])
 		else:
 			log.err("Received DeltaUser for non existent User. Ignoring")
+	
+	def addRegion(self, region):
+		self.regions[region.regionName] = region
+		if self.mainWindowHandler:
+			self.mainWindowHandler.regionList.updateRegion(region)
+	
+	def updateRegion(self, region):
+		if self.regions.get(region.regionName):
+			self.regions[region.regionName].applyDelta(region)
+			if self.mainWindowHandler:
+				self.mainWindowHandler.regionList.updateUser(self.regions[region.regionName])
+		else:
+			log.err("Received DeltaRegion for non existent Region. Ignoring")
 
 	def attemptConnection(self, spinnerParent, host, port, timeout):
 		if self.protocol:
@@ -131,12 +145,19 @@ class GTGClientProtocol(basic.LineReceiver):
 			if PRINT_PACKETS:
 				log.msg("IN : %s | %s" % (response.__class__.__name__, line))
 
+			# User Objects
 			if isinstance(response, User) and self.clientObject.mainWindowHandler:
 				self.clientObject.addUser(response)
 
-			# User Objects
 			if isinstance(response, DeltaUser) and self.clientObject.mainWindowHandler:
 				self.clientObject.updateUser(response)
+
+			# Region Objects
+			if isinstance(response, Region) and self.clientObject.mainWindowHandler:
+				self.clientObject.addRegion(response)
+
+			if isinstance(response, DeltaRegion) and self.clientObject.mainWindowHandler:
+				self.clientObject.updateRegion(response)
 
 			# Login Stuff
 			elif isinstance(response, LoginResponse) and self.clientObject.loginHandler:
