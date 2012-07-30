@@ -348,8 +348,10 @@ class ConsoleWindow(Gtk.Window):
 		self.protocol = protocol
 		self.protocol.window = self
 		
+		self.scroll = Gtk.ScrolledWindow()
 		self.outputArea = Gtk.TextView()
-		self.add(self.outputArea)
+		self.scroll.add(self.outputArea)
+		self.add(self.scroll)
 
 		self.outputArea.get_buffer().set_text(self.protocol.allData)
 	
