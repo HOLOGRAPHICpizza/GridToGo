@@ -30,9 +30,7 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 def spawnRobustProcess(opensimdir):
 	log.msg("Starting Robust")
 	p = ConsoleProtocol("Robust")
-	spawnMonoProcess(p, opensimdir + "/bin/" + "Robust.exe", [
-		"-inifile=" + opensimdir + "/bin/Robust.ini"
-	], opensimdir + "/bin")
+	spawnMonoProcess(p, opensimdir + "/bin/" + "Robust.exe", [], opensimdir + "/bin")
 	log.msg("Started Robust")
 	return p
 
