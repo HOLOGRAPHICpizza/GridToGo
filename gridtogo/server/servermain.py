@@ -84,6 +84,11 @@ class GTGProtocol(basic.LineReceiver):
 			if PRINT_PACKETS:
 				log.msg("IN : %s | %s" % (request.__class__.__name__, line))
 
+				
+			if isinstance(request, CreateRegionRequest):
+				log.msg("Creating new region on grid + " + request.gridName + ": " + request.regionName)
+				self.database.createRegion(request.gridName, request.regionName, request.uuid)
+
 			if not self.user:
 				if isinstance(request, LoginRequest):
 					response, userAccount = self.authenticator.authenticateUser(request)
@@ -140,10 +145,6 @@ class GTGProtocol(basic.LineReceiver):
 				elif isinstance(request, CreateUserRequest):
 					response = self.authenticator.createUser(request)
 					self.writeResponse(response)
-				
-				elif isinstance(request, CreateRegionRequest):
-					self.database.createRegion(request.gridName, request.regionName, request.uuid)
-					pass
 			else:
 				# User is authenticated.
 				#TODO: Listen for incoming User objects,
