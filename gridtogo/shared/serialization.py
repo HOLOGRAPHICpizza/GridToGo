@@ -80,6 +80,8 @@ class JSONSerializer(object):
 			obj = None
 			if class_ is DeltaUser:
 				obj = DeltaUser(uuid.UUID(data['UUID']))
+			elif class_ is DeltaRegion:
+				obj = DeltaRegion(data['regionName'])
 			else:
 				obj = class_()
 
@@ -95,6 +97,10 @@ class JSONSerializer(object):
 						data['lastName'],data['online'], data['NATStatus'],
 						data['moderator'], data['gridHost'],
 						data['gridHostActive'])
+			elif class_ is Region:
+				obj = Region(
+						data['regionName'], data['location'],
+						data['externalhost'])
 			return obj
 
 		else:
