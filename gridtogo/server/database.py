@@ -291,7 +291,7 @@ class MongoDatabase(object):
 		return result
 	
 	def createRegion(self, gridName, regionName, uuid):
-		userid = self.database['user'].find_one({"uuid": uuid})["_id"]
+		userid = self.database['user'].find_one({"uuid": str(uuid)})["_id"]
 		gridid = self.database['grid'].find_one({"name": gridName})["_id"]
 		regionid = self.database['region'].insert(
 			{"name": regionName,
