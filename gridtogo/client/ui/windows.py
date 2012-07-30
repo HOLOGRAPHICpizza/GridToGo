@@ -284,10 +284,10 @@ class MainWindowHandler(WindowHandler):
 		
 	def onbtnNewRegionClicked(self, *args):
 		#TODO: Prevent users from opening the Create Region window multiple times. not a problem, but more of a common sense thing.
-		self.clientObject.createRegionWindowHandler = \
+		self.clientObject.CreateRegionWindowHandler = \
 		self.factory.buildWindow("createRegionWindow", CreateRegionWindowHandler)
-		print self.clientObject.createRegionWindowHandler
-		self.clientObject.createRegionWindowHandler.window.show_all()
+		print self.clientObject.CreateRegionWindowHandler
+		self.clientObject.CreateRegionWindowHandler.window.show_all()
 
 	def becomeGridHost(self, *args):
 		if self.clientObject.getLocalUser().gridHost:
