@@ -9,7 +9,7 @@ from twisted.python import log
 try:
 	from pymongo import Connection
 	havePyMongo = True
-except LoadException:
+except Exception:
 	havePyMongo = False
 	
 
