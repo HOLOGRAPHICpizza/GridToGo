@@ -63,7 +63,9 @@ class JSONSerializer(object):
 			return class_(
 				uuid.UUID(data['uuid']),
 				data['gridName'],
-				data['regionName'])
+				data['regionName'],
+				data['location'],
+				data['externalhost'])
 
 		elif class_ is ResetPasswordRequest:
 			return class_(data['firstName'], data['lastName'])
@@ -135,6 +137,8 @@ class JSONSerializer(object):
 				data['uuid'] = obj.uuid
 				data['gridName'] = obj.gridName
 				data['regionName'] = obj.regionName
+				data['location'] = obj.location
+				data['externalhost'] = obj.location
 				return data
 
 			else:

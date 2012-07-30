@@ -87,7 +87,7 @@ class GTGProtocol(basic.LineReceiver):
 				
 			if isinstance(request, CreateRegionRequest):
 				log.msg("Creating new region on grid + " + request.gridName + ": " + request.regionName)
-				self.database.createRegion(request.gridName, request.regionName, request.uuid)
+				self.database.createRegion(request.gridName, request.regionName, request.location, request.externalhost, request.uuid)
 
 			if not self.user:
 				if isinstance(request, LoginRequest):

@@ -94,7 +94,9 @@ class LoginSuccess(LoginResponse):
 		self.grid = grid
 
 class CreateRegionRequest(object):
-	def __init__(self, uuid, gridName, regionName):
+	def __init__(self, uuid, gridName, regionName, location, externalhost):
 		self.uuid = uuid
 		self.gridName = gridName
 		self.regionName = regionName
+		self.location = location
+		self.externalhost = externalhost

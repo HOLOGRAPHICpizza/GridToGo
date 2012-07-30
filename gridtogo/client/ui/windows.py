@@ -331,7 +331,7 @@ class CreateRegionWindowHandler(WindowHandler):
 		# Actually store the region in the database
 		gridName = self.clientObject.localGrid
 		uuid = self.clientObject.localUUID
-		request = CreateRegionRequest(uuid, gridName, region)
+		request = CreateRegionRequest(uuid, gridName, region, coordinates, hostname)
 		self.clientObject.protocol.writeRequest(request)
 		
 	def onbtnCancelClicked(self, *args):
