@@ -22,7 +22,7 @@ def spawnRobustProcess(opensimdir):
 	p = ConsoleProtocol("Robust")
 	spawnMonoProcess(p, opensimdir + "/bin/" + "Robust.exe", [
 		"-inimaster=" + opensimdir + "/bin/Robust.ini"
-	])
+	], opensimdir + "/bin")
 	log.msg("Started Robust")
 	return p
 
@@ -33,13 +33,13 @@ def spawnRegionProcess(opensimdir, region):
 		"-inimaster=" + opensimdir + "/bin/OpenSim.ini",
 		"-inifile=" + opensimdir +"/bin/Regions/" + region + ".ini",
 		"-name=" + region
-	])
+	], opensimdir + "/bin")
 	log.msg("Started region: " + region)
 	return p
 
-def spawnMonoProcess(protocol, name, args):
+def spawnMonoProcess(protocol, name, args, p):
 	if os.name == 'nt':
-		return reactor.spawnProcess(protocol, name, args)
+		return reactor.spawnProcess(protocol, name, args, path=p)
 	else:
-		return reactor.spawnProcess(protocol, "mono", [name] + args)
+		return reactor.spawnProcess(protocol, "mono", [name] + args, path=p)
 
