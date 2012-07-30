@@ -296,7 +296,10 @@ class MainWindowHandler(WindowHandler):
 			self.clientObject.updateUser(delta)
 			self.clientObject.protocol.writeRequest(delta)
 
-			protocol = process.spawnRobustProcess()
+			distribution = Distribution(self.clientObject.projectRoot)
+			# TODO Don't hardcode this
+			distribution.configureRobust("GridName", "localhost")
+			protocol = process.spawnRobustProcess(distribution.opensimdir)
 			console = ConsoleWindow(protocol)
 			console.show_all()
 		else:
@@ -334,14 +337,12 @@ class CreateRegionWindowHandler(WindowHandler):
 
 class ConsoleWindow(Gtk.ScrolledWindow):
 	def __init__(self, protocol):
-		Gtk.ScrolledWindow.__init__(
-			self,
-			window_position = Gtk.WindowPosition.CENTER_ON_PARENT)
+		Gtk.ScrolledWindow.__init__(self)
 
-		protocol.window = self
 		self.protocol = protocol
+		self.protocol.window = self
 		
-		self.outputArea = Gtk.TextEntry()
+		self.outputArea = Gtk.TextView()
 		self.add(self.outputArea)
 
 		self.outputArea.get_buffer().set_text(self.protocol.allData)

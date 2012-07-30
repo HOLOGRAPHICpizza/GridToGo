@@ -92,7 +92,7 @@ class Distribution(object):
 		log.msg("Configuring Robust")
 		if not os.path.isfile(self.configdir + "/Robust.ini"):
 			log.msg("Create file: " + self.configdir + "/Robust.ini")
-			open(self.configdir + "/Robust.ini").close()
+			open(self.configdir + "/Robust.ini", "w").close()
 
 		template = Template(mappings)
 		template.run(
