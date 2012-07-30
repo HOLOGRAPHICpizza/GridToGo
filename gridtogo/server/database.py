@@ -174,16 +174,8 @@ class SQLiteDatabase(object):
 
 		users = {}
 		for record in cursor.fetchall():
-			user = User(uuid.UUID(record[0]))
-			user.firstName = record[1]
-			user.lastName = record[2]
-			user.moderator = bool(record[3])
-			user.gridHost = bool(record[4])
-
-			user.online = False
-			user.NATStatus = False
-			user.gridHostActive = False
-
+			user = User(uuid.UUID(record[0]), record[1], record[2], False,
+						False, bool(record[3]), bool(record[4]), False)
 			users[user.UUID] = user
 		return users
 
@@ -273,20 +265,11 @@ class MongoDatabase(object):
 		for gridNameAssoc in gridNameAssociations:
 			u = self.database['user'].find_one(
 				{'_id': gridNameAssoc['user']})
-			user = User(uuid.UUID(u['uuid']))
-			user.firstName = u['first_name']
-			user.lastName = u['last_name']
-			user.hashedPassword = u['hashed_password']
-			user.email = u['email']
-			user.moderator = gridNameAssoc['moderator']
-			user.gridHost = gridNameAssoc['grid_host']
+			user = User(uuid.UUID(u['uuid']), u['first_name'], u['last_name'],
+						False, False, gridNameAssoc['moderator'],
+						gridNameAssoc['grid_host'], False)
 
-			# I got this part from the SQL section
-			user.online = False
-			user.NATStatus = False
-			user.gridHostActive = False
-
-			result[u['uuid']] = user
+			result[user.UUID] = user
 		
 		return result
 	

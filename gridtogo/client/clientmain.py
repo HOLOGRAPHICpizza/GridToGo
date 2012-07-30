@@ -57,14 +57,19 @@ class GridToGoClient(object):
 		self.loginHandler.window.show_all()
 
 		reactor.run()
+	
+	def addUser(self, user):
+		self.users[user.UUID] = user
+		if self.mainWindowHandler:
+			self.mainWindowHandler.userList.updateUser(user)
 
 	def updateUser(self, user):
 		if self.users.get(user.UUID):
 			self.users[user.UUID].applyDelta(user)
+			if self.mainWindowHandler:
+				self.mainWindowHandler.userList.updateUser(self.users[user.UUID])
 		else:
-			self.users[user.UUID] = user
-		if self.mainWindowHandler:
-			self.mainWindowHandler.userList.updateUser(user)
+			log.err("Received DeltaUser for non existent User. Ignoring")
 
 	def attemptConnection(self, spinnerParent, host, port, timeout):
 		if self.protocol:
@@ -126,8 +131,11 @@ class GTGClientProtocol(basic.LineReceiver):
 			if PRINT_PACKETS:
 				log.msg("IN : %s | %s" % (response.__class__.__name__, line))
 
-			# User Objects
 			if isinstance(response, User) and self.clientObject.mainWindowHandler:
+				self.clientObject.addUser(response)
+
+			# User Objects
+			if isinstance(response, DeltaUser) and self.clientObject.mainWindowHandler:
 				self.clientObject.updateUser(response)
 
 			# Login Stuff

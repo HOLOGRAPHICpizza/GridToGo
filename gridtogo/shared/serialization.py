@@ -78,14 +78,23 @@ class JSONSerializer(object):
 
 		elif issubclass(class_, DeltaObject):
 			obj = None
-			if class_ is User:
-				obj = User(uuid.UUID(data['UUID']))
+			if class_ is DeltaUser:
+				obj = DeltaUser(uuid.UUID(data['UUID']))
 			else:
 				obj = class_()
 
 			for key in data:
 				if key != 'className' and key != 'UUID':
 					setattr(obj, key, data[key])
+			return obj
+		elif issubclass(class_, Deltable):
+			obj = None
+			if class_ is User:
+				obj = User(
+						uuid.UUID(data['UUID']), data['firstName'],
+						data['lastName'],data['online'], data['NATStatus'],
+						data['moderator'], data['gridHost'],
+						data['gridHostActive'])
 			return obj
 
 		else:
@@ -105,33 +114,32 @@ class JSONSerializer(object):
 				data['lastName'] = obj.lastName
 				data['password'] = obj.password
 				data['grid'] = obj.grid
-				return data
 
 			elif isinstance(obj, CreateUserRequest):
 				data['firstName'] = obj.firstName
 				data['lastName'] = obj.lastName
 				data['password'] = obj.password
 				data['email'] = obj.email
-				return data
 
 			elif isinstance(obj, ResetPasswordRequest):
 				data['firstName'] = obj.firstName
 				data['lastName'] = obj.lastName
-				return data
 
 			elif isinstance(obj, uuid.UUID):
 				return str(obj)
+
+			elif isinstance(obj, Deltable):
+				for a in obj.attributes:
+					data[a] = getattr(obj, a)
 
 			elif isinstance(obj, DeltaObject):
 				for a in obj.attributes:
 					if hasattr(obj, a):
 						data[a] = getattr(obj, a)
-				return data
 
 			elif isinstance(obj, LoginSuccess):
 				data['UUID'] = obj.UUID
 				data['grid'] = obj.grid
-				return data
 
 			elif isinstance(obj, CreateRegionRequest):
 				data['uuid'] = obj.uuid
@@ -139,7 +147,5 @@ class JSONSerializer(object):
 				data['regionName'] = obj.regionName
 				data['location'] = obj.location
 				data['externalhost'] = obj.location
-				return data
 
-			else:
-				return data
+			return data

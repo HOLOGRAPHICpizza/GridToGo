@@ -51,27 +51,14 @@ class UserList(Gtk.VBox):
 		for uuid in clientObject.users:
 			self.updateUser(clientObject.users[uuid])
 
-	def _getDefaultUser(self):
-		defaultUser = User(None)
-		defaultUser.firstName = '?'
-		defaultUser.lastName = '?'
-		defaultUser.online = False
-		defaultUser.NATStatus = False
-		defaultUser.gridHost = False
-		defaultUser.gridHostActive = False
-		return defaultUser
-
-	def updateUser(self, user):
+	def updateUser(self, newUser):
 		"""Pass in a User object to add or update its entry."""
 		row = Gtk.HBox()
 
 		# Destroy the existing row, get user object
-		oldRow = self.rows.get(user.UUID)
-		newUser = self._getDefaultUser()
+		oldRow = self.rows.get(newUser.UUID)
 		if oldRow:
-			newUser = oldRow.user
 			oldRow.destroy()
-		newUser.applyDelta(user)
 		row.user = newUser
 
 		#TODO: Set tooltips for things, or our users will be confuzzeled
@@ -290,7 +277,7 @@ class MainWindowHandler(WindowHandler):
 					)
 					return
 
-			delta = User(self.clientObject.getLocalUser().UUID)
+			delta = DeltaUser(self.clientObject.getLocalUser().UUID)
 			delta.gridHostActive = True
 
 			self.clientObject.updateUser(delta)

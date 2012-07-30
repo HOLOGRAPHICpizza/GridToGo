@@ -1,23 +1,41 @@
 # "Delta Objects"
 
-class DeltaObject(object):
+class Deltable(object):
 	def __init_(self):
-		self.attributes = ()
+		self.deltas = ()
 	
-	def applyDelta(self, deltaObject):
+	def applyDelta(self, delta):
 		"""Copy all the valid and existing attributes from detaObject into this object."""
-		for a in deltaObject.attributes:
-			if hasattr(deltaObject, a):
-				setattr(self, a, getattr(deltaObject, a))
-		return self
+		for a in self.deltas:
+			if hasattr(delta, a):
+				setattr(self, a, getattr(delta, a))
 
-class User(DeltaObject):
+class DeltaObject(object):
+	pass
+
+userDeltas = ("firstName", "lastName", "online", "NATStatus", "moderator", "gridHost", "gridHostActive")
+userAttributes = ("UUID",) + userDeltas
+
+class User(Deltable):
+	def __init__(self, UUID, firstName, lastName, online, NATStatus, moderator, gridHost, gridHostActive):
+		self.UUID = UUID
+		self.firstName = firstName
+		self.lastName = lastName
+		self.online = online
+		self.NATStatus = NATStatus
+		self.moderator = moderator
+		self.gridHost = gridHost
+		self.gridHostActive = gridHostActive
+		self.deltas = userDeltas
+		self.attributes = userAttributes
+
+class DeltaUser(DeltaObject):
 	"""
 	These are only relevant in the context of a grid.
 	UserAccount is the record of the user independent of a grid.
 	"""
 	def __init__(self, UUID):
-		self.attributes = ('UUID', 'firstName', 'lastName', 'online', 'NATStatus', 'moderator', 'gridHost', 'gridHostActive')
+		self.attributes = userAttributes
 		self.UUID = UUID
 
 # Account management stuff
