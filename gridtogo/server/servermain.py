@@ -43,9 +43,9 @@ class Grid(object):
 		# maps UUIDs to Protocol objects
 		self.protocols = {}
 
-	def applyUserDelta(self, user):
-		self.users[user.UUID].applyDelta(user)
-		self.writeResponseToAll(user)
+	def applyUserDelta(self, userdelta):
+		self.users[userdelta.UUID].applyDelta(userdelta)
+		self.writeResponseToAll(userdelta)
 
 	def writeResponseToAll(self, response):
 		for uuid in self.protocols:
@@ -87,7 +87,7 @@ class GTGProtocol(basic.LineReceiver):
 				
 			if isinstance(request, CreateRegionRequest):
 				log.msg("Creating new region on grid + " + request.gridName + ": " + request.regionName)
-				self.database.createRegion(request.gridName, request.regionName, request.uuid)
+				self.database.createRegion(request.gridName, request.regionName, request.location, request.externalhost, request.uuid)
 
 			if not self.user:
 				if isinstance(request, LoginRequest):
@@ -109,14 +109,10 @@ class GTGProtocol(basic.LineReceiver):
 						if not self.user:
 							log.msg("Joining user to grid %s...", self.grid.name)
 							# Create a new user. If first user, give mod and host.
-							self.user = User(userAccount.UUID)
-							self.user.firstName = userAccount.firstName
-							self.user.lastName = userAccount.lastName
-							# The user will be set online when we apply the delta below, not here
-							self.user.online = False
-							self.user.moderator = (len(self.grid.users) < 1)
-							self.user.gridHost = self.user.moderator
-							self.user.gridHostActive = False
+							self.user = User(userAccount.UUID,
+								userAccount.firstName, userAccount.lastName,
+								True, False, (len(self.grid.users) < 1),
+								(len(self.grid.users) < 1), False)
 							self.grid.users[self.user.UUID] = self.user
 							self.database.storeGridAssociation(self.user, request.grid)
 
@@ -134,7 +130,7 @@ class GTGProtocol(basic.LineReceiver):
 						self.grid.protocols[self.user.UUID] = self
 
 						# mark this user online with a delta object
-						delta = User(self.user.UUID)
+						delta = DeltaUser(self.user.UUID)
 						delta.online = True
 						self.grid.applyUserDelta(delta)
 
@@ -159,7 +155,7 @@ class GTGProtocol(basic.LineReceiver):
 		if self.user:
 			if self.grid.protocols.get(self.user.UUID):
 				del self.grid.protocols[self.user.UUID]
-			delta = User(self.user.UUID)
+			delta = DeltaUser(self.user.UUID)
 			delta.online = False
 			delta.NATStatus = False
 			self.grid.applyUserDelta(delta)
