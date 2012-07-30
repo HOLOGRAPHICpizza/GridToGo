@@ -19,7 +19,7 @@ class Authenticator(object):
 			return UnknownUser(), None
 
 		if userAccount.hashedPassword == hashedPassword:
-			return LoginSuccess(userAccount.UUID), userAccount
+			return LoginSuccess(userAccount.UUID, loginRequest.grid), userAccount
 		else:
 			return IncorrectPassword(), None
 

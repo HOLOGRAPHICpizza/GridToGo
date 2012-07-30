@@ -344,6 +344,12 @@ class CreateRegionWindowHandler(WindowHandler):
 
 		# TODO Don't hardcode port
 		distribution.configureRegion(region, coordinates, hostname, 9000)
+
+		# Actually store the region in the database
+		gridName = self.clientObject.localGrid
+		uuid = self.clientObject.localUUID
+		request = CreateRegionRequest(uuid, gridName, region)
+		self.clientObject.protocol.writeRequest(request)
 		
 	def btnCancelClicked(self, *args):
 		self.destroy()

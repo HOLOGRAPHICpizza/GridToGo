@@ -59,6 +59,12 @@ class JSONSerializer(object):
 				data['password'],
 				data['email'])
 
+		elif class_ is CreateRegionRequest:
+			return class_(
+				uuid.UUID(data['uuid']),
+				data['gridName'],
+				data['regionName'])
+
 		elif class_ is ResetPasswordRequest:
 			return class_(data['firstName'], data['lastName'])
 
@@ -66,7 +72,7 @@ class JSONSerializer(object):
 		#	return class_(data['value'])
 
 		elif class_ is LoginSuccess:
-			return class_(uuid.UUID(data['UUID']))
+			return class_(uuid.UUID(data['UUID']), data['grid'])
 
 		elif issubclass(class_, DeltaObject):
 			obj = None
@@ -122,6 +128,13 @@ class JSONSerializer(object):
 
 			elif isinstance(obj, LoginSuccess):
 				data['UUID'] = obj.UUID
+				data['grid'] = obj.grid
+				return data
+
+			elif isinstance(obj, CreateRegionRequest):
+				data['uuid'] = obj.uuid
+				data['gridName'] = obj.gridName
+				data['regionName'] = obj.regionName
 				return data
 
 			else:
