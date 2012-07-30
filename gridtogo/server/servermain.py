@@ -142,6 +142,7 @@ class GTGProtocol(basic.LineReceiver):
 					self.writeResponse(response)
 				
 				elif isinstance(request, CreateRegionRequest):
+					self.database.createRegion(request.gridName, request.regionName, request.uuid)
 					pass
 			else:
 				# User is authenticated.
