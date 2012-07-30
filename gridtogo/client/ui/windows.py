@@ -293,7 +293,7 @@ class MainWindowHandler(WindowHandler):
 		if self.clientObject.getLocalUser().gridHost:
 			for uuid in self.clientObject.users:
 				if self.clientObject.users[uuid].gridHostActive:
-					#TODO: Allow moderators to steal gridhost from others.
+					#TODO: Allow moderators to take gridhost from others.
 					showModalDialog(
 						self.window,
 						Gtk.MessageType.ERROR,
@@ -320,11 +320,6 @@ class MainWindowHandler(WindowHandler):
 				'You do not have permission to become the grid host.'
 			)
 
-		# Create UserList
-		vbox = builder.get_object("vbox")
-		self.userList = UserList(clientObject)
-		vbox.pack_start(self.userList, False, False, 0)
-		self.userList.show_all()
 
 class CreateRegionWindowHandler(WindowHandler):
 	def __init__(self, builder, clientObject, factory, window):
