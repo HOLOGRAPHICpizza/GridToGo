@@ -13,10 +13,19 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 		self.pid = self.transport.pid
 	
 	def outReceived(self, data):
-		log.msg("Received Data: " + data)
+		log.msg("Received Data from " + self.name + ": " + data)
 		self.allData += data
 		if not self.window is None:
 			self.window.outReceived(data)
+	
+	def errReceived(self, data):
+		log.msg("Received Data (err) from " + self.name + ": " + data)
+		
+	def childDataReceived(self, fd, data):
+		log.msg("Received Data (child): " + self.name + ": " + data)
+	
+	def processEnded(self, reason):
+		log.msg("Process " + self.name + " has ended. Reason: " + str(reason))
 
 def spawnRobustProcess(opensimdir):
 	log.msg("Starting Robust")
