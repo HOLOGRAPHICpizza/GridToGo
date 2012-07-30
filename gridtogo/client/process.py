@@ -11,18 +11,11 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 	def connectionMade(self):
 		log.msg("Connection Established with " + self.name)
 		self.pid = self.transport.pid
-	
-	def outReceived(self, data):
-		log.msg("Received Data from " + self.name + ": " + data)
+		
+	def childDataReceived(self, fd, data):
 		self.allData += data
 		if not self.window is None:
 			self.window.outReceived(data)
-	
-	def errReceived(self, data):
-		log.msg("Received Data (err) from " + self.name + ": " + data)
-		
-	def childDataReceived(self, fd, data):
-		log.msg("Received Data (child): " + self.name + ": " + data)
 	
 	def processEnded(self, reason):
 		log.msg("Process " + self.name + " has ended. Reason: " + str(reason))
@@ -49,5 +42,6 @@ def spawnMonoProcess(protocol, name, args, p):
 	if os.name == 'nt':
 		return reactor.spawnProcess(protocol, name, args, path=p)
 	else:
-		return reactor.spawnProcess(protocol, "mono", [name] + args, path=p)
+		log.msg("Args: " + str([name] + args))
+		return reactor.spawnProcess(protocol, "mono", ["mono", name] + args, path=p)
 
