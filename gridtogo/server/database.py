@@ -238,7 +238,13 @@ class MongoDatabase(object):
 
 	def storeGridAssociation(self, user, gridName):
 		userid = self.database['user'].find_one({'uuid': str(user.UUID)})['_id']
-		gridid = self.database['grid'].find_one({'name': gridName})['_id']
+		grid = self.database['grid'].find_one({'name': gridName})
+		gridid = None
+		# TODO Make this less hacky (the grid should actually have to preexist)
+		if not grid is None:
+			gridid = grid['_id']
+		else:
+			gridid = self.database['grid'].insert({"name": gridName})
 		existingAssoc = self.database['grid_user'].find_one(
 			{'grid': gridid,
 			 'user': userid
