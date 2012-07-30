@@ -298,7 +298,7 @@ class MainWindowHandler(WindowHandler):
 
 			distribution = Distribution(self.clientObject.projectRoot)
 			# TODO Don't hardcode this
-			distribution.configureRobust("GridName", "localhost")
+			distribution.configureRobust(self.clientObject.localGrid, "localhost")
 			protocol = process.spawnRobustProcess(distribution.opensimdir)
 			console = ConsoleWindow(protocol)
 			console.show_all()
@@ -341,9 +341,9 @@ class CreateRegionWindowHandler(WindowHandler):
 		if self.window:
 			self.window.destroy()
 
-class ConsoleWindow(Gtk.ScrolledWindow):
+class ConsoleWindow(Gtk.Window):
 	def __init__(self, protocol):
-		Gtk.ScrolledWindow.__init__(self)
+		Gtk.Window.__init__(self)
 
 		self.protocol = protocol
 		self.protocol.window = self

@@ -13,6 +13,7 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 		self.pid = self.transport.pid
 	
 	def outReceived(self, data):
+		log.msg("Received Data: " + data)
 		self.allData += data
 		if not self.window is None:
 			self.window.outReceived(data)
