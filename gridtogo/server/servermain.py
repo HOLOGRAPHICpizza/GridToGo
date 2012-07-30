@@ -140,7 +140,9 @@ class GTGProtocol(basic.LineReceiver):
 				elif isinstance(request, CreateUserRequest):
 					response = self.authenticator.createUser(request)
 					self.writeResponse(response)
-
+				
+				elif isinstance(request, CreateRegionRequest):
+					pass
 			else:
 				# User is authenticated.
 				#TODO: Listen for incoming User objects,

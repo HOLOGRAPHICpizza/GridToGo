@@ -66,6 +66,10 @@ class IDatabase(Interface):
 	def getGridUsers(self, gridName):
 		"""Return a dictionary of User objects which are members of the given grid name, keys are UUIDs."""
 		pass
+	
+	def createRegion(self, gridName, regionName, userUuid)
+		"""Creates a region with the specified regionName referencing the specified name and gives the user a regionHost association with the grid"""
+		pass
 
 	def close(self):
 		"""Commits all database changes and releases all resources, if applicable."""
@@ -285,6 +289,16 @@ class MongoDatabase(object):
 			result[u['uuid']] = user
 		
 		return result
+	
+	def createRegion(self, gridName, regionName, uuid)
+		userid = self.database['user'].find_one({"uuid": uuid})["_id"]
+		gridid = self.database['grid'].find_one({"name": gridName})["_id"]
+		regionid = self.database['region'].insert(
+			{"name": regionName,
+			 "grid": gridid})
+		self.database['region_host'].insert(
+			{"user": userid,
+			 "region": regionid})
 
 	def close(self):
 		self.connection.close()

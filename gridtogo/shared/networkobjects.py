@@ -92,3 +92,9 @@ class LoginSuccess(LoginResponse):
 		self.message = 'Login successful.'
 		self.UUID = UUID
 		self.grid = grid
+
+class CreateRegionRequest(object):
+	def __init__(self, uuid, gridName, regionName):
+		self.uuid = uuid
+		self.gridName = gridName
+		self.regionName = regionName
