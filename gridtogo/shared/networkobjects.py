@@ -88,6 +88,7 @@ class TooManyAttempts(LoginResponse):
 		self.message = 'Too many login attempts. Please wait and try again.'
 
 class LoginSuccess(LoginResponse):
-	def __init__(self, UUID):
+	def __init__(self, UUID, grid):
 		self.message = 'Login successful.'
 		self.UUID = UUID
+		self.grid = grid
