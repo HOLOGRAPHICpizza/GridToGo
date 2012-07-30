@@ -134,6 +134,7 @@ class GTGClientProtocol(basic.LineReceiver):
 			elif isinstance(response, LoginResponse) and self.clientObject.loginHandler:
 				if isinstance(response, LoginSuccess):
 					self.clientObject.localUUID = response.UUID
+					self.clientObject.localGrid = response.grid
 
 					self.clientObject.mainWindowHandler = \
 						self.clientObject.windowFactory.buildWindow("mainWindow", MainWindowHandler)
