@@ -74,7 +74,7 @@ class IDatabase(Interface):
 class SQLiteDatabase(object):
 	implements(IDatabase)
 
-	def __init__(self, databaseFilename):
+	def __init__(self):
 		pass
 	
 	def connect(self, config):
@@ -200,9 +200,18 @@ class MongoDatabase(object):
 		log.msg("Initiated Mongo Connection.")
 		log.msg("Using database: " + config.dbdatabase)
 		self.database = self.connection[config.dbdatabase]
+		if config.dbauth:
+			log.msg("Logging into Mongo as " + config.dbuser)
+			self.database.authenticate(config.dbuser, config.dbpass)
+
+		log.msg("Ensuring indexes on user: uuid [unique], first_name, last_name")
 		self.database['user'].ensure_index("uuid", unique=True)
 		self.database['user'].ensure_index("first_name")
 		self.database['user'].ensure_index("last_name")
+		log.msg("Ensuring index on grid: name [unique]")
+		self.database['grid'].ensure_index('name', unique=True)
+		log.msg("Ensuring index on region: name")
+		self.database['region'].ensure_index('name')
 	
 	def getUserAccountByName(self, firstName, lastName):
 		result = self.database['user'].find_one(
@@ -229,7 +238,18 @@ class MongoDatabase(object):
 
 	def storeGridAssociation(self, user, gridName):
 		userid = self.database['user'].find_one({'uuid': str(user.UUID)})['_id']
-		data = {'grid_name': gridName, 'user': userid, 'moderator': False, 'grid_host': False}
+		grid = self.database['grid'].find_one({'name': gridName})
+		gridid = None
+		# TODO Make this less hacky (the grid should actually have to preexist)
+		if not grid is None:
+			gridid = grid['_id']
+		else:
+			gridid = self.database['grid'].insert({"name": gridName})
+		existingAssoc = self.database['grid_user'].find_one(
+			{'grid': gridid,
+			 'user': userid
+			})
+		data = {'grid': gridid, 'user': userid, 'moderator': False, 'grid_host': False}
 
 		if hasattr(user, 'moderator'):
 			data['moderator'] = user.moderator
@@ -237,11 +257,14 @@ class MongoDatabase(object):
 			data['grid_host'] = user.gridHost
 		pass
 
-		self.database['grid_user'].insert(data)
+		if not existingAssoc is None:
+			data['_id'] = existingAssoc['_id']
+		self.database['grid_user'].save(data)
 
 	def getGridUsers(self, gridName):
+		gridid = self.database['grid'].find_one({'name': gridName})
 		gridNameAssociations = self.database['grid_user'].find(
-			{'grid_name': gridName})
+			{'grid': gridid})
 		result = {}
 		for gridNameAssoc in gridNameAssociations:
 			u = self.database['user'].find_one(
@@ -253,6 +276,12 @@ class MongoDatabase(object):
 			user.email = u['email']
 			user.moderator = gridNameAssoc['moderator']
 			user.gridHost = gridNameAssoc['grid_host']
+
+			# I got this part from the SQL section
+			user.online = False
+			user.NATStatus = False
+			user.gridHostActive = False
+
 			result[u['uuid']] = user
 		
 		return result
