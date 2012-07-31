@@ -98,6 +98,45 @@ class UserList(Gtk.VBox):
 		self.pack_start(row, False, False, 0)
 		row.show_all()
 
+class RegionList(Gtk.VBox):
+	"""This container will hold the visual list of users in the grid."""
+
+	def __init__(self, clientObject):
+		Gtk.VBox.__init__(self)
+
+		# Dictionary mapping UUIDs to HBoxes
+		self.rows = {}
+
+		# Do initial population
+		for k in clientObject.regions:
+			self.updateUser(clientObject.regions[k])
+
+	def updateRegion(self, region):
+		"""Pass in a User object to add or update its entry."""
+		row = Gtk.HBox()
+
+		# Destroy the existing row, get user object
+		oldRow = self.rows.get(region.regionName)
+		if oldRow:
+			oldRow.destroy()
+		row.region = region
+
+		#TODO: Set tooltips for things, or our users will be confuzzeled
+
+		# Build the widgets
+		status = None
+
+		name = Gtk.Label(region.regionName, use_markup=True)
+
+		row.pack_start(name, True, False, 0)
+
+		# Map the UUID to the row
+		self.rows[region.regionName] = row
+
+		# Pack the row
+		self.pack_start(row, False, False, 0)
+		row.show_all()
+
 class SpinnerPopup(Gtk.Window):
 	"""
 	Example of call, does not block, parent can be None:
@@ -263,6 +302,12 @@ class MainWindowHandler(WindowHandler):
 		self.userList = UserList(clientObject)
 		vbox.pack_start(self.userList, False, False, 0)
 		self.userList.show_all()
+
+		# Create RegionList
+		regionbox = builder.get_object("regionbox")
+		self.regionList = RegionList(clientObject)
+		regionbox.pack_start(self.regionList, False, False, 0)
+		self.regionList.show_all()
 
 	def destroy(self, *args):
 		self.window.destroy()

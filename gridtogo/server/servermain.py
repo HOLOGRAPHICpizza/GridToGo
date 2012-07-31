@@ -34,11 +34,14 @@ class GridToGoServer(object):
 		return GridToGoServer.exitcode
 
 class Grid(object):
-	def __init__(self, name, users):
+	def __init__(self, name, users, regions):
 		self.name = name
 
 		# This is a dictionary mapping UUIDs to User objects
 		self.users = users
+
+		# This is a dictionary mapping names to Region objects
+		self.regions = regions
 
 		# maps UUIDs to Protocol objects
 		self.protocols = {}
@@ -88,6 +91,9 @@ class GTGProtocol(basic.LineReceiver):
 			if isinstance(request, CreateRegionRequest):
 				log.msg("Creating new region on grid + " + request.gridName + ": " + request.regionName)
 				self.database.createRegion(request.gridName, request.regionName, request.location, request.externalhost, request.uuid)
+				region = Region(request.regionName, request.location, request.externalhost, False)
+				self.grid.regions[region.regionName] = region
+				self.grid.writeResponseToAll(region)
 
 			if not self.user:
 				if isinstance(request, LoginRequest):
@@ -100,7 +106,7 @@ class GTGProtocol(basic.LineReceiver):
 						# Load this user's grid if we haven't already
 						if not request.grid in self.grids:
 							log.msg("Loading grid %s from database..." % request.grid)
-							self.grids[request.grid] = Grid(request.grid, self.database.getGridUsers(request.grid))
+							self.grids[request.grid] = Grid(request.grid, self.database.getGridUsers(request.grid), self.database.getGridRegions(request.grid))
 						self.grid = self.grids[request.grid]
 
 						# Join the user to this grid if they are not a member
@@ -125,6 +131,10 @@ class GTGProtocol(basic.LineReceiver):
 						# send the client all the User objects in the grid
 						for id in self.grid.users:
 							self.writeResponse(self.grid.users[id])
+
+						# send the client all the Region objects in the grid
+						for n in self.grid.regions:
+							self.writeResponse(self.grid.regions[n])
 
 						# register this user's connection in our list
 						self.grid.protocols[self.user.UUID] = self
