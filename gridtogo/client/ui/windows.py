@@ -359,15 +359,23 @@ class MainWindowHandler(WindowHandler):
 			self.clientObject.updateUser(delta)
 			self.clientObject.protocol.writeRequest(delta)
 
+			#TODO: Show error dialogs on failures
+
 			spinner = SpinnerPopup(self.window, 'Loading OpenSim distribution...')
 			spinner.show_all()
 
 			distribution = Distribution(self.clientObject.projectRoot, parent=self.window)
-			# TODO Don't hardcode this
+			#TODO: Don't hardcode this
+
+			spinner.setMessage('Configuring ROBUST...')
 			distribution.configureRobust(self.clientObject.localGrid, "localhost")
+
+			spinner.setMessage('Spawning ROBUST process...')
 			protocol = process.spawnRobustProcess(distribution.opensimdir)
 			console = ConsoleWindow(protocol)
 			console.show_all()
+
+			spinner.destroy()
 		else:
 			showModalDialog(
 				self.window,
