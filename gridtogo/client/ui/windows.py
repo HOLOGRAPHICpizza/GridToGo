@@ -309,6 +309,10 @@ class MainWindowHandler(WindowHandler):
 		self.factory.buildWindow("createRegionWindow", CreateRegionWindowHandler)
 		print self.clientObject.createRegionWindowHandler
 		self.clientObject.createRegionWindowHandler.window.show_all()
+	
+	def onHostRegion(self, *args):
+		(model, iterator) = self.regionView.get_selection().get_selected()
+		regionName = model[iterator][0]
 
 	def becomeGridHost(self, *args):
 		if self.clientObject.getLocalUser().gridHost:
