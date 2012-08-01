@@ -285,13 +285,11 @@ class MainWindowHandler(WindowHandler):
 		self.regionView = Gtk.TreeView(model=self.regionList)
 
 		renderer = Gtk.CellRendererText()
-		log.msg("Addding column")
 		column = Gtk.TreeViewColumn()
 		column.pack_start(renderer, True)
 		column.add_attribute(renderer, "text", 0)
 		column.set_sort_column_id(0)
 		column.set_title("Name")
-		log.msg("Done adding")
 
 		self.regionView.append_column(column)
 
