@@ -30,11 +30,11 @@ def loadPixbuf(imageName, clientObject):
 		)
 	)
 
-class UserList(Gtk.VBox):
+class UserList(Gtk.ListStore):
 	"""This container will hold the visual list of users in the grid."""
 
 	def __init__(self, clientObject):
-		Gtk.VBox.__init__(self)
+		Gtk.ListStore.__init__(self, GdkPixbuf.Pixbuf, str, GdkPixbuf.Pixbuf, str, int, int, bool)
 
 		# Images
 		self.statusGrey = loadPixbuf('status-grey.png', clientObject)
@@ -44,8 +44,8 @@ class UserList(Gtk.VBox):
 		self.gridHostInactive = loadPixbuf('gridhost-inactive.png', clientObject)
 		self.blank = loadPixbuf('blank24.png', clientObject)
 
-		# Dictionary mapping UUIDs to HBoxes
-		self.rows = {}
+		# Dictionary mapping UUIDs to Iterators
+		self.iterators = {}
 
 		# Do initial population
 		for uuid in clientObject.users:
@@ -53,56 +53,66 @@ class UserList(Gtk.VBox):
 
 	def updateUser(self, newUser):
 		"""Pass in a User object to add or update its entry."""
-		row = Gtk.HBox()
-
 		# Destroy the existing row, get user object
-		oldRow = self.rows.get(newUser.UUID)
-		if oldRow:
-			oldRow.destroy()
-		row.user = newUser
+		iterator = self.iterators.get(newUser.UUID)
+		if iterator is None:
+			iterator = self.append()
 
 		#TODO: Set tooltips for things, or our users will be confuzzeled
 
 		# Build the widgets
 		status = None
+		statusI = None
 		if newUser.online and not newUser.NATStatus:
-			status = Gtk.Image.new_from_pixbuf(self.statusYellow)
+			status = self.statusYellow
+			statusI = 2
 		elif newUser.online and newUser.NATStatus:
-			status = Gtk.Image.new_from_pixbuf(self.statusGreen)
+			status = self.statusGreen
+			statusI = 1
 		else:
-			status = Gtk.Image.new_from_pixbuf(self.statusGrey)
+			status = self.statusGrey
+			statusI = 3
 
-		nameStr = newUser.firstName+' '+newUser.lastName
-		if newUser.moderator:
-			nameStr = "<b>%s</b>" % nameStr
-		name = Gtk.Label(nameStr, use_markup=True)
+		name = newUser.firstName+' '+newUser.lastName
 
 		gridHost = None
+		gridHostI = None
 		if newUser.gridHost and not newUser.gridHostActive:
-			gridHost = Gtk.Image.new_from_pixbuf(self.gridHostInactive)
+			gridHost = self.gridHostInactive
+			gridHostI = 2
 		elif newUser.gridHost and newUser.gridHostActive:
-			gridHost = Gtk.Image.new_from_pixbuf(self.gridHostActive)
+			gridHost = self.gridHostActive
+			gridHostI = 1
 		else:
-			gridHost = Gtk.Image.new_from_pixbuf(self.blank)
+			gridHost = self.blank
+			gridHostI = 3
 
-		# Pack the widgets
-		row.pack_start(status, False, False, 0)
-		row.pack_start(name, True, False, 0)
-		row.pack_start(gridHost, False, False, 0)
+		moderatorI = None
+		if newUser.moderator:
+			moderatorIcon = Gtk.STOCK_YES
+			moderatorI = 1
+		else:
+			moderatorIcon = Gtk.STOCK_NO
+			moderatorI = 2
+	
+		self.set_value(iterator, 0, status)
+		self.set_value(iterator, 1, name)
+		self.set_value(iterator, 2, gridHost)
+		self.set_value(iterator, 3, moderatorIcon)
 
-		# Map the UUID to the row
-		self.rows[newUser.UUID] = row
+		# Not Rendered, but used for sorting
+		self.set_value(iterator, 4, statusI)
+		self.set_value(iterator, 5, gridHostI)
+		self.set_value(iterator, 6, moderatorI)
 
-		# Pack the row
-		self.pack_start(row, False, False, 0)
-		row.show_all()
+		# Map the UUID to the iterator
+		self.iterators[newUser.UUID] = iterator
 
 class RegionList(Gtk.ListStore):
 	"""This container will hold the visual list of users in the grid."""
 
 	def __init__(self, clientObject):
-		t = GObject.GType.from_name("gchararray")
-		Gtk.ListStore.__init__(self, t, t, t)
+		Gtk.ListStore.__init__(self, str, str, str)
 
 		# Dictionary mapping names to GtkTreeIter
 		self.iterators = {}
@@ -289,9 +299,48 @@ class MainWindowHandler(WindowHandler):
 		# Create UserList
 		vbox = builder.get_object("vbox")
 		self.userList = UserList(clientObject)
-		vbox.pack_start(self.userList, False, False, 0)
-		self.userList.show_all()
+		self.userView = Gtk.TreeView(model=self.userList)
+		self.userView.get_selection().set_mode(Gtk.SelectionMode.NONE)
 
+		statusrenderer = Gtk.CellRendererPixbuf()
+		statuscol = Gtk.TreeViewColumn()
+		statuscol.pack_start(statusrenderer, True)
+		statuscol.add_attribute(statusrenderer, "pixbuf", 0)
+		statuscol.set_sort_column_id(4)
+		statuscol.set_title("Status")
+		statuscol.set_alignment(0.5)
+
+		namerenderer = Gtk.CellRendererText()
+		namecol = Gtk.TreeViewColumn()
+		namecol.pack_start(namerenderer, True)
+		namecol.add_attribute(namerenderer, "text", 1)
+		namecol.set_sort_column_id(1)
+		namecol.set_title("Name")
+
+		gridhostrenderer = Gtk.CellRendererPixbuf()
+		gridhostcol = Gtk.TreeViewColumn()
+		gridhostcol.pack_start(gridhostrenderer, True)
+		gridhostcol.add_attribute(gridhostrenderer, "pixbuf", 2)
+		gridhostcol.set_sort_column_id(5)
+		gridhostcol.set_title("Host")
+		gridhostcol.set_alignment(0.5)
+
+		moderatorrenderer = Gtk.CellRendererPixbuf()
+		moderatorcol = Gtk.TreeViewColumn()
+		moderatorcol.pack_start(moderatorrenderer, True)
+		moderatorcol.add_attribute(moderatorrenderer, "stock-id", 3)
+		moderatorcol.set_sort_column_id(6)
+		moderatorcol.set_title("Moderator")
+		moderatorcol.set_alignment(0.5)
+
+		self.userView.append_column(statuscol)
+		self.userView.append_column(gridhostcol)
+		self.userView.append_column(moderatorcol)
+		self.userView.append_column(namecol)
+
+		vbox.pack_start(self.userView, False, False, 0)
+		self.userView.show_all()
+		
 		# Create RegionList
 		regionbox = builder.get_object("regionbox")
 		self.regionList = RegionList(clientObject)

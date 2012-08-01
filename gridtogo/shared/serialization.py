@@ -100,7 +100,8 @@ class JSONSerializer(object):
 			elif class_ is Region:
 				obj = Region(
 						data['regionName'], data['location'],
-						data['externalhost'], data['host'])
+						data['externalhost'], data['currentHost'],
+						data['hosts'])
 			return obj
 
 		else:
