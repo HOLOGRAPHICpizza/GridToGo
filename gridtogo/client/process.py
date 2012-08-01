@@ -1,12 +1,16 @@
 import os
 from twisted.internet import protocol, reactor
+from twisted.internet.error import ProcessDone
 from twisted.python import log
+from gi.repository import Gtk
+from gridtogo.client.ui.dialog import *
 
 class ConsoleProtocol(protocol.ProcessProtocol):
-	def __init__(self, name):
+	def __init__(self, name, logFile):
 		self.name = name
 		self.allData = ""
 		self.window = None
+		self.logFile = logFile
 
 	def connectionMade(self):
 		log.msg("Connection Established with " + self.name)
@@ -19,18 +23,39 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 	
 	def processEnded(self, reason):
 		log.msg("Process " + self.name + " has ended. Reason: " + str(reason))
+		if reason.type is ProcessDone:
+			showModalDialog(None, Gtk.MessageType.INFO, 'Process %s exited cleanly.' % self.name)
+		else:
+			showModalDialog(
+				None,
+				Gtk.MessageType.ERROR,
+				"Process %s has crashed,\nrefer to the logfile %s for details." % (self.name, self.logFile))
+
+#TODO: Remove hard-coded path separators and use path.join
 
 def spawnRobustProcess(opensimdir):
 	log.msg("Starting Robust")
-	p = ConsoleProtocol("Robust")
+
+	try:
+		os.unlink(opensimdir + '/bin/Robust.log')
+	except OSError:
+		pass
+
+	p = ConsoleProtocol("Robust", opensimdir + '/bin/Robust.log')
 	spawnMonoProcess(p, opensimdir + "/bin/" + "Robust.exe", [], opensimdir + "/bin")
 	log.msg("Started Robust")
 	return p
 
 def spawnRegionProcess(opensimdir, region):
 	log.msg("Starting Region: " + region)
-	p = ConsoleProtocol("OpenSim")
-	spawnMonoProcess(ConsoleProtocol("OpenSim"), opensimdir + "/bin/" + "OpenSim.exe", [
+
+	try:
+		os.unlink(opensimdir + '/bin/OpenSim.log')
+	except OSError:
+		pass
+
+	p = ConsoleProtocol(region, opensimdir + '/bin/OpenSim.log')
+	spawnMonoProcess(p, opensimdir + "/bin/" + "OpenSim.exe", [
 		"-inimaster=" + opensimdir + "/bin/OpenSim.ini",
 		"-inifile=" + opensimdir +"/bin/Regions/" + region + ".ini",
 		"-name=" + region

@@ -2,26 +2,13 @@ import uuid
 from gridtogo.client.opensim.distribution import Distribution
 import gridtogo.client.process as process
 from gridtogo.shared.networkobjects import *
+from gridtogo.client.ui.dialog import *
 from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
 import os
 from twisted.python import log
 
 
 PREFIL_LOGIN_SAMPLE_DATA = True
-
-def showModalDialog(parent, messageType, message):
-	"""
-	Examples of calls, blocks until user hits OK:
-		showModalDialog(self.window, Gtk.MessageType.ERROR, "Passwords do not match.")
-		showModalDialog(None, Gtk.MessageType.INFO, "Hello, world!")
-	"""
-	dialog = Gtk.MessageDialog(parent,
-		Gtk.DialogFlags.MODAL,
-		messageType,
-		Gtk.ButtonsType.OK,
-		message)
-	dialog.run()
-	dialog.destroy()
 
 def loadPixbuf(imageName, clientObject):
 	return GdkPixbuf.Pixbuf.new_from_file(

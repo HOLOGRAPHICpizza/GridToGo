@@ -152,7 +152,17 @@ class SQLiteDatabase(object):
 
 		regions = {}
 		for row in cursor.fetchall():
-			region = Region(row[0], row[1], None, None)
+			cursor.execute("""
+				SELECT user
+				FROM regionHosts
+				WHERE regionName=?
+			""", [row[0]])
+
+			users = []
+			for user in cursor.fetchall():
+				users.append(uuid.UUID(user[0]))
+
+			region = Region(row[0], row[1], None, None, users)
 			regions[row[0]] = region
 		return regions
 
