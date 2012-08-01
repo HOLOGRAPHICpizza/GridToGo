@@ -42,12 +42,12 @@ regionAttributes = ("regionName", "location", "externalhost", "hosted")
 regionDeltas = ("location", "externalhost", "hosted")
 
 class Region(Deltable):
-	def __init__(self, regionName, location, externalhost, hosted):
+	def __init__(self, regionName, location, externalhost, host):
 		self.regionName = regionName
 		self.location = location
 		self.externalhost = externalhost
 		self.attributes = regionAttributes
-		self.hosted = hosted
+		self.host = host
 		self.deltas = regionDeltas
 
 class DeltaRegion(DeltaObject):
