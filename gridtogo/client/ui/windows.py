@@ -390,13 +390,14 @@ class MainWindowHandler(WindowHandler):
 		(model, iterator) = self.regionView.get_selection().get_selected()
 		regionName = model[iterator][0]
 		log.msg("Trying to host region " + regionName)
+		log.msg("Region Hosts: " + str(self.clientObject.regions[regionName].hosts))
 		region = self.clientObject.regions[regionName]
 		user = self.clientObject.getLocalUser()
 		if user.UUID in region.hosts:
 			log.msg("Hosting region " + regionName)
 			delta = DeltaRegion(regionName)
 			delta.currentHost = user.UUID
-			self.clientObject.writeRequest(delta)
+			self.clientObject.protocol.writeRequest(delta)
 
 			#TODO: Don't hardcode gridname and localhost
 			distribution = Distribution(self.clientObject.projectRoot, parent=self.window)
