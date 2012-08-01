@@ -68,7 +68,7 @@ class IDatabase(Interface):
 		pass
 
 	#TODO: Possibly make this work like the other "store" functions, update existing entries
-	def createRegion(self, gridName, regionName, userUuid):
+	def createRegion(self, gridName, regionName, loc, uuid):
 		"""Creates a region with the specified regionName referencing the specified name and gives the user a regionHost association with the grid"""
 		pass
 	
@@ -156,16 +156,16 @@ class SQLiteDatabase(object):
 			regions[row[0]] = region
 		return regions
 
-	def createRegion(self, gridName, regionName, userUuid):
+	def createRegion(self, gridName, regionName, loc, uuid):
 		cursor = self.connection.cursor()
 
 		cursor.execute("""
-			INSERT INTO regions VALUES (?,?)
-		""", (regionName, gridName))
+			INSERT INTO regions VALUES (?,?,?)
+		""", (regionName, gridName, loc))
 
 		cursor.execute("""
 			INSERT INTO regionHosts VALUES (?,?)
-		""", (regionName, str(userUuid)))
+		""", (regionName, str(uuid)))
 
 		self.connection.commit()
 
@@ -332,15 +332,14 @@ class MongoDatabase(object):
 					result[user.UUID] = user
 		
 		return result
-	
-	def createRegion(self, gridName, regionName, loc, ehost, uuid):
+
+	def createRegion(self, gridName, regionName, loc, uuid):
 		userid = self.database['users'].find_one({"uuid": str(uuid)})["_id"]
 		gridid = self.database['grids'].find_one({"name": gridName})["_id"]
 		regionid = self.database['regions'].insert(
 			{"name": regionName,
 			 "grid_id": gridid,
 			 "location": loc,
-			 "external_host": ehost,
 			 "hosts": [
 				{
 					"user_id": userid,
