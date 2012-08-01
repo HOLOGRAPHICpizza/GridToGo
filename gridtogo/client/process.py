@@ -47,7 +47,7 @@ def spawnMonoProcess(protocol, name, args, p):
 		return reactor.spawnProcess(
 			protocol,
 			"xterm",
-			["xterm", '-fg', 'white', '-bg', 'black', "-e", "mono", name] + args,
+			["xterm", '-fg', 'white', '-bg', 'black', '-sl', '3000', "-e", "mono", name] + args,
 			path=p,
 			env=os.environ)
 
