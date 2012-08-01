@@ -335,8 +335,8 @@ class MongoDatabase(object):
 		result = {}
 
 		for r in regions:
-			# The False is that it is not currently being hosted.
-			result[r['name']] = Region(r['name'], r['location'], r['external_host'], False)
+			# The None is that it is not currently being hosted.
+			result[r['name']] = Region(r['name'], r['location'], r['external_host'], None)
 
 		return result
 
