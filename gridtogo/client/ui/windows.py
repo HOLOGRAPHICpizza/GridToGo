@@ -101,7 +101,8 @@ class RegionList(Gtk.ListStore):
 	"""This container will hold the visual list of users in the grid."""
 
 	def __init__(self, clientObject):
-		Gtk.ListStore.__init__(self, GObject.GType.from_name("gchararray"))
+		t = GObject.GType.from_name("gchararray")
+		Gtk.ListStore.__init__(self, t, t, t)
 
 		# Dictionary mapping names to GtkTreeIter
 		self.iterators = {}
@@ -119,6 +120,11 @@ class RegionList(Gtk.ListStore):
 			iterator = self.append()
 
 		self.set_value(iterator, 0, region.regionName)
+		self.set_value(iterator, 1, region.location)
+		if region.host is None:
+			self.set_value(iterator, 2, "None")
+		else:
+			self.set_value(iterator, 2, self.clientObject.users[region.host])
 
 		# Map the name to the row
 		self.iterators[region.regionName] = iterator
@@ -284,14 +290,30 @@ class MainWindowHandler(WindowHandler):
 		self.regionList = RegionList(clientObject)
 		self.regionView = Gtk.TreeView(model=self.regionList)
 
-		renderer = Gtk.CellRendererText()
-		column = Gtk.TreeViewColumn()
-		column.pack_start(renderer, True)
-		column.add_attribute(renderer, "text", 0)
-		column.set_sort_column_id(0)
-		column.set_title("Name")
+		namerenderer = Gtk.CellRendererText()
+		namecol = Gtk.TreeViewColumn()
+		namecol.pack_start(namerenderer, True)
+		namecol.add_attribute(namerenderer, "text", 0)
+		namecol.set_sort_column_id(0)
+		namecol.set_title("Name")
 
-		self.regionView.append_column(column)
+		locationrenderer = Gtk.CellRendererText()
+		locationcol = Gtk.TreeViewColumn()
+		locationcol.pack_start(locationrenderer, True)
+		locationcol.add_attribute(locationrenderer, "text", 1)
+		locationcol.set_sort_column_id(1)
+		locationcol.set_title("Location")
+
+		hostrenderer = Gtk.CellRendererText()
+		hostcol = Gtk.TreeViewColumn()
+		hostcol.pack_start(hostrenderer, True)
+		hostcol.add_attribute(hostrenderer, "text", 2)
+		#hostcol.set_sort_column_id(2)
+		hostcol.set_title("Host")
+
+		self.regionView.append_column(namecol)
+		self.regionView.append_column(locationcol)
+		self.regionView.append_column(hostcol)
 
 		regionbox.pack_start(self.regionView, False, False, 0)
 		self.regionView.show_all()
