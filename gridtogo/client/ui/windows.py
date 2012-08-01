@@ -2,7 +2,7 @@ import uuid
 from gridtogo.client.opensim.distribution import Distribution
 import gridtogo.client.process as process
 from gridtogo.shared.networkobjects import *
-from gi.repository import Gtk, Gdk, GdkPixbuf
+from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
 import os
 from twisted.python import log
 
@@ -97,44 +97,31 @@ class UserList(Gtk.VBox):
 		self.pack_start(row, False, False, 0)
 		row.show_all()
 
-class RegionList(Gtk.VBox):
+class RegionList(Gtk.ListStore):
 	"""This container will hold the visual list of users in the grid."""
 
 	def __init__(self, clientObject):
-		Gtk.VBox.__init__(self)
+		Gtk.ListStore.__init__(self, GObject.GType.from_name("gchararray"))
 
-		# Dictionary mapping UUIDs to HBoxes
-		self.rows = {}
+		# Dictionary mapping names to GtkTreeIter
+		self.iterators = {}
 
 		# Do initial population
 		for k in clientObject.regions:
-			self.updateUser(clientObject.regions[k])
+			self.updateRegion(clientObject.regions[k])
 
 	def updateRegion(self, region):
 		"""Pass in a User object to add or update its entry."""
-		row = Gtk.HBox()
+		# Destroy the existing row, get region object
+		iterator = self.iterators.get(region.regionName)
+		if iterator is None:
+			# Add a new location
+			iterator = self.append()
 
-		# Destroy the existing row, get user object
-		oldRow = self.rows.get(region.regionName)
-		if oldRow:
-			oldRow.destroy()
-		row.region = region
+		self.set_value(iterator, 0, region.regionName)
 
-		#TODO: Set tooltips for things, or our users will be confuzzeled
-
-		# Build the widgets
-		status = None
-
-		name = Gtk.Label(region.regionName, use_markup=True)
-
-		row.pack_start(name, True, False, 0)
-
-		# Map the UUID to the row
-		self.rows[region.regionName] = row
-
-		# Pack the row
-		self.pack_start(row, False, False, 0)
-		row.show_all()
+		# Map the name to the row
+		self.iterators[region.regionName] = iterator
 
 class SpinnerPopup(Gtk.Window):
 	"""
@@ -295,8 +282,21 @@ class MainWindowHandler(WindowHandler):
 		# Create RegionList
 		regionbox = builder.get_object("regionbox")
 		self.regionList = RegionList(clientObject)
-		regionbox.pack_start(self.regionList, False, False, 0)
-		self.regionList.show_all()
+		self.regionView = Gtk.TreeView(model=self.regionList)
+
+		renderer = Gtk.CellRendererText()
+		log.msg("Addding column")
+		column = Gtk.TreeViewColumn()
+		column.pack_start(renderer, True)
+		column.add_attribute(renderer, "text", 0)
+		column.set_sort_column_id(0)
+		column.set_title("Name")
+		log.msg("Done adding")
+
+		self.regionView.append_column(column)
+
+		regionbox.pack_start(self.regionView, False, False, 0)
+		self.regionView.show_all()
 
 	def destroy(self, *args):
 		self.window.destroy()
@@ -399,5 +399,6 @@ class ConsoleWindow(Gtk.Window):
 	def outReceived(self, data):
 		self.outputArea.get_buffer().set_text(self.protocol.allData)
 	
-	def key_pressed(self, widget, event):
-		self.protocol.transport.write(self.entry_field.get_text() + "\n")
+	def enter_pressed(self, something):
+		self.protocol.transport.write(self.entryfield.get_text() + "\n")
+		self.entryfield.get_buffer().set_text("", 0)
