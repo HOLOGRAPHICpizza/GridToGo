@@ -372,8 +372,8 @@ class MainWindowHandler(WindowHandler):
 
 			spinner.setMessage('Spawning ROBUST process...')
 			protocol = process.spawnRobustProcess(distribution.opensimdir)
-			console = ConsoleWindow(protocol)
-			console.show_all()
+			#console = ConsoleWindow(protocol)
+			#console.show_all()
 
 			spinner.destroy()
 		else:
