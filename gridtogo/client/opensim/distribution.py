@@ -18,6 +18,9 @@ VERSION = "0.7.3"
 # both...
 class Distribution(object):
 	def __init__(self, projectroot, directory=None, parent=None):
+
+		#TODO: Make all paths use path.join and whatnot instead of hard-coding separators
+
 		if directory is None:
 			homedir = os.environ["HOME"]
 			self.directory = homedir + "/.gridtogo"

@@ -148,17 +148,24 @@ class SpinnerPopup(Gtk.Window):
 
 		self.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(255, 255, 255, 255))
 
-		box = Gtk.VBox()
-		self.add(box)
+		self.box = Gtk.VBox()
+		self.add(self.box)
 
 		spinner = Gtk.Spinner(width_request=75, height_request=75)
 		#TODO: Override the spinner foreground color to black. Spinner needs special treatment.
 		spinner.start()
-		box.pack_start(spinner, False, False, 0)
+		self.box.pack_start(spinner, False, False, 0)
 
-		label = Gtk.Label(message)
-		label.override_color(Gtk.StateType.NORMAL, Gdk.RGBA(0, 0, 0, 255))
-		box.pack_start(label, False, False, 0)
+		self.label = None
+		self.setMessage(message)
+
+	def setMessage(self, message):
+		if self.label:
+			self.label.destroy()
+		self.label = Gtk.Label(message)
+		self.label.override_color(Gtk.StateType.NORMAL, Gdk.RGBA(0, 0, 0, 255))
+		self.box.pack_end(self.label, False, False, 0)
+		self.label.show()
 
 class WindowFactory(object):
 	def __init__(self, clientObject):
@@ -352,7 +359,10 @@ class MainWindowHandler(WindowHandler):
 			self.clientObject.updateUser(delta)
 			self.clientObject.protocol.writeRequest(delta)
 
-			distribution = Distribution(self.clientObject.projectRoot)
+			spinner = SpinnerPopup(self.window, 'Loading OpenSim distribution...')
+			spinner.show_all()
+
+			distribution = Distribution(self.clientObject.projectRoot, parent=self.window)
 			# TODO Don't hardcode this
 			distribution.configureRobust(self.clientObject.localGrid, "localhost")
 			protocol = process.spawnRobustProcess(distribution.opensimdir)

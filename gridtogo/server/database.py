@@ -148,7 +148,7 @@ class SQLiteDatabase(object):
 			SELECT name, location
 			FROM regions
 			WHERE grid=?
-		""", gridName)
+		""", [gridName])
 
 		regions = {}
 		for row in cursor.fetchall():
