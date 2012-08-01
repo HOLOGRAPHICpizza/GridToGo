@@ -66,7 +66,8 @@ class IDatabase(Interface):
 	def getGridUsers(self, gridName):
 		"""Return a dictionary of User objects which are members of the given grid name, keys are UUIDs."""
 		pass
-	
+
+	#TODO: Possibly make this work like the other "store" functions, update existing entries
 	def createRegion(self, gridName, regionName, userUuid):
 		"""Creates a region with the specified regionName referencing the specified name and gives the user a regionHost association with the grid"""
 		pass
@@ -106,11 +107,16 @@ class SQLiteDatabase(object):
 		               'name VARCHAR(64) PRIMARY KEY NOT NULL'
 		               ')')
 
-		cursor.execute('CREATE TABLE IF NOT EXISTS regions(' +
-		               'name VARCHAR(64) PRIMARY KEY NOT NULL,' +
-		               'grid VARCHAR(64) NOT NULL,' +
-		               'FOREIGN KEY(grid) REFERENCES grids(name)' +
-		               ')')
+		# Regions
+		cursor.execute("""
+			CREATE TABLE IF NOT EXISTS regions(
+				name VARCHAR(64) NOT NULL,
+				grid VARCHAR(64) NOT NULL,
+				location VARCHAR(64) NOT NULL,
+				FOREIGN KEY(grid) REFERENCES grids(name),
+				UNIQUE (name, grid, location)
+			)
+		""")
 
 		# connects user accounts to grids
 		cursor.execute("""
@@ -126,13 +132,42 @@ class SQLiteDatabase(object):
 		""")
 
 		# connects user accounts to regions
-		cursor.execute('CREATE TABLE IF NOT EXISTS regionHosts(' +
-		               'regionName VARCHAR(64) NOT NULL,' +
-		               'user CHAR(36) NOT NULL,' +
-		               'regionHost BOOLEAN NOT NULL,' +
-		               'FOREIGN KEY(regionName) REFERENCES regions(name),' +
-		               'FOREIGN KEY(user) REFERENCES users(UUID)' +
-		               ')')
+		cursor.execute("""
+			CREATE TABLE IF NOT EXISTS regionHosts(
+				regionName VARCHAR(64) NOT NULL,
+				user CHAR(36) NOT NULL,
+				FOREIGN KEY(regionName) REFERENCES regions(name),
+				FOREIGN KEY(user) REFERENCES users(UUID),
+				UNIQUE (regionName, user)
+			)
+		""")
+
+	def getGridRegions(self, gridName):
+		cursor = self.connection.cursor()
+		cursor.execute("""
+			SELECT name, location
+			FROM regions
+			WHERE grid=?
+		""", gridName)
+
+		regions = {}
+		for row in cursor.fetchall():
+			region = Region(row[0], row[1], None, None)
+			regions[row[0]] = region
+		return regions
+
+	def createRegion(self, gridName, regionName, userUuid):
+		cursor = self.connection.cursor()
+
+		cursor.execute("""
+			INSERT INTO regions VALUES (?,?)
+		""", (regionName, gridName))
+
+		cursor.execute("""
+			INSERT INTO regionHosts VALUES (?,?)
+		""", (regionName, str(userUuid)))
+
+		self.connection.commit()
 
 	def getUserAccountByName(self, firstName, lastName):
 		cursor = self.connection.cursor()
