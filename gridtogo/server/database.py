@@ -66,8 +66,9 @@ class IDatabase(Interface):
 	def getGridUsers(self, gridName):
 		"""Return a dictionary of User objects which are members of the given grid name, keys are UUIDs."""
 		pass
-	
-	def createRegion(self, gridName, regionName, userUuid):
+
+	#TODO: Possibly make this work like the other "store" functions, update existing entries
+	def createRegion(self, gridName, regionName, loc, uuid):
 		"""Creates a region with the specified regionName referencing the specified name and gives the user a regionHost association with the grid"""
 		pass
 	
@@ -106,11 +107,16 @@ class SQLiteDatabase(object):
 		               'name VARCHAR(64) PRIMARY KEY NOT NULL'
 		               ')')
 
-		cursor.execute('CREATE TABLE IF NOT EXISTS regions(' +
-		               'name VARCHAR(64) PRIMARY KEY NOT NULL,' +
-		               'grid VARCHAR(64) NOT NULL,' +
-		               'FOREIGN KEY(grid) REFERENCES grids(name)' +
-		               ')')
+		# Regions
+		cursor.execute("""
+			CREATE TABLE IF NOT EXISTS regions(
+				name VARCHAR(64) NOT NULL,
+				grid VARCHAR(64) NOT NULL,
+				location VARCHAR(64) NOT NULL,
+				FOREIGN KEY(grid) REFERENCES grids(name),
+				UNIQUE (name, grid, location)
+			)
+		""")
 
 		# connects user accounts to grids
 		cursor.execute("""
@@ -126,13 +132,42 @@ class SQLiteDatabase(object):
 		""")
 
 		# connects user accounts to regions
-		cursor.execute('CREATE TABLE IF NOT EXISTS regionHosts(' +
-		               'regionName VARCHAR(64) NOT NULL,' +
-		               'user CHAR(36) NOT NULL,' +
-		               'regionHost BOOLEAN NOT NULL,' +
-		               'FOREIGN KEY(regionName) REFERENCES regions(name),' +
-		               'FOREIGN KEY(user) REFERENCES users(UUID)' +
-		               ')')
+		cursor.execute("""
+			CREATE TABLE IF NOT EXISTS regionHosts(
+				regionName VARCHAR(64) NOT NULL,
+				user CHAR(36) NOT NULL,
+				FOREIGN KEY(regionName) REFERENCES regions(name),
+				FOREIGN KEY(user) REFERENCES users(UUID),
+				UNIQUE (regionName, user)
+			)
+		""")
+
+	def getGridRegions(self, gridName):
+		cursor = self.connection.cursor()
+		cursor.execute("""
+			SELECT name, location
+			FROM regions
+			WHERE grid=?
+		""", [gridName])
+
+		regions = {}
+		for row in cursor.fetchall():
+			region = Region(row[0], row[1], None, None)
+			regions[row[0]] = region
+		return regions
+
+	def createRegion(self, gridName, regionName, loc, uuid):
+		cursor = self.connection.cursor()
+
+		cursor.execute("""
+			INSERT INTO regions VALUES (?,?,?)
+		""", (regionName, gridName, loc))
+
+		cursor.execute("""
+			INSERT INTO regionHosts VALUES (?,?)
+		""", (regionName, str(uuid)))
+
+		self.connection.commit()
 
 	def getUserAccountByName(self, firstName, lastName):
 		cursor = self.connection.cursor()
@@ -205,16 +240,16 @@ class MongoDatabase(object):
 			self.database.authenticate(config.dbuser, config.dbpass)
 
 		log.msg("Ensuring indexes on user: uuid [unique], first_name, last_name")
-		self.database['user'].ensure_index("uuid", unique=True)
-		self.database['user'].ensure_index("first_name")
-		self.database['user'].ensure_index("last_name")
+		self.database['users'].ensure_index("uuid", unique=True)
+		self.database['users'].ensure_index("first_name")
+		self.database['users'].ensure_index("last_name")
 		log.msg("Ensuring index on grid: name [unique]")
-		self.database['grid'].ensure_index('name', unique=True)
+		self.database['grids'].ensure_index('name', unique=True)
 		log.msg("Ensuring index on region: name")
-		self.database['region'].ensure_index('name')
+		self.database['regions'].ensure_index('name')
 	
 	def getUserAccountByName(self, firstName, lastName):
-		result = self.database['user'].find_one(
+		result = self.database['users'].find_one(
 			{"first_name": firstName,
 			 "last_name": lastName})
 		if result is None:
@@ -224,79 +259,108 @@ class MongoDatabase(object):
 						   result['email'])
 
 	def storeUserAccount(self, user):
-		collection = self.database['user']
+		collection = self.database['users']
 		existingAccount = collection.find_one({'uuid': str(user.UUID)})
 		userData = {'uuid': str(user.UUID),
 					'first_name': user.firstName,
 					'last_name': user.lastName,
 					'hashed_password': user.hashedPassword,
-					'email': user.email }
+					'email': user.email,
+					'grids': []}
 		if not existingAccount is None:
 			userData['_id'] = existingAccount['_id']
 		
 		collection.save(userData)
 
 	def storeGridAssociation(self, user, gridName):
-		userid = self.database['user'].find_one({'uuid': str(user.UUID)})['_id']
-		grid = self.database['grid'].find_one({'name': gridName})
+		user = self.database['users'].find_one({'uuid': str(user.UUID)})
+		userid = user["_id"]
+		grid = self.database['grids'].find_one({'name': gridName})
 		gridid = None
+
 		# TODO Make this less hacky (the grid should actually have to preexist)
 		if not grid is None:
 			gridid = grid['_id']
 		else:
-			gridid = self.database['grid'].insert({"name": gridName})
-		existingAssoc = self.database['grid_user'].find_one(
-			{'grid': gridid,
-			 'user': userid
-			})
-		data = {'grid': gridid, 'user': userid, 'moderator': False, 'grid_host': False}
+			grid = {"name": gridName}
+			gridid = self.database['grids'].insert(grid)
 
+		moderator = False
+		host = False
 		if hasattr(user, 'moderator'):
-			data['moderator'] = user.moderator
+			moderator = True
 		if hasattr(user, 'gridHost'):
-			data['grid_host'] = user.gridHost
-		pass
+			host = True
 
-		if not existingAssoc is None:
-			data['_id'] = existingAssoc['_id']
-		self.database['grid_user'].save(data)
+		# Delete it if it exists already (TODO figure out if we need to do this)
+		self.database['users'].update({"_id":userid},
+			{ "$pull":
+				{ "grids":
+					{
+						"grid_id": gridid
+					}
+				}
+			})
+		# Now create it.
+		self.database['users'].update({"_id":userid},
+			{
+				"$push":
+				{
+					"grids": 
+					{ 
+						"grid_id": gridid,
+						"moderator": moderator,
+						"host": host
+					}
+				}
+			})
 
 	def getGridUsers(self, gridName):
-		gridid = self.database['grid'].find_one({'name': gridName})
-		gridNameAssociations = self.database['grid_user'].find(
-			{'grid': gridid})
+		gridid = self.database['grids'].find_one({'name': gridName})
+		users = self.database['users'].find({
+			"grids.grid_id":gridid
+		})
 		result = {}
-		for gridNameAssoc in gridNameAssociations:
-			u = self.database['user'].find_one(
-				{'_id': gridNameAssoc['user']})
-			user = User(uuid.UUID(u['uuid']), u['first_name'], u['last_name'],
-						False, False, gridNameAssoc['moderator'],
-						gridNameAssoc['grid_host'], False)
+		for user in users:
+			# Seek out the current grid to figure out if its a host or not
+			for grid in user["grids"]:
+				if grid["grid_id"] == gridid:
+					user = User(uuid.UUID(u['uuid']), u['first_name'],
+								u['last_name'], False, False, grid['moderator'],
+								grid['host'], False)
 
-			result[user.UUID] = user
+					result[user.UUID] = user
 		
 		return result
-	
-	def createRegion(self, gridName, regionName, loc, ehost, uuid):
-		userid = self.database['user'].find_one({"uuid": str(uuid)})["_id"]
-		gridid = self.database['grid'].find_one({"name": gridName})["_id"]
-		regionid = self.database['region'].insert(
+
+	def createRegion(self, gridName, regionName, loc, uuid):
+		userid = self.database['users'].find_one({"uuid": str(uuid)})["_id"]
+		gridid = self.database['grids'].find_one({"name": gridName})["_id"]
+		regionid = self.database['regions'].insert(
 			{"name": regionName,
-			 "grid": gridid,
+			 "grid_id": gridid,
 			 "location": loc,
-			 "external_host": ehost})
-		self.database['region_host'].insert(
-			{"user": userid,
-			 "region": regionid})
+			 "hosts": [
+				{
+					"user_id": userid,
+					"user_uuid": str(uuid)
+				}
+			 ]})
 	
 	def getGridRegions(self, gridName):
-		gridid = self.database['grid'].find_one({"name": gridName})["_id"]
-		regions = self.database['region'].find({"grid":gridid})
+		grid = self.database['grids'].find_one({"name": gridName})
+		if grid is None:
+			return {}
+		gridid = grid["_id"]
+		regions = self.database['regions'].find({"grid_id":gridid})
 		result = {}
 
 		for r in regions:
-			# The False is that it is not currently being hosted.
-			result[r['name']] = Region(r['name'], r['location'], r['external_host'], False)
+			availableHosts = []
+			for host in r["hosts"]:
+				availableHosts = [uuid.UUID(host["user_uuid"])] + availableHosts
+			# The None is that it is not currently being hosted.
+			result[r['name']] = Region(r['name'], r['location'], r['external_host'], None, availableHosts)
 
 		return result
 

@@ -38,16 +38,17 @@ class DeltaUser(DeltaObject):
 		self.attributes = userAttributes
 		self.UUID = UUID
 
-regionAttributes = ("regionName", "location", "externalhost", "hosted")
-regionDeltas = ("location", "externalhost", "hosted")
+regionAttributes = ("regionName", "location", "externalhost", "currentHost", "hosts")
+regionDeltas = ("location", "externalhost", "currentHost", "hosts")
 
 class Region(Deltable):
-	def __init__(self, regionName, location, externalhost, hosted):
+	def __init__(self, regionName, location, externalhost, currentHost, hosts):
 		self.regionName = regionName
 		self.location = location
 		self.externalhost = externalhost
 		self.attributes = regionAttributes
-		self.hosted = hosted
+		self.currentHost = currentHost
+		self.hosts = hosts
 		self.deltas = regionDeltas
 
 class DeltaRegion(DeltaObject):

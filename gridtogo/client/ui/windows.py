@@ -4,7 +4,7 @@ import uuid
 from gridtogo.client.opensim.distribution import Distribution
 import gridtogo.client.process as process
 from gridtogo.shared.networkobjects import *
-from gi.repository import Gtk, Gdk, GdkPixbuf
+from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
 import os
 from twisted.python import log
 
@@ -31,11 +31,11 @@ def loadPixbuf(imageName, clientObject):
 		)
 	)
 
-class UserList(Gtk.VBox):
+class UserList(Gtk.ListStore):
 	"""This container will hold the visual list of users in the grid."""
 
 	def __init__(self, clientObject):
-		Gtk.VBox.__init__(self)
+		Gtk.ListStore.__init__(self, GdkPixbuf.Pixbuf, str, GdkPixbuf.Pixbuf, str, int, int, bool)
 
 		# Images for the main window
 		self.statusGrey = loadPixbuf('status-grey.png', clientObject)
@@ -45,8 +45,8 @@ class UserList(Gtk.VBox):
 		self.gridHostInactive = loadPixbuf('gridhost-inactive.png', clientObject)
 		self.blank = loadPixbuf('blank24.png', clientObject)
 
-		# Dictionary mapping UUIDs to HBoxes
-		self.rows = {}
+		# Dictionary mapping UUIDs to Iterators
+		self.iterators = {}
 
 		# Do initial population
 		for uuid in clientObject.users:
@@ -54,88 +54,91 @@ class UserList(Gtk.VBox):
 
 	def updateUser(self, newUser):
 		"""Pass in a User object to add or update its entry."""
-		row = Gtk.HBox()
-
 		# Destroy the existing row, get user object
-		oldRow = self.rows.get(newUser.UUID)
-		if oldRow:
-			oldRow.destroy()
-		row.user = newUser
+		iterator = self.iterators.get(newUser.UUID)
+		if iterator is None:
+			iterator = self.append()
 
 		#TODO: Set tooltips for things, or our users will be confused
 
 		# Build the widgets
 		status = None
+		statusI = None
 		if newUser.online and not newUser.NATStatus:
-			status = Gtk.Image.new_from_pixbuf(self.statusYellow)
+			status = self.statusYellow
+			statusI = 2
 		elif newUser.online and newUser.NATStatus:
-			status = Gtk.Image.new_from_pixbuf(self.statusGreen)
+			status = self.statusGreen
+			statusI = 1
 		else:
-			status = Gtk.Image.new_from_pixbuf(self.statusGrey)
+			status = self.statusGrey
+			statusI = 3
 
-		nameStr = newUser.firstName+' '+newUser.lastName
-		if newUser.moderator:
-			nameStr = "<b>%s</b>" % nameStr
-		name = Gtk.Label(nameStr, use_markup=True)
+		name = newUser.firstName+' '+newUser.lastName
 
 		gridHost = None
+		gridHostI = None
 		if newUser.gridHost and not newUser.gridHostActive:
-			gridHost = Gtk.Image.new_from_pixbuf(self.gridHostInactive)
+			gridHost = self.gridHostInactive
+			gridHostI = 2
 		elif newUser.gridHost and newUser.gridHostActive:
-			gridHost = Gtk.Image.new_from_pixbuf(self.gridHostActive)
+			gridHost = self.gridHostActive
+			gridHostI = 1
 		else:
-			gridHost = Gtk.Image.new_from_pixbuf(self.blank)
+			gridHost = self.blank
+			gridHostI = 3
 
-		# Pack the widgets
-		row.pack_start(status, False, False, 0)
-		row.pack_start(name, True, False, 0)
-		row.pack_start(gridHost, False, False, 0)
+		moderatorI = None
+		if newUser.moderator:
+			moderatorIcon = Gtk.STOCK_YES
+			moderatorI = 1
+		else:
+			moderatorIcon = Gtk.STOCK_NO
+			moderatorI = 2
+	
+		self.set_value(iterator, 0, status)
+		self.set_value(iterator, 1, name)
+		self.set_value(iterator, 2, gridHost)
+		self.set_value(iterator, 3, moderatorIcon)
 
-		# Map the UUID to the row
-		self.rows[newUser.UUID] = row
+		# Not Rendered, but used for sorting
+		self.set_value(iterator, 4, statusI)
+		self.set_value(iterator, 5, gridHostI)
+		self.set_value(iterator, 6, moderatorI)
 
-		# Pack the row
-		self.pack_start(row, False, False, 0)
-		row.show_all()
+		# Map the UUID to the iterator
+		self.iterators[newUser.UUID] = iterator
 
-class RegionList(Gtk.VBox):
+class RegionList(Gtk.ListStore):
 	"""This container will hold the visual list of users in the grid."""
 
 	def __init__(self, clientObject):
-		Gtk.VBox.__init__(self)
+		Gtk.ListStore.__init__(self, str, str, str)
 
-		# Dictionary mapping UUIDs to HBoxes
-		self.rows = {}
+		# Dictionary mapping names to GtkTreeIter
+		self.iterators = {}
 
 		# Do initial population
 		for k in clientObject.regions:
-			self.updateUser(clientObject.regions[k])
+			self.updateRegion(clientObject.regions[k])
 
 	def updateRegion(self, region):
 		"""Pass in a User object to add or update its entry."""
-		row = Gtk.HBox()
+		# Destroy the existing row, get region object
+		iterator = self.iterators.get(region.regionName)
+		if iterator is None:
+			# Add a new location
+			iterator = self.append()
 
-		# Destroy the existing row, get user object
-		oldRow = self.rows.get(region.regionName)
-		if oldRow:
-			oldRow.destroy()
-		row.region = region
+		self.set_value(iterator, 0, region.regionName)
+		self.set_value(iterator, 1, region.location)
+		if region.currentHost is None:
+			self.set_value(iterator, 2, "None")
+		else:
+			self.set_value(iterator, 2, self.clientObject.users[region.currentHost])
 
-		#TODO: Set tooltips for things, or our users will be confuzzeled
-
-		# Build the widgets
-		status = None
-
-		name = Gtk.Label(region.regionName, use_markup=True)
-
-		row.pack_start(name, True, False, 0)
-
-		# Map the UUID to the row
-		self.rows[region.regionName] = row
-
-		# Pack the row
-		self.pack_start(row, False, False, 0)
-		row.show_all()
+		# Map the name to the row
+		self.iterators[region.regionName] = iterator
 
 class SpinnerPopup(Gtk.Window):
 	"""
@@ -156,17 +159,24 @@ class SpinnerPopup(Gtk.Window):
 
 		self.override_background_color(Gtk.StateType.NORMAL, Gdk.RGBA(255, 255, 255, 255))
 
-		box = Gtk.VBox()
-		self.add(box)
+		self.box = Gtk.VBox()
+		self.add(self.box)
 
 		spinner = Gtk.Spinner(width_request=75, height_request=75)
 		#TODO: Override the spinner foreground color to black. Spinner needs special treatment.
 		spinner.start()
-		box.pack_start(spinner, False, False, 0)
+		self.box.pack_start(spinner, False, False, 0)
 
-		label = Gtk.Label(message)
-		label.override_color(Gtk.StateType.NORMAL, Gdk.RGBA(0, 0, 0, 255))
-		box.pack_start(label, False, False, 0)
+		self.label = None
+		self.setMessage(message)
+
+	def setMessage(self, message):
+		if self.label:
+			self.label.destroy()
+		self.label = Gtk.Label(message)
+		self.label.override_color(Gtk.StateType.NORMAL, Gdk.RGBA(0, 0, 0, 255))
+		self.box.pack_end(self.label, False, False, 0)
+		self.label.show()
 
 class WindowFactory(object):
 	def __init__(self, clientObject):
@@ -300,14 +310,80 @@ class MainWindowHandler(WindowHandler):
 		# Create UserList
 		vbox = builder.get_object("vbox")
 		self.userList = UserList(clientObject)
-		vbox.pack_start(self.userList, False, False, 0)
-		self.userList.show_all()
+		self.userView = Gtk.TreeView(model=self.userList)
+		self.userView.get_selection().set_mode(Gtk.SelectionMode.NONE)
 
+		statusrenderer = Gtk.CellRendererPixbuf()
+		statuscol = Gtk.TreeViewColumn()
+		statuscol.pack_start(statusrenderer, True)
+		statuscol.add_attribute(statusrenderer, "pixbuf", 0)
+		statuscol.set_sort_column_id(4)
+		statuscol.set_title("Status")
+		statuscol.set_alignment(0.5)
+
+		namerenderer = Gtk.CellRendererText()
+		namecol = Gtk.TreeViewColumn()
+		namecol.pack_start(namerenderer, True)
+		namecol.add_attribute(namerenderer, "text", 1)
+		namecol.set_sort_column_id(1)
+		namecol.set_title("Name")
+
+		gridhostrenderer = Gtk.CellRendererPixbuf()
+		gridhostcol = Gtk.TreeViewColumn()
+		gridhostcol.pack_start(gridhostrenderer, True)
+		gridhostcol.add_attribute(gridhostrenderer, "pixbuf", 2)
+		gridhostcol.set_sort_column_id(5)
+		gridhostcol.set_title("Host")
+		gridhostcol.set_alignment(0.5)
+
+		moderatorrenderer = Gtk.CellRendererPixbuf()
+		moderatorcol = Gtk.TreeViewColumn()
+		moderatorcol.pack_start(moderatorrenderer, True)
+		moderatorcol.add_attribute(moderatorrenderer, "stock-id", 3)
+		moderatorcol.set_sort_column_id(6)
+		moderatorcol.set_title("Moderator")
+		moderatorcol.set_alignment(0.5)
+
+		self.userView.append_column(statuscol)
+		self.userView.append_column(gridhostcol)
+		self.userView.append_column(moderatorcol)
+		self.userView.append_column(namecol)
+
+		vbox.pack_start(self.userView, False, False, 0)
+		self.userView.show_all()
+		
 		# Create RegionList
 		regionbox = builder.get_object("regionbox")
 		self.regionList = RegionList(clientObject)
-		regionbox.pack_start(self.regionList, False, False, 0)
-		self.regionList.show_all()
+		self.regionView = Gtk.TreeView(model=self.regionList)
+
+		namerenderer = Gtk.CellRendererText()
+		namecol = Gtk.TreeViewColumn()
+		namecol.pack_start(namerenderer, True)
+		namecol.add_attribute(namerenderer, "text", 0)
+		namecol.set_sort_column_id(0)
+		namecol.set_title("Name")
+
+		locationrenderer = Gtk.CellRendererText()
+		locationcol = Gtk.TreeViewColumn()
+		locationcol.pack_start(locationrenderer, True)
+		locationcol.add_attribute(locationrenderer, "text", 1)
+		locationcol.set_sort_column_id(1)
+		locationcol.set_title("Location")
+
+		hostrenderer = Gtk.CellRendererText()
+		hostcol = Gtk.TreeViewColumn()
+		hostcol.pack_start(hostrenderer, True)
+		hostcol.add_attribute(hostrenderer, "text", 2)
+		#hostcol.set_sort_column_id(2)
+		hostcol.set_title("Host")
+
+		self.regionView.append_column(namecol)
+		self.regionView.append_column(locationcol)
+		self.regionView.append_column(hostcol)
+
+		regionbox.pack_start(self.regionView, False, False, 0)
+		self.regionView.show_all()
 
 	def destroy(self, *args):
 		self.window.destroy()
@@ -318,8 +394,30 @@ class MainWindowHandler(WindowHandler):
 		#TODO: Prevent users from opening the Create Region window multiple times. not a problem, but more of a common sense thing.
 		self.clientObject.CreateRegionWindowHandler = \
 		self.factory.buildWindow("createRegionWindow", CreateRegionWindowHandler)
-		print self.clientObject.CreateRegionWindowHandler
-		self.clientObject.CreateRegionWindowHandler.window.show_all()
+		print self.clientObject.createRegionWindowHandler
+		self.clientObject.createRegionWindowHandler.window.show_all()
+	
+	def onHostRegion(self, *args):
+		(model, iterator) = self.regionView.get_selection().get_selected()
+		regionName = model[iterator][0]
+		log.msg("Trying to host region " + regionName)
+		region = self.clientObject.regions[regionName]
+		user = self.clientObject.getLocalUser()
+		if user.UUID in region.hosts:
+			log.msg("Hosting region " + regionName)
+			delta = DeltaRegion(regionName)
+			delta.currentHost = user.UUID
+			self.clientObject.writeRequest(delta)
+
+			#TODO: Don't hardcode gridname and localhost
+			distribution = Distribution(self.clientObject.projectRoot, parent=self.window)
+			distribution.configure("GridName", "localhost")
+			#TODO: Don't hardcore port
+			distribution.configureRegion(region.regionName, region.location, region.externalhost, 9000)
+			
+			process.spawnRegionProcess(distribution.opensimdir, region.regionName)
+		else:
+			log.err("Not allowed to host region. BUG: This should be a popup. Michael, fix it.")
 
 	def becomeGridHost(self, *args):
 		if self.clientObject.getLocalUser().gridHost:
@@ -339,12 +437,23 @@ class MainWindowHandler(WindowHandler):
 			self.clientObject.updateUser(delta)
 			self.clientObject.protocol.writeRequest(delta)
 
-			distribution = Distribution(self.clientObject.projectRoot)
-			# TODO Don't hardcode this
+			#TODO: Show error dialogs on failures
+
+			spinner = SpinnerPopup(self.window, 'Loading OpenSim distribution...')
+			spinner.show_all()
+
+			distribution = Distribution(self.clientObject.projectRoot, parent=self.window)
+			#TODO: Don't hardcode this
+
+			spinner.setMessage('Configuring ROBUST...')
 			distribution.configureRobust(self.clientObject.localGrid, "localhost")
+
+			spinner.setMessage('Spawning ROBUST process...')
 			protocol = process.spawnRobustProcess(distribution.opensimdir)
-			console = ConsoleWindow(protocol)
-			console.show_all()
+			#console = ConsoleWindow(protocol)
+			#console.show_all()
+
+			spinner.destroy()
 		else:
 			showModalDialog(
 				self.window,
@@ -402,6 +511,7 @@ class ConsoleWindow(Gtk.Window):
 		self.vbox.pack_start(self.scroll, True, True, 0)
 
 		self.entryfield = Gtk.Entry()
+		self.entryfield.connect('activate', self.enter_pressed)
 		self.vbox.pack_start(self.entryfield, False, False, 0)
 
 		self.add(self.vbox)
@@ -410,3 +520,7 @@ class ConsoleWindow(Gtk.Window):
 	
 	def outReceived(self, data):
 		self.outputArea.get_buffer().set_text(self.protocol.allData)
+	
+	def enter_pressed(self, something):
+		self.protocol.transport.write(self.entryfield.get_text() + "\n")
+		self.entryfield.get_buffer().set_text("", 0)

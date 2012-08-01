@@ -21,6 +21,7 @@ VERSION = "0.7.3"
 class Distribution(object):
 	def __init__(self, projectroot, directory=None, parent=None):
 		#Place the OpenSim distribution into a place where  the GridToGo program can find it
+		#TODO: Make all paths use path.join and whatnot instead of hard-coding separators
 		if directory is None:
 			homedir = os.environ["HOME"]
 			self.directory = homedir + "/.gridtogo"
@@ -113,7 +114,7 @@ class Distribution(object):
 					 "LOCATION": location,
 					 "EXTERNAL_HOSTNAME": extHostname,
 					 "PORT": port,
-					 "UUID": uuid.uuid4() }
+					 "UUID": str(uuid.uuid4()) }
 		template = Template(mappings)
 		if not os.path.isfile(self.configdir + "/Region.ini"):
 			log.msg("Create file: " + self.configdir + "/Region.ini")

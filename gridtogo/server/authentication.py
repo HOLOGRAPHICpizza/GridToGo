@@ -13,7 +13,7 @@ class Authenticator(object):
 
 	def authenticateUser(self, loginRequest):
 		#TODO: Flood checking and grid member checking.
-		hashedPassword = hashlib.sha224(loginRequest.password).hexdigest()
+		hashedPassword = hashlib.sha256(loginRequest.password).hexdigest()
 		userAccount = self.database.getUserAccountByName(loginRequest.firstName, loginRequest.lastName)
 		if not userAccount:
 			return UnknownUser(), None
@@ -36,7 +36,7 @@ class Authenticator(object):
 			# Name conflict.
 			return UsernameConflict()
 		else:
-			hashedPassword = hashlib.sha224(createUserRequest.password).hexdigest()
+			hashedPassword = hashlib.sha256(createUserRequest.password).hexdigest()
 			userAccount = database.UserAccount(
 				uuid.uuid4(),
 				createUserRequest.firstName,

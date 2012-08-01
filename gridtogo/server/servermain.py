@@ -87,14 +87,6 @@ class GTGProtocol(basic.LineReceiver):
 			if PRINT_PACKETS:
 				log.msg("IN : %s | %s" % (request.__class__.__name__, line))
 
-				
-			if isinstance(request, CreateRegionRequest):
-				log.msg("Creating new region on grid + " + request.gridName + ": " + request.regionName)
-				self.database.createRegion(request.gridName, request.regionName, request.location, request.externalhost, request.uuid)
-				region = Region(request.regionName, request.location, request.externalhost, False)
-				self.grid.regions[region.regionName] = region
-				self.grid.writeResponseToAll(region)
-
 			if not self.user:
 				if isinstance(request, LoginRequest):
 					response, userAccount = self.authenticator.authenticateUser(request)
@@ -111,10 +103,12 @@ class GTGProtocol(basic.LineReceiver):
 
 						# Join the user to this grid if they are not a member
 						#TODO: Implement "restricted" grids that have an access list
+						log.msg("SET USER 1")
 						self.user = self.grid.users.get(userAccount.UUID)
 						if not self.user:
 							log.msg("Joining user to grid %s...", self.grid.name)
 							# Create a new user. If first user, give mod and host.
+							log.msg("SET USER 2")
 							self.user = User(userAccount.UUID,
 								userAccount.firstName, userAccount.lastName,
 								True, False, (len(self.grid.users) < 1),
@@ -155,7 +149,13 @@ class GTGProtocol(basic.LineReceiver):
 				# User is authenticated.
 				#TODO: Listen for incoming User objects,
 				# replicate changes to all clients, CHECK PERMISSIONS
-				pass
+
+				if isinstance(request, CreateRegionRequest):
+					log.msg("Creating new region on grid + " + request.gridName + ": " + request.regionName)
+					self.database.createRegion(request.gridName, request.regionName, request.location, request.uuid)
+					region = Region(request.regionName, request.location, request.externalhost, None, [self.user.UUID])
+					self.grid.regions[region.regionName] = region
+					self.grid.writeResponseToAll(region)
 
 		except serialization.InvalidSerializedDataException:
 			self.transport.write("Stop sending me bad data! >:|\r\n")
