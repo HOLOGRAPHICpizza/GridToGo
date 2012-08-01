@@ -389,6 +389,7 @@ class ConsoleWindow(Gtk.Window):
 		self.vbox.pack_start(self.scroll, True, True, 0)
 
 		self.entryfield = Gtk.Entry()
+		self.entryfield.connect('activate', self.enter_pressed)
 		self.vbox.pack_start(self.entryfield, False, False, 0)
 
 		self.add(self.vbox)
@@ -397,3 +398,6 @@ class ConsoleWindow(Gtk.Window):
 	
 	def outReceived(self, data):
 		self.outputArea.get_buffer().set_text(self.protocol.allData)
+	
+	def key_pressed(self, widget, event):
+		self.protocol.transport.write(self.entry_field.get_text() + "\n")

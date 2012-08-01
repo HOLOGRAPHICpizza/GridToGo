@@ -109,7 +109,7 @@ class Distribution(object):
 					 "LOCATION": location,
 					 "EXTERNAL_HOSTNAME": extHostname,
 					 "PORT": port,
-					 "UUID": uuid.uuid4() }
+					 "UUID": str(uuid.uuid4()) }
 		template = Template(mappings)
 		if not os.path.isfile(self.configdir + "/Region.ini"):
 			log.msg("Create file: " + self.configdir + "/Region.ini")

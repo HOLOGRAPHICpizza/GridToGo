@@ -1,2 +1,2 @@
-server: ./server
-client: ./client
+server: ./server.sh
+client: ./client.sh

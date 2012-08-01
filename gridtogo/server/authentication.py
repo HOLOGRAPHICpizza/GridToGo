@@ -36,7 +36,7 @@ class Authenticator(object):
 			# Name conflict.
 			return UsernameConflict()
 		else:
-			hashedPassword = hashlib.sha224(createUserRequest.password).hexdigest()
+			hashedPassword = hashlib.sha256(createUserRequest.password).hexdigest()
 			userAccount = database.UserAccount(
 				uuid.uuid4(),
 				createUserRequest.firstName,

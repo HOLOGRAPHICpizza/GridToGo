@@ -267,6 +267,8 @@ class MongoDatabase(object):
 			{'grid': gridid})
 		result = {}
 		for gridNameAssoc in gridNameAssociations:
+			# This is bad from an efficiency standpoint
+			# TODO refactor "schema"
 			u = self.database['user'].find_one(
 				{'_id': gridNameAssoc['user']})
 			user = User(uuid.UUID(u['uuid']), u['first_name'], u['last_name'],
@@ -290,7 +292,10 @@ class MongoDatabase(object):
 			 "region": regionid})
 	
 	def getGridRegions(self, gridName):
-		gridid = self.database['grid'].find_one({"name": gridName})["_id"]
+		grid = self.database['grid'].find_one({"name": gridName})
+		if grid is None:
+			return {}
+		gridid = grid["_id"]
 		regions = self.database['region'].find({"grid":gridid})
 		result = {}
 
