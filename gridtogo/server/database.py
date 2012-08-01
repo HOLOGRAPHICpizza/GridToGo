@@ -273,8 +273,8 @@ class MongoDatabase(object):
 		collection.save(userData)
 
 	def storeGridAssociation(self, user, gridName):
-		user = self.database['users'].find_one({'uuid': str(user.UUID)})
-		userid = user["_id"]
+		user2 = self.database['users'].find_one({'uuid': str(user.UUID)})
+		userid = user2["_id"]
 		grid = self.database['grids'].find_one({'name': gridName})
 		gridid = None
 
@@ -287,9 +287,9 @@ class MongoDatabase(object):
 
 		moderator = False
 		host = False
-		if hasattr(user, 'moderator'):
+		if hasattr(user2, 'moderator'):
 			moderator = True
-		if hasattr(user, 'gridHost'):
+		if hasattr(user2, 'gridHost'):
 			host = True
 
 		# Delete it if it exists already (TODO figure out if we need to do this)
