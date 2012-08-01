@@ -91,7 +91,7 @@ class GTGProtocol(basic.LineReceiver):
 			if isinstance(request, CreateRegionRequest):
 				log.msg("Creating new region on grid + " + request.gridName + ": " + request.regionName)
 				self.database.createRegion(request.gridName, request.regionName, request.location, request.externalhost, request.uuid)
-				region = Region(request.regionName, request.location, request.externalhost, None)
+				region = Region(request.regionName, request.location, request.externalhost, None, [self.user.UUID])
 				self.grid.regions[region.regionName] = region
 				self.grid.writeResponseToAll(region)
 
@@ -111,10 +111,12 @@ class GTGProtocol(basic.LineReceiver):
 
 						# Join the user to this grid if they are not a member
 						#TODO: Implement "restricted" grids that have an access list
+						log.msg("SET USER 1")
 						self.user = self.grid.users.get(userAccount.UUID)
 						if not self.user:
 							log.msg("Joining user to grid %s...", self.grid.name)
 							# Create a new user. If first user, give mod and host.
+							log.msg("SET USER 2")
 							self.user = User(userAccount.UUID,
 								userAccount.firstName, userAccount.lastName,
 								True, False, (len(self.grid.users) < 1),

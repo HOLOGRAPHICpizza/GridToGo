@@ -344,7 +344,7 @@ class MongoDatabase(object):
 			 "hosts": [
 				{
 					"user_id": userid,
-					"user_uuid": uuid
+					"user_uuid": str(uuid)
 				}
 			 ]})
 	
@@ -358,8 +358,8 @@ class MongoDatabase(object):
 
 		for r in regions:
 			availableHosts = []
-			for host in hosts:
-				availableHosts = [host["user_uuid"]] + availableHosts
+			for host in r["hosts"]:
+				availableHosts = [uuid.UUID(host["user_uuid"])] + availableHosts
 			# The None is that it is not currently being hosted.
 			result[r['name']] = Region(r['name'], r['location'], r['external_host'], None, availableHosts)
 

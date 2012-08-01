@@ -131,10 +131,10 @@ class RegionList(Gtk.ListStore):
 
 		self.set_value(iterator, 0, region.regionName)
 		self.set_value(iterator, 1, region.location)
-		if region.host is None:
+		if region.currentHost is None:
 			self.set_value(iterator, 2, "None")
 		else:
-			self.set_value(iterator, 2, self.clientObject.users[region.host])
+			self.set_value(iterator, 2, self.clientObject.users[region.currentHost])
 
 		# Map the name to the row
 		self.iterators[region.regionName] = iterator
@@ -389,6 +389,24 @@ class MainWindowHandler(WindowHandler):
 	def onHostRegion(self, *args):
 		(model, iterator) = self.regionView.get_selection().get_selected()
 		regionName = model[iterator][0]
+		log.msg("Trying to host region " + regionName)
+		region = self.clientObject.regions[regionName]
+		user = self.clientObject.getLocalUser()
+		if user.UUID in region.hosts:
+			log.msg("Hosting region " + regionName)
+			delta = DeltaRegion(regionName)
+			delta.currentHost = user.UUID
+			self.clientObject.writeRequest(delta)
+
+			#TODO: Don't hardcode gridname and localhost
+			distribution = Distribution(self.clientObject.projectRoot, parent=self.window)
+			distribution.configure("GridName", "localhost")
+			#TODO: Don't hardcore port
+			distribution.configureRegion(region.regionName, region.location, region.externalhost, 9000)
+			
+			process.spawnRegionProcess(distribution.opensimdir, region.regionName)
+		else:
+			log.err("Not allowed to host region. BUG: This should be a popup. Michael, fix it.")
 
 	def becomeGridHost(self, *args):
 		if self.clientObject.getLocalUser().gridHost:
@@ -444,12 +462,6 @@ class CreateRegionWindowHandler(WindowHandler):
 		region = self.regionName.get_text()
 		coordinates = self.location.get_text()
 		hostname = self.externalHostname.get_text()
-
-		#TODO: Don't hardcode gridname and localhost
-		distribution = Distribution(self.clientObject.projectRoot)
-		distribution.configure("GridName", "localhost")
-		#TODO: Don't hardcore port
-		distribution.configureRegion(region, coordinates, hostname, 9000)
 
 		# Actually store the region in the database
 		gridName = self.clientObject.localGrid
