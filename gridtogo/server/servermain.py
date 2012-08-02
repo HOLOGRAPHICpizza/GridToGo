@@ -103,18 +103,21 @@ class GTGProtocol(basic.LineReceiver):
 
 						# Join the user to this grid if they are not a member
 						#TODO: Implement "restricted" grids that have an access list
-						log.msg("SET USER 1")
+						#log.msg("SET USER 1")
 						self.user = self.grid.users.get(userAccount.UUID)
 						if not self.user:
-							log.msg("Joining user to grid %s...", self.grid.name)
+							log.msg("Joining user to grid %s..." % self.grid.name)
 							# Create a new user. If first user, give mod and host.
-							log.msg("SET USER 2")
+							#log.msg("SET USER 2")
 							self.user = User(userAccount.UUID,
 								userAccount.firstName, userAccount.lastName,
 								True, False, (len(self.grid.users) < 1),
 								(len(self.grid.users) < 1), False)
 							self.grid.users[self.user.UUID] = self.user
 							self.database.storeGridAssociation(self.user, request.grid)
+
+							# broadcast this new user to connected clients
+							self.grid.writeResponseToAll(self.user)
 
 						# Duplicate instance checking
 						#TODO: Kick old user off with a message instead of this hacky refusal
@@ -145,12 +148,49 @@ class GTGProtocol(basic.LineReceiver):
 				elif isinstance(request, CreateUserRequest):
 					response = self.authenticator.createUser(request)
 					self.writeResponse(response)
+
 			else:
 				# User is authenticated.
-				#TODO: Listen for incoming User objects,
-				# replicate changes to all clients, CHECK PERMISSIONS
 
-				if isinstance(request, CreateRegionRequest):
+				if isinstance(request, DeltaUser):
+					delta = None
+
+					# moderators can change anything
+					if self.user.moderator:
+						delta = request
+
+					# Users talking about themselves may change certain attributes
+					elif request.UUID == self.user.UUID:
+						delta = DeltaUser(request.UUID)
+
+						# Online Status
+						if hasattr(request, 'online'):
+							delta.online = request.online
+
+						# Surrendering GridHost
+						if hasattr(request, 'gridHost') and self.user.gridHost:
+							delta.gridHost = request.gridHost
+
+						# gridHostActive
+						if hasattr(request, 'gridHostActive' and self.user.gridHost):
+							delta.gridHostActive = request.gridHostActive
+
+					else:
+						# This user has no permission
+						return
+
+					if delta:
+						# Apply server-side delta
+						self.grid.applyUserDelta(delta)
+
+						# Replicate changes
+						self.grid.writeResponseToAll(delta)
+
+						# Save to database if necessary
+						if hasattr(delta, 'gridHost') or hasattr(delta, 'moderator'):
+							self.database.storeGridAssociation(delta, self.grid.name)
+
+				elif isinstance(request, CreateRegionRequest):
 					log.msg("Creating new region on grid + " + request.gridName + ": " + request.regionName)
 					self.database.createRegion(request.gridName, request.regionName, request.location, request.uuid)
 					region = Region(request.regionName, request.location, request.externalhost, None, [self.user.UUID])

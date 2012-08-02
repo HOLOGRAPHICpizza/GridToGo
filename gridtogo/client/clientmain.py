@@ -63,13 +63,13 @@ class GridToGoClient(object):
 	def addUser(self, user):
 		self.users[user.UUID] = user
 		if self.mainWindowHandler:
-			self.mainWindowHandler.userList.updateUser(user)
+			self.mainWindowHandler.updateUser(user)
 
 	def updateUser(self, user):
 		if self.users.get(user.UUID):
 			self.users[user.UUID].applyDelta(user)
 			if self.mainWindowHandler:
-				self.mainWindowHandler.userList.updateUser(self.users[user.UUID])
+				self.mainWindowHandler.updateUser(self.users[user.UUID])
 		else:
 			log.err("Received DeltaUser for non existent User. Ignoring")
 	
