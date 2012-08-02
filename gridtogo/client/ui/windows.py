@@ -23,6 +23,8 @@ class UserList(Gtk.ListStore):
 	def __init__(self, clientObject):
 		Gtk.ListStore.__init__(self, GdkPixbuf.Pixbuf, str, GdkPixbuf.Pixbuf, str, int, int, bool)
 
+		self.clientObject = clientObject
+
 		# Images
 		self.statusGrey = loadPixbuf('status-grey.png', clientObject)
 		self.statusYellow = loadPixbuf('status-yellow.png', clientObject)
@@ -60,7 +62,11 @@ class UserList(Gtk.ListStore):
 			status = self.statusGrey
 			statusI = 3
 
-		name = newUser.firstName+' '+newUser.lastName
+		# Make name bold if this is the local user
+		sub = "%s %s"
+		if newUser.UUID == self.clientObject.localUUID:
+			sub = "<b>%s %s</b>"
+		name = sub % (newUser.firstName, newUser.lastName)
 
 		gridHost = None
 		gridHostI = None
@@ -300,7 +306,7 @@ class MainWindowHandler(WindowHandler):
 		namerenderer = Gtk.CellRendererText()
 		namecol = Gtk.TreeViewColumn()
 		namecol.pack_start(namerenderer, True)
-		namecol.add_attribute(namerenderer, "text", 1)
+		namecol.add_attribute(namerenderer, "markup", 1)
 		namecol.set_sort_column_id(1)
 		namecol.set_title("Name")
 
@@ -360,6 +366,16 @@ class MainWindowHandler(WindowHandler):
 
 		regionbox.pack_start(self.regionView, False, False, 0)
 		self.regionView.show_all()
+
+	def updateUser(self, user):
+		# Update the title bar
+		if user.UUID == self.clientObject.localUUID:
+			localUser = self.clientObject.users[user.UUID]
+			self.window.set_title(
+				"GridToGo - %s %s"
+				% (localUser.firstName, localUser.lastName))
+
+		self.userList.updateUser(user)
 
 	def destroy(self, *args):
 		self.window.destroy()
