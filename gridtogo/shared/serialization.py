@@ -98,10 +98,13 @@ class JSONSerializer(object):
 						data['moderator'], data['gridHost'],
 						data['gridHostActive'])
 			elif class_ is Region:
+				uhosts = []
+				for host in data['hosts']:
+					uhosts = [uuid.UUID(host)] + uhosts
 				obj = Region(
 						data['regionName'], data['location'],
 						data['externalhost'], data['currentHost'],
-						data['hosts'])
+						uhosts)
 			return obj
 
 		else:
