@@ -427,7 +427,8 @@ class MainWindowHandler(WindowHandler):
 			delta = DeltaUser(self.clientObject.getLocalUser().UUID)
 			delta.gridHostActive = True
 
-			self.clientObject.updateUser(delta)
+			# The delta gets applied when the server echos it back
+			#self.clientObject.updateUser(delta)
 			self.clientObject.protocol.writeRequest(delta)
 
 			#TODO: Show error dialogs on failures
