@@ -10,7 +10,7 @@ from gridtogo.shared import serialization, networkobjects
 from gridtogo.shared.networkobjects import *
 from ui.windows import *
 
-PRINT_PACKETS = True
+PRINT_PACKETS = False
 
 class GridToGoClient(object):
 	"""

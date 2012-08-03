@@ -8,7 +8,7 @@ import database
 from gridtogo.shared import serialization, networkobjects
 from gridtogo.shared.networkobjects import *
 
-PRINT_PACKETS = True
+PRINT_PACKETS = False
 
 class GridToGoServer(object):
 	"""Ony one object of this class should exist per python interpreter."""
@@ -191,7 +191,7 @@ class GTGProtocol(basic.LineReceiver):
 							self.database.storeGridAssociation(delta, self.grid.name)
 
 				elif isinstance(request, CreateRegionRequest):
-					log.msg("Creating new region on grid + " + request.gridName + ": " + request.regionName)
+					log.msg("Creating new region on grid %s: %s" % (request.gridName, request.regionName))
 					self.database.createRegion(request.gridName, request.regionName, request.location, request.uuid)
 					region = Region(request.regionName, request.location, request.externalhost, None, [self.user.UUID])
 					self.grid.regions[region.regionName] = region

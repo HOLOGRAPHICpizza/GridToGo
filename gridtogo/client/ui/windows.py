@@ -3,6 +3,7 @@
 import uuid
 from gridtogo.client.opensim.distribution import Distribution
 import gridtogo.client.process as process
+from gridtogo.client.ui import dialog
 from gridtogo.shared.networkobjects import *
 from gridtogo.client.ui.dialog import *
 from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
@@ -419,7 +420,10 @@ class MainWindowHandler(WindowHandler):
 			
 			process.spawnRegionProcess(distribution.opensimdir, region.regionName)
 		else:
-			log.err("Not allowed to host region. BUG: This should be a popup. Michael, fix it.")
+			showModalDialog(
+				self.window,
+				Gtk.MessageType.ERROR,
+				"Not allowed to host region.")
 
 	def becomeGridHost(self, *args):
 		if self.clientObject.getLocalUser().gridHost:
