@@ -253,7 +253,6 @@ class CreateUserWindowHandler(WindowHandler):
 
 	def destroy(self):
 		if self.window:
-			LoginWindowHandler.userCreateActive = False
 			self.window.destroy()
 
 	def createUserClicked(self, *args):
@@ -297,7 +296,6 @@ class MainWindowHandler(WindowHandler):
 
 	def __init__(self, builder, clientObject, factory, window):
 		super(MainWindowHandler, self).__init__(builder, clientObject, factory, window)
-
 		# Create UserList
 		vbox = builder.get_object("vbox")
 		self.userList = UserList(clientObject)
