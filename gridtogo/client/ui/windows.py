@@ -395,8 +395,8 @@ class MainWindowHandler(WindowHandler):
 		#TODO: Prevent users from opening the Create Region window multiple times. not a problem, but more of a common sense thing.
 		self.clientObject.CreateRegionWindowHandler = \
 		self.factory.buildWindow("createRegionWindow", CreateRegionWindowHandler)
-		print self.clientObject.createRegionWindowHandler
-		self.clientObject.createRegionWindowHandler.window.show_all()
+		print self.clientObject.CreateRegionWindowHandler
+		self.clientObject.CreateRegionWindowHandler.window.show_all()
 	
 	def onHostRegion(self, *args):
 		(model, iterator) = self.regionView.get_selection().get_selected()
@@ -489,6 +489,7 @@ class CreateRegionWindowHandler(WindowHandler):
 		uuid = self.clientObject.localUUID
 		request = CreateRegionRequest(uuid, gridName, region, coordinates, hostname)
 		self.clientObject.protocol.writeRequest(request)
+		self.destroy()
 		
 	def btnCancelClicked(self, *args):
 		self.destroy()

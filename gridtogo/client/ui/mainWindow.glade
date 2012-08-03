@@ -58,7 +58,7 @@
           <object class="GtkMenuBar" id="menubarMain">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="no_show_all">True</property>
+            <property name="hexpand">True</property>
             <child>
               <object class="GtkMenuItem" id="menuitemFile">
                 <property name="use_action_appearance">False</property>
@@ -312,6 +312,8 @@
                   <object class="GtkBox" id="vbox">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="hexpand">True</property>
+                    <property name="vexpand">True</property>
                     <property name="orientation">vertical</property>
                     <property name="spacing">10</property>
                     <child>
@@ -319,7 +321,7 @@
                     </child>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
+                    <property name="expand">True</property>
                     <property name="fill">True</property>
                     <property name="padding">10</property>
                     <property name="position">0</property>
@@ -485,7 +487,7 @@
               <object class="GtkLabel" id="lblRegionTab">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="margin_right">22</property>
+                <property name="margin_right">23</property>
                 <property name="label" translatable="yes">Regions</property>
               </object>
               <packing>
