@@ -452,7 +452,9 @@ class MainWindowHandler(WindowHandler):
 			distribution.configureRobust(self.clientObject.localGrid, "localhost")
 
 			spinner.setMessage('Spawning ROBUST process...')
-			protocol = process.spawnRobustProcess(distribution.opensimdir)
+			process.spawnRobustProcess(
+				distribution.opensimdir,
+				callOnEnd=self.clientObject.robustEnded)
 			#console = ConsoleWindow(protocol)
 			#console.show_all()
 

@@ -220,7 +220,6 @@
                 <property name="receives_default">True</property>
                 <property name="margin_left">29</property>
                 <property name="use_action_appearance">False</property>
-                <signal name="enter" handler="loginClicked" swapped="no"/>
                 <signal name="clicked" handler="loginClicked" swapped="no"/>
               </object>
               <packing>

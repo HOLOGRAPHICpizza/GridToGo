@@ -6,11 +6,12 @@ from gi.repository import Gtk
 from gridtogo.client.ui.dialog import *
 
 class ConsoleProtocol(protocol.ProcessProtocol):
-	def __init__(self, name, logFile):
+	def __init__(self, name, logFile, callOnEnd=None):
 		self.name = name
 		self.allData = ""
 		self.window = None
 		self.logFile = logFile
+		self.callOnEnd = callOnEnd
 
 	def connectionMade(self):
 		log.msg("Connection Established with " + self.name)
@@ -31,9 +32,12 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 				Gtk.MessageType.ERROR,
 				"Process %s has crashed,\nrefer to the logfile %s for details." % (self.name, self.logFile))
 
+		if callable(self.callOnEnd):
+			self.callOnEnd(reason)
+
 #TODO: Remove hard-coded path separators and use path.join
 
-def spawnRobustProcess(opensimdir):
+def spawnRobustProcess(opensimdir, callOnEnd=None):
 	log.msg("Starting Robust")
 
 	try:
@@ -41,7 +45,7 @@ def spawnRobustProcess(opensimdir):
 	except OSError:
 		pass
 
-	p = ConsoleProtocol("Robust", opensimdir + '/bin/Robust.log')
+	p = ConsoleProtocol("Robust", opensimdir + '/bin/Robust.log', callOnEnd)
 	spawnMonoProcess(p, opensimdir + "/bin/" + "Robust.exe", [], opensimdir + "/bin")
 	log.msg("Started Robust")
 	return p

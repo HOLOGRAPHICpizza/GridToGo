@@ -131,6 +131,11 @@ class GridToGoClient(object):
 		#TODO: Check if reactor is running before calling stop
 		reactor.stop()
 
+	def robustEnded(self, reason):
+		delta = DeltaUser(self.localUUID)
+		delta.gridHostActive = False
+		self.protocol.writeRequest(delta)
+
 class GTGClientProtocol(basic.LineReceiver):
 	def __init__(self, clientObject, serializer):
 		# Alias for convenience

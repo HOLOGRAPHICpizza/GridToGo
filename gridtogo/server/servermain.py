@@ -208,6 +208,7 @@ class GTGProtocol(basic.LineReceiver):
 			delta = DeltaUser(self.user.UUID)
 			delta.online = False
 			delta.NATStatus = False
+			delta.gridHostActive = False
 			self.grid.applyUserDelta(delta)
 
 	def writeResponse(self, response):
