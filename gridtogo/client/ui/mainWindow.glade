@@ -6,11 +6,6 @@
     <property name="can_focus">False</property>
     <property name="stock">gtk-missing-image</property>
   </object>
-  <object class="GtkImage" id="image2">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-missing-image</property>
-  </object>
   <object class="GtkImage" id="image3">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -72,16 +67,6 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
-                      <object class="GtkImageMenuItem" id="createUser">
-                        <property name="label">New User</property>
-                        <property name="use_action_appearance">False</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="image">image2</property>
-                        <property name="use_stock">False</property>
-                      </object>
-                    </child>
-                    <child>
                       <object class="GtkImageMenuItem" id="createRegion">
                         <property name="label">New Region</property>
                         <property name="use_action_appearance">False</property>
@@ -90,6 +75,7 @@
                         <property name="image">image1</property>
                         <property name="use_stock">False</property>
                         <property name="always_show_image">True</property>
+                        <signal name="activate" handler="onbtnNewRegionClicked" swapped="no"/>
                       </object>
                     </child>
                     <child>
@@ -110,6 +96,7 @@
                         <property name="can_focus">False</property>
                         <property name="image">image6</property>
                         <property name="use_stock">False</property>
+                        <signal name="activate" handler="onHostRegion" swapped="no"/>
                       </object>
                     </child>
                     <child>
