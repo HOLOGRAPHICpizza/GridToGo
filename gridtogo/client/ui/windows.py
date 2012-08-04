@@ -459,29 +459,30 @@ class MainWindowHandler(WindowHandler):
 
 			#TODO: Show error dialogs on failures
 
-			spinner = SpinnerPopup(self.window, 'Loading OpenSim distribution...')
-			spinner.show_all()
+			self.setStatus('Loading OpenSim distribution...')
 
 			distribution = Distribution(self.clientObject.projectRoot, parent=self.window)
 			#TODO: Don't hardcode this
 
-			spinner.setMessage('Configuring ROBUST...')
+			self.setStatus('Configuring ROBUST...')
 			distribution.configureRobust(self.clientObject.localGrid, "localhost")
 
-			spinner.setMessage('Spawning ROBUST process...')
+			self.setStatus('Grid Server (ROBUST) is starting...')
 			process.spawnRobustProcess(
 				distribution.opensimdir,
-				callOnEnd=self.clientObject.robustEnded)
+				self.clientObject.robustEnded,
+				self._processROBUSTOutput)
 			#console = ConsoleWindow(protocol)
 			#console.show_all()
-
-			spinner.destroy()
 		else:
 			showModalDialog(
 				self.window,
 				Gtk.MessageType.ERROR,
 				'You do not have permission to become the grid host.'
 			)
+
+	def _processROBUSTOutput(self, line):
+		print(line)
 
 
 class CreateRegionWindowHandler(WindowHandler):

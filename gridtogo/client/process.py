@@ -28,7 +28,7 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 			showModalDialog(
 				None,
 				Gtk.MessageType.ERROR,
-				"Process %s has crashed,\nrefer to the logfile %s for details." % (self.name, self.logFile))
+				'Process "%s" has crashed,\nrefer to the logfile %s for details.' % (self.name, self.logFile))
 
 		if self.callOnEnd:
 			self.callOnEnd(reason)
@@ -36,14 +36,14 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 #TODO: Remove hard-coded path separators and use path.join
 
 def spawnRobustProcess(opensimdir, callOnEnd=None, callOnOutput=None):
-	log.msg("Starting Robust")
+	log.msg("Starting ROBUST")
 
 	try:
 		os.unlink(opensimdir + '/bin/Robust.log')
 	except OSError:
 		pass
 
-	p = ConsoleProtocol("Robust", opensimdir + '/bin/Robust.log', callOnEnd)
+	p = ConsoleProtocol("ROBUST", opensimdir + '/bin/Robust.log', callOnEnd, callOnOutput)
 	spawnMonoProcess(p, opensimdir + "/bin/" + "Robust.exe", [], opensimdir + "/bin")
 	log.msg("Started Robust")
 	return p
