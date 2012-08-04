@@ -6,21 +6,19 @@ from gi.repository import Gtk
 from gridtogo.client.ui.dialog import *
 
 class ConsoleProtocol(protocol.ProcessProtocol):
-	def __init__(self, name, logFile, callOnEnd=None):
+	def __init__(self, name, logFile, callOnEnd=None, callOnOutput=None):
 		self.name = name
-		self.allData = ""
-		self.window = None
 		self.logFile = logFile
 		self.callOnEnd = callOnEnd
+		self.callOnOutput = callOnOutput
 
 	def connectionMade(self):
-		log.msg("Connection Established with " + self.name)
+		log.msg("Connection Established to child process " + self.name)
 		self.pid = self.transport.pid
 		
 	def childDataReceived(self, fd, data):
-		self.allData += data
-		if not self.window is None:
-			self.window.outReceived(data)
+		if self.callOnOutput:
+			self.callOnOutput(data)
 	
 	def processEnded(self, reason):
 		log.msg("Process " + self.name + " has ended. Reason: " + str(reason))
@@ -32,12 +30,12 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 				Gtk.MessageType.ERROR,
 				"Process %s has crashed,\nrefer to the logfile %s for details." % (self.name, self.logFile))
 
-		if callable(self.callOnEnd):
+		if self.callOnEnd:
 			self.callOnEnd(reason)
 
 #TODO: Remove hard-coded path separators and use path.join
 
-def spawnRobustProcess(opensimdir, callOnEnd=None):
+def spawnRobustProcess(opensimdir, callOnEnd=None, callOnOutput=None):
 	log.msg("Starting Robust")
 
 	try:

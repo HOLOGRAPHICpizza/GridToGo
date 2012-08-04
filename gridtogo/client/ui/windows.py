@@ -297,6 +297,11 @@ class MainWindowHandler(WindowHandler):
 
 	def __init__(self, builder, clientObject, factory, window):
 		super(MainWindowHandler, self).__init__(builder, clientObject, factory, window)
+
+		# Status bar
+		# Do not directly use this, call setStatus
+		self._statusbar = builder.get_object('statusbar')
+
 		# Create UserList
 		vbox = builder.get_object("vbox")
 		self.userList = UserList(clientObject)
@@ -374,6 +379,16 @@ class MainWindowHandler(WindowHandler):
 
 		regionbox.pack_start(self.regionView, False, False, 0)
 		self.regionView.show_all()
+
+	def setStatus(self, message):
+		"""Set the contents of the status bar."""
+
+		# Get a stupid GTK context id
+		if not hasattr(self, '_statusContext'):
+			self._statusContext = self._statusbar.get_context_id('GridToGo Status Bar')
+
+		self._statusbar.pop(self._statusContext)
+		self._statusbar.push(self._statusContext, message)
 
 	def updateUser(self, user):
 		# Update the title bar

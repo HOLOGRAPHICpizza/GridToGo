@@ -174,6 +174,7 @@ class GTGClientProtocol(basic.LineReceiver):
 					self.clientObject.mainWindowHandler = \
 						self.clientObject.windowFactory.buildWindow("mainWindow", MainWindowHandler)
 					self.clientObject.mainWindowHandler.window.show_all()
+					self.clientObject.mainWindowHandler.setStatus('Logged in to coordination server.')
 
 					self.clientObject.loginHandler.window.destroy()
 					self.clientObject.loginHandler = None
