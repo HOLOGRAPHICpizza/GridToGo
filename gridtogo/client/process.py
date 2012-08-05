@@ -6,17 +6,20 @@ from gi.repository import Gtk
 from gridtogo.client.ui.dialog import *
 
 class ConsoleProtocol(protocol.ProcessProtocol):
-	def __init__(self, name, logFile, callOnEnd=None, callOnOutput=None):
+	def __init__(self, name, logFile, opensimdir, consolePort, callOnEnd=None, callOnOutput=None):
 		self.name = name
 		self.logFile = logFile
 		self.callOnEnd = callOnEnd
 		self.callOnOutput = callOnOutput
+		self.consolePort = consolePort
+		self.opensimdir = opensimdir
 
 	def connectionMade(self):
 		log.msg("Connection Established to child process " + self.name)
 		self.pid = self.transport.pid
 		
 	def childDataReceived(self, fd, data):
+		#TODO: data is not a complete line, this needs to buffer and only pass complete lines
 		if self.callOnOutput:
 			self.callOnOutput(self.name, data)
 	
@@ -31,7 +34,8 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 			showModalDialog(
 				None,
 				Gtk.MessageType.ERROR,
-				'Process "%s" has exited uncleanly,\nrefer to the logfile %s for details.' % (self.name, self.logFile))
+				'Process "%s" has exited uncleanly,\nrefer to the logfile %s for details.'
+				% (self.name, self.logFile))
 
 		if self.callOnEnd:
 			self.callOnEnd(self.name, reason)
@@ -46,8 +50,8 @@ def spawnRobustProcess(opensimdir, callOnEnd=None, callOnOutput=None):
 	except OSError:
 		pass
 
-	p = ConsoleProtocol("ROBUST", opensimdir + '/bin/Robust.log', callOnEnd, callOnOutput)
-	spawnMonoProcess(p, opensimdir + "/bin/" + "Robust.exe", [], opensimdir + "/bin")
+	p = ConsoleProtocol("ROBUST", opensimdir + '/bin/Robust.log', opensimdir, 8100, callOnEnd, callOnOutput)
+	spawnMonoProcess(p, opensimdir + "/bin/" + "Robust.exe", ['-console', 'rest'], opensimdir + "/bin")
 	log.msg("Started Robust")
 	return p
 
@@ -59,7 +63,7 @@ def spawnRegionProcess(opensimdir, region):
 	except OSError:
 		pass
 
-	p = ConsoleProtocol(region, opensimdir + '/bin/OpenSim.log')
+	p = ConsoleProtocol(region, opensimdir + '/bin/OpenSim.log', opensimdir, -1)
 	spawnMonoProcess(p, opensimdir + "/bin/" + "OpenSim.exe", [
 		"-inimaster=" + opensimdir + "/bin/OpenSim.ini",
 		"-inifile=" + opensimdir +"/bin/Regions/" + region + ".ini",
@@ -70,7 +74,8 @@ def spawnRegionProcess(opensimdir, region):
 
 def spawnMonoProcess(protocol, name, args, p):
 	if os.name == 'nt':
-		return reactor.spawnProcess(protocol, name, args, path=p)
+		#return reactor.spawnProcess(protocol, name, args, path=p)
+		raise NotImplementedError('Running on Windows is not yet supported.')
 	else:
 		log.msg("Args: " + str([name] + args))
 		#TODO: Make this not hard-coded to xterm

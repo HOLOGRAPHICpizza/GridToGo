@@ -65,6 +65,9 @@ class Distribution(object):
 			log.msg("Creating directory: " + self.userconfigdir)
 			os.mkdir(self.userconfigdir)
 
+		# Create an empty ConsoleClient config file, it needs this for some dumb reason
+		open(os.path.join(self.opensimdir, 'bin', 'OpenSim.ConsoleClient.ini'), 'w').close()
+
 		log.msg("OpenSim Distribution loaded at: " + self.opensimdir)
 	
 	def configure(self, gridname, ip):

@@ -3,12 +3,12 @@
 import uuid
 from gridtogo.client.opensim.distribution import Distribution
 import gridtogo.client.process as process
-from gridtogo.client.ui import dialog
 from gridtogo.shared.networkobjects import *
 from gridtogo.client.ui.dialog import *
 from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
 import os
 from twisted.python import log
+from twisted.internet import protocol, reactor
 
 PREFIL_LOGIN_SAMPLE_DATA = True
 
@@ -485,7 +485,7 @@ class MainWindowHandler(WindowHandler):
 
 	def manageServices(self, *args):
 		"""Spawn a window to kill services or connect to their consoles."""
-		RunningServicesWindow(self.clientObject.processes).show_all()
+		RunningServicesWindow(self.clientObject).show_all()
 
 class RunningServicesWindow(Gtk.Window):
 	"""
@@ -495,11 +495,11 @@ class RunningServicesWindow(Gtk.Window):
 
 	#TODO: Make this a modal dialog with standardized dialog button layout
 
-	def __init__(self, processes):
+	def __init__(self, clientObject):
 		"""processes is a dict mapping process names to process protocols."""
 		Gtk.Window.__init__(self)
 
-		self.processes = processes
+		self.clientObject = clientObject
 
 		vbox = Gtk.VBox()
 		self.add(vbox)
@@ -517,7 +517,7 @@ class RunningServicesWindow(Gtk.Window):
 		namecol.set_title("Process Name")
 		self.treeView.append_column(namecol)
 
-		for processName in processes:
+		for processName in self.clientObject.processes:
 			iterator = listStore.append()
 			listStore.set_value(iterator, 0, processName)
 
@@ -541,10 +541,35 @@ class RunningServicesWindow(Gtk.Window):
 	def getSelectedProcess(self):
 		(model, iterator) = self.treeView.get_selection().get_selected()
 		processName = model[iterator][0]
-		return self.processes[processName]
+		return self.clientObject.processes[processName]
 
 	def viewConsole(self, *args):
-		pass
+		process = self.getSelectedProcess()
+
+		args = [os.path.join(process.opensimdir, 'bin', 'OpenSim.ConsoleClient.exe'),
+		        '-host', 'localhost',
+		        '-port', str(process.consolePort),
+		        '-user', 'gridtogo',
+		        '-pass', 'gridtogopass',
+		        '-prompt', process.name]
+
+		dump = ''
+		dumpList = ['xterm', '-fg', 'white', '-bg', 'black', '-sl', '3000', '-e', 'mono'] + args
+		for item in dumpList:
+			dump += item + ' '
+		print dump
+
+		if os.name == 'nt':
+			raise NotImplementedError('Running on Windows is not yet supported.')
+		else:
+			reactor.spawnProcess(
+				protocol.ProcessProtocol(),
+				'xterm',
+				['xterm', '-fg', 'white', '-bg', 'black', '-sl', '3000', '-e', 'mono'] + args,
+				os.environ,
+				os.path.join(process.opensimdir, 'bin'))
+
+		self.destroy()
 
 	def killProcess(self, *args):
 		self.getSelectedProcess().transport.signalProcess('KILL')
