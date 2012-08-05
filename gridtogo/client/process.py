@@ -14,14 +14,22 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 		self.consolePort = consolePort
 		self.opensimdir = opensimdir
 
+		self._buffer = ''
+
 	def connectionMade(self):
 		log.msg("Connection Established to child process " + self.name)
 		self.pid = self.transport.pid
 		
 	def childDataReceived(self, fd, data):
-		#TODO: data is not a complete line, this needs to buffer and only pass complete lines
+		# data is not a complete line, this buffers and only passes complete lines
 		if self.callOnOutput:
-			self.callOnOutput(self.name, data)
+			data = self._buffer + data
+			self._buffer = ''
+			for line in data.splitlines(True):
+				if line.endswith(('\n', '\r\n')):
+					self.callOnOutput(self.name, line.strip())
+				else:
+					self._buffer = line
 	
 	def processEnded(self, reason):
 		log.msg("Process " + self.name + " has ended. Reason: " + str(reason))
