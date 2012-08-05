@@ -468,21 +468,20 @@ class MainWindowHandler(WindowHandler):
 			distribution.configureRobust(self.clientObject.localGrid, "localhost")
 
 			self.setStatus('Grid Server (ROBUST) is starting...')
-			process.spawnRobustProcess(
+			protocol = process.spawnRobustProcess(
 				distribution.opensimdir,
 				self.clientObject.robustEnded,
-				self._processROBUSTOutput)
+				self.clientObject.processRobustOutput)
 			#console = ConsoleWindow(protocol)
 			#console.show_all()
+
+			self.clientObject.processes['ROBUST'] = protocol
 		else:
 			showModalDialog(
 				self.window,
 				Gtk.MessageType.ERROR,
 				'You do not have permission to become the grid host.'
 			)
-
-	def _processROBUSTOutput(self, line):
-		print(line)
 
 
 class CreateRegionWindowHandler(WindowHandler):

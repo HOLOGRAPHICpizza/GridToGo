@@ -211,6 +211,8 @@ class GTGProtocol(basic.LineReceiver):
 			delta.gridHostActive = False
 			self.grid.applyUserDelta(delta)
 
+			print("%s %s has disconnected." % (self.user.firstName, self.user.lastName))
+
 	def writeResponse(self, response):
 		line = self.serializer.serialize(response)
 		if PRINT_PACKETS:

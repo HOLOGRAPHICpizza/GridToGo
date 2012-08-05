@@ -32,6 +32,9 @@ class GridToGoClient(object):
 		self.mainWindowHandler = None
 		self.CreateRegionWindowHandler = None
 
+		# dict mapping process names to process protocols
+		self.processes = {}
+
 		# dict mapping UUIDs to User objects
 		# The cleint's local list of all grid users
 		self.users = {}
@@ -131,10 +134,13 @@ class GridToGoClient(object):
 		#TODO: Check if reactor is running before calling stop
 		reactor.stop()
 
-	def robustEnded(self, reason):
+	def robustEnded(self, processName, reason):
 		delta = DeltaUser(self.localUUID)
 		delta.gridHostActive = False
 		self.protocol.writeRequest(delta)
+
+	def processRobustOutput(self, processName, line):
+		print(line)
 
 class GTGClientProtocol(basic.LineReceiver):
 	def __init__(self, clientObject, serializer):

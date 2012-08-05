@@ -18,7 +18,7 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 		
 	def childDataReceived(self, fd, data):
 		if self.callOnOutput:
-			self.callOnOutput(data)
+			self.callOnOutput(self.name, data)
 	
 	def processEnded(self, reason):
 		log.msg("Process " + self.name + " has ended. Reason: " + str(reason))
@@ -31,7 +31,7 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 				'Process "%s" has crashed,\nrefer to the logfile %s for details.' % (self.name, self.logFile))
 
 		if self.callOnEnd:
-			self.callOnEnd(reason)
+			self.callOnEnd(self.name, reason)
 
 #TODO: Remove hard-coded path separators and use path.join
 
@@ -73,8 +73,10 @@ def spawnMonoProcess(protocol, name, args, p):
 		#TODO: Make this not hard-coded to xterm
 		return reactor.spawnProcess(
 			protocol,
-			"xterm",
-			["xterm", '-fg', 'white', '-bg', 'black', '-sl', '3000', "-e", "mono", name] + args,
+			#"xterm",
+			#["xterm", '-fg', 'white', '-bg', 'black', '-sl', '3000', "-e", "mono", name] + args,
+			"mono",
+			["mono", name] + args,
 			path=p,
 			env=os.environ)
 
