@@ -131,10 +131,18 @@ class GridToGoClient(object):
 		if self.mainWindowHandler and self.mainWindowHandler.window:
 			self.mainWindowHandler.window.destroy()
 
+		# Kill any sub-processes that are running
+		for name in self.processes:
+			self.processes[name].transport.signalProcess('KILL')
+
 		#TODO: Check if reactor is running before calling stop
 		reactor.stop()
 
 	def robustEnded(self, processName, reason):
+		del self.processes[processName]
+
+		self.mainWindowHandler.setStatus('Grid Server (ROBUST) stopped.')
+
 		delta = DeltaUser(self.localUUID)
 		delta.gridHostActive = False
 		self.protocol.writeRequest(delta)

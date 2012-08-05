@@ -22,13 +22,16 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 	
 	def processEnded(self, reason):
 		log.msg("Process " + self.name + " has ended. Reason: " + str(reason))
+
+		#TODO: Prevent this dialog from showing if the user initiated the kill
+		# Maybe move this dialog stuff somewhere else
 		if reason.type is ProcessDone:
 			showModalDialog(None, Gtk.MessageType.INFO, 'Process %s exited cleanly.' % self.name)
 		else:
 			showModalDialog(
 				None,
 				Gtk.MessageType.ERROR,
-				'Process "%s" has crashed,\nrefer to the logfile %s for details.' % (self.name, self.logFile))
+				'Process "%s" has exited uncleanly,\nrefer to the logfile %s for details.' % (self.name, self.logFile))
 
 		if self.callOnEnd:
 			self.callOnEnd(self.name, reason)

@@ -483,6 +483,75 @@ class MainWindowHandler(WindowHandler):
 				'You do not have permission to become the grid host.'
 			)
 
+	def manageServices(self, *args):
+		"""Spawn a window to kill services or connect to their consoles."""
+		RunningServicesWindow(self.clientObject.processes).show_all()
+
+class RunningServicesWindow(Gtk.Window):
+	"""
+	A one-time-use window to kill services or connect to their consoles.
+	Destroys itself when a console is spawned.
+	"""
+
+	#TODO: Make this a modal dialog with standardized dialog button layout
+
+	def __init__(self, processes):
+		"""processes is a dict mapping process names to process protocols."""
+		Gtk.Window.__init__(self)
+
+		self.processes = processes
+
+		vbox = Gtk.VBox()
+		self.add(vbox)
+
+		listStore = Gtk.ListStore(str)
+
+		self.treeView = Gtk.TreeView(model=listStore)
+		vbox.pack_start(self.treeView, False, False, 0)
+
+		namerenderer = Gtk.CellRendererText()
+		namecol = Gtk.TreeViewColumn()
+		namecol.pack_start(namerenderer, True)
+		namecol.add_attribute(namerenderer, "text", 0)
+		namecol.set_sort_column_id(0)
+		namecol.set_title("Process Name")
+		self.treeView.append_column(namecol)
+
+		for processName in processes:
+			iterator = listStore.append()
+			listStore.set_value(iterator, 0, processName)
+
+		# Buttons
+		hbox = Gtk.HBox()
+		vbox.pack_end(hbox, False, False, 0)
+
+		viewConsole = Gtk.Button('View Console')
+		viewConsole.connect('clicked', self.viewConsole)
+		hbox.pack_start(viewConsole, False, False, 0)
+
+		killProcess = Gtk.Button('Kill Process')
+		killProcess.connect('clicked', self.killProcess)
+		hbox.pack_start(killProcess, False, False, 0)
+
+		#TODO: Use stock cancel button
+		cancel = Gtk.Button('Cancel')
+		cancel.connect('clicked', self.cancel)
+		hbox.pack_end(cancel, False, False, 0)
+
+	def getSelectedProcess(self):
+		(model, iterator) = self.treeView.get_selection().get_selected()
+		processName = model[iterator][0]
+		return self.processes[processName]
+
+	def viewConsole(self, *args):
+		pass
+
+	def killProcess(self, *args):
+		self.getSelectedProcess().transport.signalProcess('KILL')
+		self.destroy()
+
+	def cancel(self, *args):
+		self.destroy()
 
 class CreateRegionWindowHandler(WindowHandler):
 	def __init__(self, builder, clientObject, factory, window):

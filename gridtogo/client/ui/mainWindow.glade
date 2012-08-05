@@ -222,12 +222,13 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="manageServices">
-                        <property name="label" translatable="yes">Manage Services</property>
+                        <property name="label" translatable="yes">Manage Running Services</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="image">image8</property>
                         <property name="use_stock">False</property>
+                        <signal name="activate" handler="manageServices" swapped="no"/>
                       </object>
                     </child>
                     <child>
