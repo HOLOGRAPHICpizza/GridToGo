@@ -176,20 +176,21 @@ class WindowFactory(object):
 	def __init__(self, clientObject):
 		self.clientObject = clientObject
 
-	def buildWindow(self, windowName, handlerClass):
+	def buildWindow(self, windowName, handlerClass, data=None):
 		builder = Gtk.Builder()
 		global PROJECT_ROOT_DIRECTORY
 		builder.add_from_file(os.path.join(self.clientObject.projectRoot, "gridtogo", 'client', 'ui', windowName + '.glade'))
-		handler = handlerClass(builder, self.clientObject, self, builder.get_object(windowName))
+		handler = handlerClass(builder, self.clientObject, self, builder.get_object(windowName), data)
 		builder.connect_signals(handler)
 		return handler
 
 class WindowHandler(object):
-	def __init__(self, builder, clientObject, factory, window):
+	def __init__(self, builder, clientObject, factory, window, data=None):
 		self.builder = builder
 		self.clientObject = clientObject
 		self.factory = factory
 		self.window = window
+		self.data = data
 
 class LoginWindowHandler(WindowHandler):
 	def __init__(self, builder, clientObject, factory, window):
@@ -213,7 +214,7 @@ class LoginWindowHandler(WindowHandler):
 	def getHostPort(self):
 		if self.coordinationEntry.get_text() == "":
 			return "localhost", 8017
-		spl = string.split(self.coordinationEntry.get_text(), ":")
+		spl = self.coordinationEntry.get_text().split(":")
 		if len(spl) == 1:
 			return spl[0], 8017
 		else:
@@ -221,12 +222,10 @@ class LoginWindowHandler(WindowHandler):
 
 	def createUserClicked(self, *args):
 		host, port = self.getHostPort()
-		if self.userCreateActive == False:
-			self.clientObject.createUserWindowHandler = self.factory.buildWindow("createUserWindow", CreateUserWindowHandler, host, port)
+		if not self.userCreateActive:
+			self.clientObject.createUserWindowHandler = self.factory.buildWindow("createUserWindow", CreateUserWindowHandler, (host, port))
 			self.clientObject.createUserWindowHandler.window.show_all()
 			self.userCreateActive = True
-		elif self.userCreateActive == True:
-			showModalDialog(self.window, Gtk.MessageType.ERROR, "The form is already up!")
 
 	def loginClicked(self, *args):
 		# register our stuff to be called then attempt connection
