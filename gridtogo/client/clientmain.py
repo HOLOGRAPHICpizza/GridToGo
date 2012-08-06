@@ -42,6 +42,9 @@ class GridToGoClient(object):
 		# This is how we remember who we are.
 		self.localUUID = None
 
+		self.email = None
+		self.password = None
+
 		# Ghetto flag involved in control of the form's
 
 		self.dieing = False
@@ -190,6 +193,7 @@ class GTGClientProtocol(basic.LineReceiver):
 				if isinstance(response, LoginSuccess):
 					self.clientObject.localUUID = response.UUID
 					self.clientObject.localGrid = response.grid
+					self.clientObject.email = response.email
 
 					self.clientObject.mainWindowHandler = \
 						self.clientObject.windowFactory.buildWindow("mainWindow", MainWindowHandler)

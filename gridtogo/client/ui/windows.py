@@ -197,6 +197,7 @@ class LoginWindowHandler(WindowHandler):
 		self.firstNameEntry = builder.get_object("firstName")
 		self.lastNameEntry = builder.get_object("lastName")
 		self.passwordEntry = builder.get_object("password")
+		self.coordinationEntry = builder.get_object("coordinationServerHostname")
 		self.gridEntry = builder.get_object("grid")
 		self.userCreateActive = False
 
@@ -209,10 +210,19 @@ class LoginWindowHandler(WindowHandler):
 	def LANModeClicked(self, *args):
 		log.msg("LAN Mode")
 
+	def getHostPort(self):
+		if self.coordinationEntry.get_text() == "":
+			return "localhost", 8017
+		spl = string.split(self.coordinationEntry.get_text(), ":")
+		if len(spl) == 1:
+			return spl[0], 8017
+		else:
+			return spl[0], int(spl[1])
+
 	def createUserClicked(self, *args):
-		
+		host, port = self.getHostPort()
 		if self.userCreateActive == False:
-			self.clientObject.createUserWindowHandler = self.factory.buildWindow("createUserWindow", CreateUserWindowHandler)
+			self.clientObject.createUserWindowHandler = self.factory.buildWindow("createUserWindow", CreateUserWindowHandler, host, port)
 			self.clientObject.createUserWindowHandler.window.show_all()
 			self.userCreateActive = True
 		elif self.userCreateActive == True:
@@ -221,8 +231,9 @@ class LoginWindowHandler(WindowHandler):
 	def loginClicked(self, *args):
 		# register our stuff to be called then attempt connection
 		self.clientObject.callOnConnected.append(self.onConnectionEstablished)
-		#TODO: Read host:port from "Coordination Server" box
-		self.clientObject.attemptConnection(self.window, 'localhost', 8017, 5)
+		host, port = self.getHostPort()
+		self.clientObject.attemptConnection(self.window, host, port, 5)
+		self.clientObject.password = self.passwordEntry.get_text()
 
 	def onConnectionEstablished(self, protocol):
 		firname = self.firstNameEntry.get_text()
@@ -246,13 +257,15 @@ class LoginWindowHandler(WindowHandler):
 			self.clientObject.stop()
 
 class CreateUserWindowHandler(WindowHandler):
-	def __init__(self, builder, clientObject, factory, window):
+	def __init__(self, builder, clientObject, factory, window, host, port):
 		super(CreateUserWindowHandler, self).__init__(builder, clientObject, factory, window)
 		self.emailEntry = builder.get_object("entryEMail")
 		self.firstNameEntry = builder.get_object("entryFirstName")
 		self.lastNameEntry = builder.get_object("entryLastName")
 		self.passwordEntry = builder.get_object("entryPassword")
 		self.passwordRetypeEntry = builder.get_object("entryRetypePassword")
+		self.host = host
+		self.port = port
 
 	def destroy(self):
 		if self.window:
@@ -271,8 +284,7 @@ class CreateUserWindowHandler(WindowHandler):
 
 		# Register our method and attempt connection
 		self.clientObject.callOnConnected.append(self.connectionEstablished)
-		#TODO: Read host:port from "Coordination Server" box
-		self.clientObject.attemptConnection(self.window, 'localhost', 8017, 5)
+		self.clientObject.attemptConnection(self.window, self.host, self.port, 5)
 		
 	def onCreateUserSuccess(self):
 		showModalDialog(self.window, Gtk.MessageType.INFO, CreateUserSuccess().message)
