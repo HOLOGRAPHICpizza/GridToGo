@@ -124,10 +124,11 @@ class TooManyAttempts(LoginResponse):
 		self.message = 'Too many login attempts. Please wait and try again.'
 
 class LoginSuccess(LoginResponse):
-	def __init__(self, UUID, grid):
+	def __init__(self, UUID, grid, email):
 		self.message = 'Login successful.'
 		self.UUID = UUID
 		self.grid = grid
+		self.email = email
 
 class CreateRegionRequest(object):
 	def __init__(self, uuid, gridName, regionName, location, externalhost):
