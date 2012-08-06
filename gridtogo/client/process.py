@@ -4,6 +4,8 @@ from twisted.internet.error import ProcessDone
 from twisted.python import log
 from gi.repository import Gtk
 from gridtogo.client.ui.dialog import *
+from twisted.web.client import Agent
+from twisted.web.http_headers import Headers
 
 class ConsoleProtocol(protocol.ProcessProtocol):
 	def __init__(self, name, logFile, opensimdir, consolePort, callOnEnd=None, callOnOutput=None):
@@ -47,6 +49,14 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 
 		if self.callOnEnd:
 			self.callOnEnd(self.name, reason)
+
+	def sendCommand(self):
+		"""Sends a command to the REST console of this process."""
+		if not hasattr(self, '_session'):
+			self._agent = Agent(reactor)
+#			self._agent.request(
+#				'POST',
+#				'http://localhost:%d/StartSession/',)
 
 #TODO: Remove hard-coded path separators and use path.join
 
