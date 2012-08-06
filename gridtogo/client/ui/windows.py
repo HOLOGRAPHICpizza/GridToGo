@@ -432,15 +432,28 @@ class MainWindowHandler(WindowHandler):
 
 			def hostRegion(dist):
 				log.msg("Configuring region for hosting")
+
+				#TODO: Don't hardcode port
+				port = 9000
+
+				# Do region-agnostic configuration
 				dist.configure("GridName", "localhost")
-				dist.configureRegion(region.regionName, region.location, region.externalhost, 9000)
-			
-				process.spawnRegionProcess(dist.opensimdir, region.regionName)
+				# Do region-specific configuration
+				dist.configureRegion(region.regionName, region.location, region.externalhost, port)
+
+				# We use the convention: consolePort = port + 10000
+				protocol_ = process.spawnRegionProcess(
+					dist.opensimdir,
+					region.regionName,
+					port + 10000,
+					callOnOutput=self.clientObject.processSimOutput)
+
+				self.clientObject.processes[region.regionName] = protocol_
 				
 			d = Deferred()
 			d.addCallback(hostRegion)
 			distribution.load(d)
-			#TODO: Don't hardcore port
+
 		else:
 			showModalDialog(
 				self.window,
@@ -488,14 +501,14 @@ class MainWindowHandler(WindowHandler):
 		distribution.configureRobust(self.clientObject.localGrid, "localhost")
 
 		self.setStatus('Grid Server (ROBUST) is starting...')
-		protocol = process.spawnRobustProcess(
+		protocol_ = process.spawnRobustProcess(
 			distribution.opensimdir,
 			self.clientObject.robustEnded,
 			self.clientObject.processRobustOutput)
 		#console = ConsoleWindow(protocol)
 		#console.show_all()
 
-		self.clientObject.processes['ROBUST'] = protocol
+		self.clientObject.processes['ROBUST'] = protocol_
 
 
 	def manageServices(self, *args):

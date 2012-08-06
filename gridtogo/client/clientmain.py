@@ -153,6 +153,9 @@ class GridToGoClient(object):
 		#   Grid Service
 		print(line)
 
+	def processSimOutput(self, processName, line):
+		print(line)
+
 class GTGClientProtocol(basic.LineReceiver):
 	def __init__(self, clientObject, serializer):
 		# Alias for convenience
