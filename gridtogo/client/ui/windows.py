@@ -23,7 +23,7 @@ class UserList(Gtk.ListStore):
 	"""This container will hold the visual list of users in the grid."""
 
 	def __init__(self, clientObject):
-		Gtk.ListStore.__init__(self, GdkPixbuf.Pixbuf, str, GdkPixbuf.Pixbuf, str, int, int, bool)
+		Gtk.ListStore.__init__(self, GdkPixbuf.Pixbuf, GdkPixbuf.Pixbuf, str, GdkPixbuf.Pixbuf, int, int, int)
 		# Images for the main window
 		self.clientObject = clientObject
 		self.statusGrey = loadPixbuf('status-grey.png', clientObject)
@@ -31,6 +31,7 @@ class UserList(Gtk.ListStore):
 		self.statusGreen = loadPixbuf('status-green.png', clientObject)
 		self.gridHostActive = loadPixbuf('gridhost-active.png', clientObject)
 		self.gridHostInactive = loadPixbuf('gridhost-inactive.png', clientObject)
+		self.moderator = loadPixbuf('shield.png', clientObject)
 		self.blank = loadPixbuf('blank24.png', clientObject)
 
 		# Dictionary mapping UUIDs to Iterators
@@ -82,21 +83,21 @@ class UserList(Gtk.ListStore):
 
 		moderatorI = None
 		if newUser.moderator:
-			moderatorIcon = Gtk.STOCK_YES
+			moderatorIcon = self.moderator
 			moderatorI = 1
 		else:
-			moderatorIcon = Gtk.STOCK_NO
+			moderatorIcon = self.blank
 			moderatorI = 2
 	
 		self.set_value(iterator, 0, status)
-		self.set_value(iterator, 1, name)
-		self.set_value(iterator, 2, gridHost)
-		self.set_value(iterator, 3, moderatorIcon)
+		self.set_value(iterator, 1, moderatorIcon)
+		self.set_value(iterator, 2, name)
+		self.set_value(iterator, 3, gridHost)
 
 		# Not Rendered, but used for sorting
 		self.set_value(iterator, 4, statusI)
-		self.set_value(iterator, 5, gridHostI)
-		self.set_value(iterator, 6, moderatorI)
+		self.set_value(iterator, 5, moderatorI)
+		self.set_value(iterator, 6, gridHostI)
 
 		# Map the UUID to the iterator
 		self.iterators[newUser.UUID] = iterator
@@ -303,7 +304,7 @@ class MainWindowHandler(WindowHandler):
 		self._statusbar = builder.get_object('statusbar')
 
 		# Create UserList
-		vbox = builder.get_object("vbox")
+		vbox = builder.get_object("usersBox")
 		self.userList = UserList(clientObject)
 		self.userView = Gtk.TreeView(model=self.userList)
 		self.userView.get_selection().set_mode(Gtk.SelectionMode.NONE)
@@ -316,39 +317,39 @@ class MainWindowHandler(WindowHandler):
 		statuscol.set_title("Status")
 		statuscol.set_alignment(0.5)
 
+		moderatorrenderer = Gtk.CellRendererPixbuf()
+		moderatorcol = Gtk.TreeViewColumn()
+		moderatorcol.pack_start(moderatorrenderer, True)
+		moderatorcol.add_attribute(moderatorrenderer, "pixbuf", 1)
+		moderatorcol.set_sort_column_id(5)
+		moderatorcol.set_title("Moderator")
+		moderatorcol.set_alignment(0.5)
+
 		namerenderer = Gtk.CellRendererText()
 		namecol = Gtk.TreeViewColumn()
 		namecol.pack_start(namerenderer, True)
-		namecol.add_attribute(namerenderer, "markup", 1)
-		namecol.set_sort_column_id(1)
+		namecol.add_attribute(namerenderer, "markup", 2)
+		namecol.set_sort_column_id(2)
 		namecol.set_title("Name")
 
 		gridhostrenderer = Gtk.CellRendererPixbuf()
 		gridhostcol = Gtk.TreeViewColumn()
 		gridhostcol.pack_start(gridhostrenderer, True)
-		gridhostcol.add_attribute(gridhostrenderer, "pixbuf", 2)
-		gridhostcol.set_sort_column_id(5)
-		gridhostcol.set_title("Host")
+		gridhostcol.add_attribute(gridhostrenderer, "pixbuf", 3)
+		gridhostcol.set_sort_column_id(6)
+		gridhostcol.set_title("Grid Host")
 		gridhostcol.set_alignment(0.5)
 
-		moderatorrenderer = Gtk.CellRendererPixbuf()
-		moderatorcol = Gtk.TreeViewColumn()
-		moderatorcol.pack_start(moderatorrenderer, True)
-		moderatorcol.add_attribute(moderatorrenderer, "stock-id", 3)
-		moderatorcol.set_sort_column_id(6)
-		moderatorcol.set_title("Moderator")
-		moderatorcol.set_alignment(0.5)
-
 		self.userView.append_column(statuscol)
-		self.userView.append_column(gridhostcol)
 		self.userView.append_column(moderatorcol)
 		self.userView.append_column(namecol)
+		self.userView.append_column(gridhostcol)
 
 		vbox.pack_start(self.userView, False, False, 0)
 		self.userView.show_all()
 		
 		# Create RegionList
-		regionbox = builder.get_object("regionbox")
+		regionbox = builder.get_object("regionsBox")
 		self.regionList = RegionList(clientObject)
 		self.regionView = Gtk.TreeView(model=self.regionList)
 
