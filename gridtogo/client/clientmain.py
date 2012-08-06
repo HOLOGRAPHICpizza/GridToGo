@@ -148,6 +148,9 @@ class GridToGoClient(object):
 		self.protocol.writeRequest(delta)
 
 	def processRobustOutput(self, processName, line):
+		# We need to make sure all the UGAIM services come up:
+		#   Asset Service
+		#   Grid Service
 		print(line)
 
 class GTGClientProtocol(basic.LineReceiver):
