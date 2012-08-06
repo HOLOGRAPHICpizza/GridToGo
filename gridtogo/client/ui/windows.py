@@ -185,7 +185,7 @@ class WindowFactory(object):
 		return handler
 
 class WindowHandler(object):
-	def __init__(self, builder, clientObject, factory, window, data=None):
+	def __init__(self, builder, clientObject, factory, window, data):
 		self.builder = builder
 		self.clientObject = clientObject
 		self.factory = factory
@@ -193,8 +193,8 @@ class WindowHandler(object):
 		self.data = data
 
 class LoginWindowHandler(WindowHandler):
-	def __init__(self, builder, clientObject, factory, window):
-		super(LoginWindowHandler, self).__init__(builder, clientObject, factory, window)
+	def __init__(self, builder, clientObject, factory, window, data):
+		super(LoginWindowHandler, self).__init__(builder, clientObject, factory, window, data)
 		self.firstNameEntry = builder.get_object("firstName")
 		self.lastNameEntry = builder.get_object("lastName")
 		self.passwordEntry = builder.get_object("password")
@@ -256,15 +256,14 @@ class LoginWindowHandler(WindowHandler):
 			self.clientObject.stop()
 
 class CreateUserWindowHandler(WindowHandler):
-	def __init__(self, builder, clientObject, factory, window, host, port):
-		super(CreateUserWindowHandler, self).__init__(builder, clientObject, factory, window)
+	def __init__(self, builder, clientObject, factory, window, data):
+		super(CreateUserWindowHandler, self).__init__(builder, clientObject, factory, window, data)
 		self.emailEntry = builder.get_object("entryEMail")
 		self.firstNameEntry = builder.get_object("entryFirstName")
 		self.lastNameEntry = builder.get_object("entryLastName")
 		self.passwordEntry = builder.get_object("entryPassword")
 		self.passwordRetypeEntry = builder.get_object("entryRetypePassword")
-		self.host = host
-		self.port = port
+		self.host, self.port = self.data
 
 	def destroy(self):
 		if self.window:
@@ -308,8 +307,8 @@ class CreateUserWindowHandler(WindowHandler):
 
 class MainWindowHandler(WindowHandler):
 
-	def __init__(self, builder, clientObject, factory, window):
-		super(MainWindowHandler, self).__init__(builder, clientObject, factory, window)
+	def __init__(self, builder, clientObject, factory, window, data):
+		super(MainWindowHandler, self).__init__(builder, clientObject, factory, window, data)
 
 		# Status bar
 		# Do not directly use this, call setStatus
@@ -624,8 +623,8 @@ class RunningServicesWindow(Gtk.Window):
 		self.destroy()
 
 class CreateRegionWindowHandler(WindowHandler):
-	def __init__(self, builder, clientObject, factory, window):
-		super(CreateRegionWindowHandler, self).__init__(builder, clientObject, factory, window)
+	def __init__(self, builder, clientObject, factory, window, data):
+		super(CreateRegionWindowHandler, self).__init__(builder, clientObject, factory, window, data)
 		self.regionName = builder.get_object("entRegionName")
 		self.location = builder.get_object("entLocation")
 		self.externalHostname = builder.get_object("entExtHostname")
@@ -688,8 +687,8 @@ class ConsoleWindow(Gtk.Window):
 		self.entryfield.get_buffer().set_text("", 0)
 
 class AboutWindowHandler(WindowHandler):
-	def __init__(self, builder, clientObject, factory, window):
-		super(AboutWindowHandler, self).__init__(builder, clientObject, factory, window)
+	def __init__(self, builder, clientObject, factory, window, data):
+		super(AboutWindowHandler, self).__init__(builder, clientObject, factory, window, data)
 
 	def destroy(self):
 		self.destroy()
