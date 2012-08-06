@@ -6,6 +6,26 @@ from gi.repository import Gtk
 from gridtogo.client.ui.dialog import *
 from twisted.web.client import Agent
 from twisted.web.http_headers import Headers
+from twisted.web.iweb import IBodyProducer
+import urllib
+from zope.interface import implements
+
+class PostProducer(object):
+	implements(IBodyProducer)
+
+	def __init__(self, values):
+		self.body = urllib.urlencode(values)
+		self.length = len(body)
+	
+	def startProducing(sefl, consumer):
+		consumer.write(self.body)
+		return succeed(None)
+	
+	def pauseProducing(self):
+		pass
+	
+	def stopProducing(self):
+		pass
 
 class ConsoleProtocol(protocol.ProcessProtocol):
 	def __init__(self, name, logFile, opensimdir, consolePort, callOnEnd=None, callOnOutput=None):
@@ -50,13 +70,22 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 		if self.callOnEnd:
 			self.callOnEnd(self.name, reason)
 
-	def sendCommand(self):
+	def sendCommand(self, url, attrs):
 		"""Sends a command to the REST console of this process."""
 		if not hasattr(self, '_session'):
-			self._agent = Agent(reactor)
-#			self._agent.request(
-#				'POST',
-#				'http://localhost:%d/StartSession/',)
+			agent = Agent(reactor)
+			agent.request(
+				'POST',
+				'http://localhost:%d/StartSession/' % self.consolePort,
+				Headers({"Content-Type": ["application/x-www-form-urlencoded"]}),
+				None)
+		agent = Agent(reactor)
+		agent.request(
+			'POST',
+			('http://localhost:%d/' % self.consolePort) + url,
+			Headers({"Content-Type": ["application/x-www-form-urlencoded"]}),
+			PostProducer(attrs))
+
 
 #TODO: Remove hard-coded path separators and use path.join
 
