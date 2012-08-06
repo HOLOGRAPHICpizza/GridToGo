@@ -137,14 +137,18 @@ class CreateRegionRequest(object):
 		self.regionName = regionName
 		self.location = location
 		self.externalhost = externalhost
+	
+# Class for requests from SERVER to CLIENT
+class NATCheckRequest(object):
+	pass
 
-class NATCheckStartRequest(object):
-	def __init__(self, regionStart, regionEnd)
+class NATCheckStartRequest(NATCheckRequest):
+	def __init__(self, regionStart, regionEnd):
 		self.regionStart = regionStart
 		self.regionEnd = regionEnd
 
 class NATCheckReadyRequest(object):
 	pass
 
-class NATCheckEndRequest(object):
+class NATCheckEndRequest(NATCheckRequest):
 	pass

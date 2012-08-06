@@ -70,6 +70,9 @@ class JSONSerializer(object):
 		elif class_ is ResetPasswordRequest:
 			return class_(data['firstName'], data['lastName'])
 
+		elif class_ is NATCheckStartRequest:
+			return class_(data['regionStart'], data['regionEnd'])
+
 		#elif class_ is uuid.UUID:
 		#	return class_(data['value'])
 
@@ -158,5 +161,9 @@ class JSONSerializer(object):
 				data['regionName'] = obj.regionName
 				data['location'] = obj.location
 				data['externalhost'] = obj.location
+
+			elif isinstance(obj, NATCheckStartRequest):
+				data['regionStart'] = obj.regionStart
+				data['regionEnd'] = obj.regionEnd
 
 			return data

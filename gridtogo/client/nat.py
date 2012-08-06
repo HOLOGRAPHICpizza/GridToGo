@@ -3,6 +3,8 @@ from twisted.internet.endpoints import TCP4ServerEndpoint
 from twisted.internet.protocol import Protocol
 from twisted.python import log
 
+from gridtogo.shared.networkobjects import *
+
 class EchoProtocol(Protocol):
 	def __init__(self, factory, port):
 		self.factory = factory
@@ -40,8 +42,11 @@ class EchoFactoryBuilder(object):
 		return EchoFactory(self, port)
 
 class EchoService(object):
-	def __init__(self, deferred, finalCount):
+	def __init__(self):
 		log.msg("[NAT] Creating Echo Service")
+	
+	def start(self, deferred, finalCount):
+		log.msg("[NAT] Starting Echo Service")
 		self.builder = EchoFactoryBuilder()
 		self.protocols = []
 		self.connectionCount = 0
@@ -60,3 +65,22 @@ class EchoService(object):
 	def checkCount(self):
 		if self.connectionCount == self.finalCount:
 			deferred.callback(self)
+
+class NATService(object):
+	def __init__(clientObject):
+		self.service = EchoService()
+		self.clientObject = clientObject
+	
+	def handle(self, request):
+		if request isinstance NATCheckStartRequest:
+			self.run(request.regionStart, request.regionEnd)
+		elif request isinstance NATCheckEndRequest:
+			self.service.close()
+	
+	def run(self, regionStart, regionEnd):
+		d = Deferred()
+		d.addCallback(self.allEstablished)
+		self.service.start(d, 4 + regionEnd - regionStart)
+	
+	def allEstablished(self, ignored):
+		self.clientObject.writeRequest(NATCheckReadyRequest())
