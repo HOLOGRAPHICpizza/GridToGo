@@ -31,6 +31,7 @@ class GridToGoClient(object):
 		self.spinner = None
 		self.mainWindowHandler = None
 		self.CreateRegionWindowHandler = None
+		self.AboutWindowHandler = None
 
 		# dict mapping process names to process protocols
 		self.processes = {}
