@@ -9,6 +9,7 @@ from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
 import os
 from twisted.python import log
 from twisted.internet import protocol, reactor
+from twisted.internet.defer import Deferred
 
 PREFIL_LOGIN_SAMPLE_DATA = True
 
@@ -463,26 +464,31 @@ class MainWindowHandler(WindowHandler):
 			self.setStatus('Loading OpenSim distribution...')
 
 			distribution = Distribution(self.clientObject.projectRoot, parent=self.window)
+			d = Deferred()
+			d.addCallback(self.startRobust)
+			distribution.load(d)
 			#TODO: Don't hardcode this
 
-			self.setStatus('Configuring ROBUST...')
-			distribution.configureRobust(self.clientObject.localGrid, "localhost")
-
-			self.setStatus('Grid Server (ROBUST) is starting...')
-			protocol = process.spawnRobustProcess(
-				distribution.opensimdir,
-				self.clientObject.robustEnded,
-				self.clientObject.processRobustOutput)
-			#console = ConsoleWindow(protocol)
-			#console.show_all()
-
-			self.clientObject.processes['ROBUST'] = protocol
 		else:
 			showModalDialog(
 				self.window,
 				Gtk.MessageType.ERROR,
 				'You do not have permission to become the grid host.'
 			)
+	def startRobust(self, distribution):
+		self.setStatus('Configuring ROBUST...')
+		distribution.configureRobust(self.clientObject.localGrid, "localhost")
+
+		self.setStatus('Grid Server (ROBUST) is starting...')
+		protocol = process.spawnRobustProcess(
+			distribution.opensimdir,
+			self.clientObject.robustEnded,
+			self.clientObject.processRobustOutput)
+		#console = ConsoleWindow(protocol)
+		#console.show_all()
+
+		self.clientObject.processes['ROBUST'] = protocol
+
 
 	def manageServices(self, *args):
 		"""Spawn a window to kill services or connect to their consoles."""
