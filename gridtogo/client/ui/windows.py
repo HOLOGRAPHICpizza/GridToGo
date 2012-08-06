@@ -429,11 +429,18 @@ class MainWindowHandler(WindowHandler):
 
 			#TODO: Don't hardcode gridname and localhost
 			distribution = Distribution(self.clientObject.projectRoot, parent=self.window)
-			distribution.configure("GridName", "localhost")
-			#TODO: Don't hardcore port
-			distribution.configureRegion(region.regionName, region.location, region.externalhost, 9000)
+
+			def hostRegion(dist):
+				log.msg("Configuring region for hosting")
+				dist.configure("GridName", "localhost")
+				dist.configureRegion(region.regionName, region.location, region.externalhost, 9000)
 			
-			process.spawnRegionProcess(distribution.opensimdir, region.regionName)
+				process.spawnRegionProcess(dist.opensimdir, region.regionName)
+				
+			d = Deferred()
+			d.addCallback(hostRegion)
+			distribution.load(d)
+			#TODO: Don't hardcore port
 		else:
 			showModalDialog(
 				self.window,
@@ -475,6 +482,7 @@ class MainWindowHandler(WindowHandler):
 				Gtk.MessageType.ERROR,
 				'You do not have permission to become the grid host.'
 			)
+
 	def startRobust(self, distribution):
 		self.setStatus('Configuring ROBUST...')
 		distribution.configureRobust(self.clientObject.localGrid, "localhost")
