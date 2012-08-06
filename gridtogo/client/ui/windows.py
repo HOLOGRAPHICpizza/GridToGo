@@ -9,6 +9,7 @@ from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
 import os
 from twisted.python import log
 from twisted.internet import protocol, reactor
+from twisted.internet.defer import Deferred
 
 PREFIL_LOGIN_SAMPLE_DATA = True
 
@@ -428,11 +429,18 @@ class MainWindowHandler(WindowHandler):
 
 			#TODO: Don't hardcode gridname and localhost
 			distribution = Distribution(self.clientObject.projectRoot, parent=self.window)
-			distribution.configure("GridName", "localhost")
-			#TODO: Don't hardcore port
-			distribution.configureRegion(region.regionName, region.location, region.externalhost, 9000)
+
+			def hostRegion(dist):
+				log.msg("Configuring region for hosting")
+				dist.configure("GridName", "localhost")
+				dist.configureRegion(region.regionName, region.location, region.externalhost, 9000)
 			
-			process.spawnRegionProcess(distribution.opensimdir, region.regionName)
+				process.spawnRegionProcess(dist.opensimdir, region.regionName)
+				
+			d = Deferred()
+			d.addCallback(hostRegion)
+			distribution.load(d)
+			#TODO: Don't hardcore port
 		else:
 			showModalDialog(
 				self.window,
@@ -463,26 +471,32 @@ class MainWindowHandler(WindowHandler):
 			self.setStatus('Loading OpenSim distribution...')
 
 			distribution = Distribution(self.clientObject.projectRoot, parent=self.window)
+			d = Deferred()
+			d.addCallback(self.startRobust)
+			distribution.load(d)
 			#TODO: Don't hardcode this
 
-			self.setStatus('Configuring ROBUST...')
-			distribution.configureRobust(self.clientObject.localGrid, "localhost")
-
-			self.setStatus('Grid Server (ROBUST) is starting...')
-			protocol = process.spawnRobustProcess(
-				distribution.opensimdir,
-				self.clientObject.robustEnded,
-				self.clientObject.processRobustOutput)
-			#console = ConsoleWindow(protocol)
-			#console.show_all()
-
-			self.clientObject.processes['ROBUST'] = protocol
 		else:
 			showModalDialog(
 				self.window,
 				Gtk.MessageType.ERROR,
 				'You do not have permission to become the grid host.'
 			)
+
+	def startRobust(self, distribution):
+		self.setStatus('Configuring ROBUST...')
+		distribution.configureRobust(self.clientObject.localGrid, "localhost")
+
+		self.setStatus('Grid Server (ROBUST) is starting...')
+		protocol = process.spawnRobustProcess(
+			distribution.opensimdir,
+			self.clientObject.robustEnded,
+			self.clientObject.processRobustOutput)
+		#console = ConsoleWindow(protocol)
+		#console.show_all()
+
+		self.clientObject.processes['ROBUST'] = protocol
+
 
 	def manageServices(self, *args):
 		"""Spawn a window to kill services or connect to their consoles."""
