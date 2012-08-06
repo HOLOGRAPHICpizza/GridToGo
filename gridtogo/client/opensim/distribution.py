@@ -2,16 +2,23 @@
 #Downloads OpenSim, moves it, and packs in the files we need it to have
 # module gridtogo.client.opensim.distribution
 
-import httplib
+if __name__ == "__main__":
+	from twisted.internet import gtk3reactor
+	gtk3reactor.install()
+
+from gi.repository import Gtk
 import os.path
 import shutil
 import string
 import sys
 import tarfile
+from twisted.internet import reactor
+from twisted.internet.defer import Deferred
+from twisted.internet.protocol import Protocol
 from twisted.python import log
+from twisted.web.client import Agent
+from twisted.web.http_headers import Headers
 import uuid
-
-import gridtogo.client.ui.windows
 
 VERSION = "0.7.3"
 
@@ -37,10 +44,10 @@ class Distribution(object):
 		self.regionsdir = self.directory + "/opensim/bin/Regions"
 
 		self.parent = parent
-
-		self.load()
 	
-	def load(self):
+	# Loads asynchonously and passes self to the deferred
+	def load(self, deferred):
+		self.loaddeferred = deferred
 		# Loads OpenSim and creates the directory to load it into
 		log.msg("OpenSim Distribution loading at: " + self.opensimdir)
 
@@ -55,6 +62,11 @@ class Distribution(object):
 		if not os.path.isdir(self.opensimdir):
 			if not os.path.isfile(self.opensimtar):
 				self.download()
+			else:
+				self.continueload()
+
+	def continueload(self):
+		if not os.path.isdir(self.opensimdir):
 			self.extract()
 
 		if not os.path.isdir(self.regionsdir):
@@ -69,6 +81,7 @@ class Distribution(object):
 		open(os.path.join(self.opensimdir, 'bin', 'OpenSim.ConsoleClient.ini'), 'w').close()
 
 		log.msg("OpenSim Distribution loaded at: " + self.opensimdir)
+		self.loaddeferred.callback(self)
 	
 	def configure(self, gridname, ip):
 		mappings = { "GRID_NAME": gridname, "IP_ADDRESS": ip }
@@ -153,30 +166,35 @@ class Distribution(object):
 
 	def download(self):
 		log.msg("Downloading file: " + self.opensimtar)
-		log.msg("Establishing connection to: dist.opensimulator.org")
-		connection = httplib.HTTPConnection("dist.opensimulator.org")
-		log.msg("Established connection to: dist.opensimulator.org")
 
 		log.msg("Requesting file: /opensim-" + VERSION + ".tar.gz")
-		connection.request("GET", "/opensim-" + VERSION + ".tar.gz")
-		response = connection.getresponse()
-		if response.status != 200:
-			log.err("Bad Response from Server: " + str(response.status))
 
-		versionedtar = self.directory + "/opensim-" + VERSION + ".tar.gz"
-		log.msg("Download & Writing file: " + versionedtar)
-		f = open(versionedtar, "w")
-		f.write(response.read())
-		f.close()
-		log.msg("Wrote file: " + versionedtar)
+		self.versionedtar = self.directory + "/opensim-" + VERSION + ".tar.gz"
+		log.msg("Download & Writing file: " + self.versionedtar)
+
+		self.tarhandle = open(self.versionedtar, "w")
+
+		agent = Agent(reactor)
+		d = agent.request('GET', 'http://dist.opensimulator.org/opensim-' + VERSION +'.tar.gz', Headers({'User-Agent': ['GridToGo']}), None)
+		d.addCallback(self.request)
+	
+	def request(self, response):
+		log.msg("Received Request's Response")
+		response.deliverBody(DownloadProtocol(self, response.length))
+
+	def donedownload(self):
+		self.tarhandle.close()
+		log.msg("Wrote file: " + self.versionedtar)
 
 		if sys.platform != "win32":
-			os.symlink(versionedtar, self.opensimtar)
-			log.msg("Created symlink: " + versionedtar + " -> " + self.opensimtar)
+			os.symlink(self.versionedtar, self.opensimtar)
+			log.msg("Created symlink: " + self.versionedtar + " -> " + self.opensimtar)
 		else:
 			log.msg("FileSystem does not allow symlinks, moving directory instead")
-			os.rename(versionedtar, opensimtar)
-			log.msg("Rename: " + versionedsimtar + " -> " + self.opensimtar)
+			os.rename(self.versionedtar, self.opensimtar)
+			log.msg("Rename: " + self.versionedsimtar + " -> " + self.opensimtar)
+
+		self.continueload()
 		
 	def extract(self):
 		#Extract OpenSim from the .tar file that contains it
@@ -200,7 +218,33 @@ class Distribution(object):
 			os.rename(olddir, newdir)
 			log.msg("Rename: " + olddir + " -> " + newdir)
 
-
+class DownloadProtocol(Protocol):
+	def __init__(self, dist, size):
+		self.dist = dist
+		self.size = float(size)
+		self.progress = 0.0
+		self.window = Gtk.Window()
+		self.progressbar = Gtk.ProgressBar()
+		self.label = Gtk.Label("Downloading OpenSim")
+		self.box = Gtk.VBox()
+		self.box.pack_start(self.label, False, False, 0)
+		self.box.pack_start(self.progressbar, False, False, 0)
+		self.window.add(self.box)
+		self.window.set_size_request(400, 50)
+		self.window.show_all()
+	
+	def dataReceived(self, data):
+		self.progress += len(data)
+		self.progressbar.set_fraction(self.getPercent())
+		self.dist.tarhandle.write(data)
+	
+	def connectionLost(self, reason):
+		log.msg("Finished receiving data: " + reason.getErrorMessage())
+		self.window.destroy()
+		self.dist.donedownload()
+	
+	def getPercent(self):
+		return self.progress / self.size
 
 class Template(object):
 	def __init__(self, mappings):
@@ -219,8 +263,16 @@ class Template(object):
 class AtTemplate(string.Template):
 	delimiter = "@"
 
-if __name__ == "__main__":
-	log.startLogging(sys.stdout)
-	dist = Distribution(".", ".gridtogo")
+def testdone(dist):
 	dist.configure("MyGrid", "localhost")
 
+def start(*args):
+	log.startLogging(sys.stdout)
+	dist = Distribution(os.path.abspath("."), os.path.abspath(".gridtogo"))
+	d = Deferred()
+	d.addCallback(testdone)
+	dist.load(d)
+
+if __name__ == "__main__":
+	reactor.callWhenRunning(start)
+	reactor.run()
