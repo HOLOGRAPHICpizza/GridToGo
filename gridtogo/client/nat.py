@@ -9,6 +9,8 @@ class EchoProtocol(Protocol):
 		self.port = port
 	
 	def connectionMade(self):
+		self.factory.builder.service.connectionCount += 1
+		self.factory.builder.service.checkCount()
 		log.msg("[NAT] Established Connection on port " + str(port))
 	
 	def connectionLost(self):
@@ -27,20 +29,24 @@ class EchoFactory(Factory):
 
 	def buildProtocol(self, addr):
 		protocol = EchoProtocol(self.port)
-		self.builder.protocols += [protocol]
+		self.builder.service.protocols += [protocol]
 		return protocol
 
 class EchoFactoryBuilder(object):
-	def __init__(self):
-		self.protocols = []
+	def __init__(self, service):
+		self.service = service
 
 	def buildFactory(self, port):
 		return EchoFactory(self, port)
 
 class EchoService(object):
-	def __init__(self):
+	def __init__(self, deferred, finalCount):
 		log.msg("[NAT] Creating Echo Service")
 		self.builder = EchoFactoryBuilder()
+		self.protocols = []
+		self.connectionCount = 0
+		self.deffered = deferred
+		self.finalCount = finalCount
 	
 	def listenOn(self, port):
 		endpoint = TCP4ServerEndpoint(reactor, port)
@@ -50,3 +56,7 @@ class EchoService(object):
 		log.msg("[NAT] Closing Echo Service")
 		for protocol in self.builder.protocols:
 			protocol.close()
+	
+	def checkCount(self):
+		if self.connectionCount == self.finalCount:
+			deferred.callback(self)
