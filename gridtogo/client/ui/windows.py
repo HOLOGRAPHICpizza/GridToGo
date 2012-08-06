@@ -223,6 +223,7 @@ class LoginWindowHandler(WindowHandler):
 		self.clientObject.callOnConnected.append(self.onConnectionEstablished)
 		#TODO: Read host:port from "Coordination Server" box
 		self.clientObject.attemptConnection(self.window, 'localhost', 8017, 5)
+		self.clientObject.password = self.passwordEntry.get_text()
 
 	def onConnectionEstablished(self, protocol):
 		firname = self.firstNameEntry.get_text()
