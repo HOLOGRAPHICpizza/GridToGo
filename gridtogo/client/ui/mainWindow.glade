@@ -56,6 +56,7 @@
                         <property name="tooltip_text" translatable="yes">View the consoles of or kill running services.</property>
                         <property name="image">image1</property>
                         <property name="use_stock">False</property>
+                        <signal name="activate" handler="manageServices" swapped="no"/>
                       </object>
                     </child>
                     <child>
@@ -147,6 +148,7 @@
                         <property name="can_focus">False</property>
                         <property name="tooltip_text" translatable="yes">Create a new region on the grid.</property>
                         <property name="label" translatable="yes">New Region</property>
+                        <signal name="activate" handler="onbtnNewRegionClicked" swapped="no"/>
                       </object>
                     </child>
                     <child>
@@ -166,6 +168,7 @@
                         <property name="can_focus">False</property>
                         <property name="tooltip_text" translatable="yes">Host the selected region if you are on its list of allowed region hosts.</property>
                         <property name="label" translatable="yes">Host Region</property>
+                        <signal name="activate" handler="onHostRegion" swapped="no"/>
                       </object>
                     </child>
                   </object>
@@ -261,7 +264,7 @@ Careful, Grid Host's will have full access to the grid's OpenSim database.</prop
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">INstant Message</property>
+                        <property name="tooltip_text" translatable="yes">Instant Message</property>
                         <property name="use_action_appearance">False</property>
                         <property name="label" translatable="yes">Instant Message</property>
                         <property name="use_underline">True</property>
@@ -277,6 +280,7 @@ Careful, Grid Host's will have full access to the grid's OpenSim database.</prop
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="tooltip_text" translatable="yes">Become Grid Host</property>
                         <property name="use_action_appearance">False</property>
                         <property name="label" translatable="yes">Become Grid Host</property>
                         <property name="use_underline">True</property>
@@ -370,6 +374,7 @@ Careful, Grid Host's will have full access to the grid's OpenSim database.</prop
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="tooltip_text" translatable="yes">Host Selected Region</property>
                         <property name="use_action_appearance">False</property>
                         <property name="label" translatable="yes">Host Selected Region</property>
                         <property name="use_underline">True</property>
