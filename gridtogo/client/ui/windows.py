@@ -426,6 +426,12 @@ class MainWindowHandler(WindowHandler):
 		print self.clientObject.CreateRegionWindowHandler
 		self.clientObject.CreateRegionWindowHandler.window.show_all()
 	
+	def onAbout(self, *args):
+		self.clientObject.AboutWindowHandler = \
+		self.factory.buildWindow("aboutWindow", AboutWindowHandler)
+		print self.clientObject.AboutWindowHandler
+		self.clientObject.AboutWindowHandler.window.show_all()
+
 	def onHostRegion(self, *args):
 		(model, iterator) = self.regionView.get_selection().get_selected()
 		regionName = model[iterator][0]
@@ -681,3 +687,12 @@ class ConsoleWindow(Gtk.Window):
 	def enter_pressed(self, something):
 		self.protocol.transport.write(self.entryfield.get_text() + "\n")
 		self.entryfield.get_buffer().set_text("", 0)
+
+class AboutWindowHandler(WindowHandler):
+	def __init__(self, builder, clientObject, factory, window):
+		super(AboutWindowHandler, self).__init__(builder, clientObject, factory, window)
+
+	def destroy(self):
+		self.destroy()
+
+
