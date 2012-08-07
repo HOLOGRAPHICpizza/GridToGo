@@ -132,6 +132,8 @@ class GridToGoClient(object):
 			self.createUserWindowHandler.destroy()
 		if self.CreateRegionWindowHandler:
 			self.CreateRegionWindowHandler.destroy()
+		#if self.AboutWindowHandler:
+		#	self.AboutWindowHandler.destroy()
 		if self.mainWindowHandler and self.mainWindowHandler.window:
 			self.mainWindowHandler.window.destroy()
 
