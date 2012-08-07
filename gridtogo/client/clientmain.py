@@ -31,6 +31,7 @@ class GridToGoClient(object):
 		self.spinner = None
 		self.mainWindowHandler = None
 		self.CreateRegionWindowHandler = None
+		self.AboutWindowHandler = None
 
 		# dict mapping process names to process protocols
 		self.processes = {}
@@ -151,6 +152,12 @@ class GridToGoClient(object):
 		self.protocol.writeRequest(delta)
 
 	def processRobustOutput(self, processName, line):
+		# We need to make sure all the UGAIM services come up:
+		#   Asset Service
+		#   Grid Service
+		print(line)
+
+	def processSimOutput(self, processName, line):
 		print(line)
 
 class GTGClientProtocol(basic.LineReceiver):

@@ -176,24 +176,25 @@ class WindowFactory(object):
 	def __init__(self, clientObject):
 		self.clientObject = clientObject
 
-	def buildWindow(self, windowName, handlerClass):
+	def buildWindow(self, windowName, handlerClass, data=None):
 		builder = Gtk.Builder()
 		global PROJECT_ROOT_DIRECTORY
 		builder.add_from_file(os.path.join(self.clientObject.projectRoot, "gridtogo", 'client', 'ui', windowName + '.glade'))
-		handler = handlerClass(builder, self.clientObject, self, builder.get_object(windowName))
+		handler = handlerClass(builder, self.clientObject, self, builder.get_object(windowName), data)
 		builder.connect_signals(handler)
 		return handler
 
 class WindowHandler(object):
-	def __init__(self, builder, clientObject, factory, window):
+	def __init__(self, builder, clientObject, factory, window, data):
 		self.builder = builder
 		self.clientObject = clientObject
 		self.factory = factory
 		self.window = window
+		self.data = data
 
 class LoginWindowHandler(WindowHandler):
-	def __init__(self, builder, clientObject, factory, window):
-		super(LoginWindowHandler, self).__init__(builder, clientObject, factory, window)
+	def __init__(self, builder, clientObject, factory, window, data):
+		super(LoginWindowHandler, self).__init__(builder, clientObject, factory, window, data)
 		self.firstNameEntry = builder.get_object("firstName")
 		self.lastNameEntry = builder.get_object("lastName")
 		self.passwordEntry = builder.get_object("password")
@@ -213,7 +214,7 @@ class LoginWindowHandler(WindowHandler):
 	def getHostPort(self):
 		if self.coordinationEntry.get_text() == "":
 			return "localhost", 8017
-		spl = string.split(self.coordinationEntry.get_text(), ":")
+		spl = self.coordinationEntry.get_text().split(":")
 		if len(spl) == 1:
 			return spl[0], 8017
 		else:
@@ -221,12 +222,10 @@ class LoginWindowHandler(WindowHandler):
 
 	def createUserClicked(self, *args):
 		host, port = self.getHostPort()
-		if self.userCreateActive == False:
-			self.clientObject.createUserWindowHandler = self.factory.buildWindow("createUserWindow", CreateUserWindowHandler, host, port)
+		if not self.userCreateActive:
+			self.clientObject.createUserWindowHandler = self.factory.buildWindow("createUserWindow", CreateUserWindowHandler, (host, port))
 			self.clientObject.createUserWindowHandler.window.show_all()
 			self.userCreateActive = True
-		elif self.userCreateActive == True:
-			showModalDialog(self.window, Gtk.MessageType.ERROR, "The form is already up!")
 
 	def loginClicked(self, *args):
 		# register our stuff to be called then attempt connection
@@ -257,15 +256,14 @@ class LoginWindowHandler(WindowHandler):
 			self.clientObject.stop()
 
 class CreateUserWindowHandler(WindowHandler):
-	def __init__(self, builder, clientObject, factory, window, host, port):
-		super(CreateUserWindowHandler, self).__init__(builder, clientObject, factory, window)
+	def __init__(self, builder, clientObject, factory, window, data):
+		super(CreateUserWindowHandler, self).__init__(builder, clientObject, factory, window, data)
 		self.emailEntry = builder.get_object("entryEMail")
 		self.firstNameEntry = builder.get_object("entryFirstName")
 		self.lastNameEntry = builder.get_object("entryLastName")
 		self.passwordEntry = builder.get_object("entryPassword")
 		self.passwordRetypeEntry = builder.get_object("entryRetypePassword")
-		self.host = host
-		self.port = port
+		self.host, self.port = self.data
 
 	def destroy(self):
 		if self.window:
@@ -309,8 +307,8 @@ class CreateUserWindowHandler(WindowHandler):
 
 class MainWindowHandler(WindowHandler):
 
-	def __init__(self, builder, clientObject, factory, window):
-		super(MainWindowHandler, self).__init__(builder, clientObject, factory, window)
+	def __init__(self, builder, clientObject, factory, window, data):
+		super(MainWindowHandler, self).__init__(builder, clientObject, factory, window, data)
 
 		# Status bar
 		# Do not directly use this, call setStatus
@@ -426,6 +424,12 @@ class MainWindowHandler(WindowHandler):
 		print self.clientObject.CreateRegionWindowHandler
 		self.clientObject.CreateRegionWindowHandler.window.show_all()
 	
+	def onAbout(self, *args):
+		self.clientObject.AboutWindowHandler = \
+		self.factory.buildWindow("aboutWindow", AboutWindowHandler)
+		print self.clientObject.AboutWindowHandler
+		self.clientObject.AboutWindowHandler.window.show_all()
+
 	def onHostRegion(self, *args):
 		(model, iterator) = self.regionView.get_selection().get_selected()
 		regionName = model[iterator][0]
@@ -444,15 +448,28 @@ class MainWindowHandler(WindowHandler):
 
 			def hostRegion(dist):
 				log.msg("Configuring region for hosting")
+
+				#TODO: Don't hardcode port
+				port = 9000
+
+				# Do region-agnostic configuration
 				dist.configure("GridName", "localhost")
-				dist.configureRegion(region.regionName, region.location, region.externalhost, 9000)
-			
-				process.spawnRegionProcess(dist.opensimdir, region.regionName)
+				# Do region-specific configuration
+				dist.configureRegion(region.regionName, region.location, region.externalhost, port)
+
+				# We use the convention: consolePort = port + 10000
+				protocol_ = process.spawnRegionProcess(
+					dist.opensimdir,
+					region.regionName,
+					port + 10000,
+					callOnOutput=self.clientObject.processSimOutput)
+
+				self.clientObject.processes[region.regionName] = protocol_
 				
 			d = Deferred()
 			d.addCallback(hostRegion)
 			distribution.load(d)
-			#TODO: Don't hardcore port
+
 		else:
 			showModalDialog(
 				self.window,
@@ -500,14 +517,14 @@ class MainWindowHandler(WindowHandler):
 		distribution.configureRobust(self.clientObject.localGrid, "localhost")
 
 		self.setStatus('Grid Server (ROBUST) is starting...')
-		protocol = process.spawnRobustProcess(
+		protocol_ = process.spawnRobustProcess(
 			distribution.opensimdir,
 			self.clientObject.robustEnded,
 			self.clientObject.processRobustOutput)
 		#console = ConsoleWindow(protocol)
 		#console.show_all()
 
-		self.clientObject.processes['ROBUST'] = protocol
+		self.clientObject.processes['ROBUST'] = protocol_
 
 
 	def manageServices(self, *args):
@@ -606,8 +623,8 @@ class RunningServicesWindow(Gtk.Window):
 		self.destroy()
 
 class CreateRegionWindowHandler(WindowHandler):
-	def __init__(self, builder, clientObject, factory, window):
-		super(CreateRegionWindowHandler, self).__init__(builder, clientObject, factory, window)
+	def __init__(self, builder, clientObject, factory, window, data):
+		super(CreateRegionWindowHandler, self).__init__(builder, clientObject, factory, window, data)
 		self.regionName = builder.get_object("entRegionName")
 		self.location = builder.get_object("entLocation")
 		self.externalHostname = builder.get_object("entExtHostname")
@@ -668,3 +685,12 @@ class ConsoleWindow(Gtk.Window):
 	def enter_pressed(self, something):
 		self.protocol.transport.write(self.entryfield.get_text() + "\n")
 		self.entryfield.get_buffer().set_text("", 0)
+
+class AboutWindowHandler(WindowHandler):
+	def __init__(self, builder, clientObject, factory, window, data):
+		super(AboutWindowHandler, self).__init__(builder, clientObject, factory, window, data)
+
+	def destroy(self):
+		self.destroy()
+
+

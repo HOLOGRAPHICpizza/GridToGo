@@ -84,7 +84,13 @@ class Distribution(object):
 		self.loaddeferred.callback(self)
 	
 	def configure(self, gridname, ip):
-		mappings = { "GRID_NAME": gridname, "IP_ADDRESS": ip }
+		"""This does region-agnostic configuration."""
+
+		mappings = {
+			"GRID_NAME": gridname,
+			"IP_ADDRESS": ip
+		}
+
 		log.msg("Configuring Region-Agnostic Configuration")
 		if not os.path.isfile(self.configdir + "/GridCommon.ini"):
 			log.msg("Create file: " + self.configdir + "/GridCommon.ini")
@@ -126,11 +132,15 @@ class Distribution(object):
 		log.msg("Configured Robust")
 		
 	def configureRegion(self, regionName, location, extHostname, port):
+		"""This does region-specific configuration."""
+
 		mappings = { "NAME": regionName,
 					 "LOCATION": location,
 					 "EXTERNAL_HOSTNAME": extHostname,
 					 "PORT": port,
+		             "CONSOLE_PORT": port + 10000,
 					 "UUID": str(uuid.uuid4()) }
+
 		template = Template(mappings)
 		if not os.path.isfile(self.configdir + "/Region.ini"):
 			log.msg("Create file: " + self.configdir + "/Region.ini")

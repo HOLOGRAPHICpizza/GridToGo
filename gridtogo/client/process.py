@@ -97,12 +97,12 @@ def spawnRobustProcess(opensimdir, callOnEnd=None, callOnOutput=None):
 	except OSError:
 		pass
 
-	p = ConsoleProtocol("ROBUST", opensimdir + '/bin/Robust.log', opensimdir, 8100, callOnEnd, callOnOutput)
+	p = ConsoleProtocol("ROBUST", opensimdir + '/bin/Robust.log', opensimdir, 18000, callOnEnd, callOnOutput)
 	spawnMonoProcess(p, opensimdir + "/bin/" + "Robust.exe", ['-console', 'rest'], opensimdir + "/bin")
 	log.msg("Started Robust")
 	return p
 
-def spawnRegionProcess(opensimdir, region):
+def spawnRegionProcess(opensimdir, region, consolePort, callOnEnd=None, callOnOutput=None):
 	log.msg("Starting Region: " + region)
 
 	try:
@@ -110,10 +110,11 @@ def spawnRegionProcess(opensimdir, region):
 	except OSError:
 		pass
 
-	p = ConsoleProtocol(region, opensimdir + '/bin/OpenSim.log', opensimdir, -1)
+	p = ConsoleProtocol(region, opensimdir + '/bin/OpenSim.log', opensimdir, consolePort, callOnEnd, callOnOutput)
 	spawnMonoProcess(p, opensimdir + "/bin/" + "OpenSim.exe", [
 		"-inimaster=" + opensimdir + "/bin/OpenSim.ini",
 		"-inifile=" + opensimdir +"/bin/Regions/" + region + ".ini",
+		"-console=rest",
 		"-name=" + region
 	], opensimdir + "/bin")
 	log.msg("Started region: " + region)

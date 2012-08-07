@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.0 -->
+  <object class="GtkAboutDialog" id="aboutGridToGo">
+    <property name="can_focus">False</property>
+    <property name="border_width">5</property>
+    <property name="type_hint">dialog</property>
+    <property name="program_name">GridToGo</property>
+    <property name="version">v. 0.10</property>
+    <property name="copyright" translatable="yes">Copyright © 2012 Michael Craft, Shane Lenehan, Jared Hance.
+ Made for Summer at the Edge at the Tech Edge Discovery Lab.</property>
+    <property name="comments" translatable="yes">An easy to use GUI for creating and managing ad-hoc OpenSim Grids.</property>
+    <property name="website">http://www.github.com/HOLOGRAPHICpizza/GridToGo</property>
+    <property name="website_label" translatable="yes">GridToGo GitHub Page</property>
+    <property name="authors">Michael Craft
+Shane Lenehan
+Jared Hance</property>
+    <child internal-child="vbox">
+      <object class="GtkBox" id="aboutdialog-vbox1">
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child internal-child="action_area">
+          <object class="GtkButtonBox" id="aboutdialog-action_area1">
+            <property name="can_focus">False</property>
+            <property name="layout_style">end</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLinkButton" id="linkbtnTechEdge">
+            <property name="label" translatable="yes">Tec Edge Discovery Lab</property>
+            <property name="use_action_appearance">False</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <property name="has_tooltip">True</property>
+            <property name="use_action_appearance">False</property>
+            <property name="relief">none</property>
+            <property name="uri">http://www.wbi-icc.com/centers-services/discovery-lab</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
