@@ -422,6 +422,9 @@ class MainWindowHandler(WindowHandler):
 				% (localUser.firstName, localUser.lastName))
 
 		self.userList.updateUser(user)
+	
+	def refreshnat(self, *args):
+		self.clientObject.protocol.nat.run(self.clientObject.maxregionport)
 
 	def destroy(self, *args):
 		self.window.destroy()
