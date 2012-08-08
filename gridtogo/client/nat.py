@@ -80,24 +80,29 @@ class EchoClient(LineReceiver):
 		self.code = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(16))
 		self.callback = callback
 		self.timedout = False
+		self.done = False
 
 	def connectionMade(self):
 		self.sendLine(self.code)
 		reactor.callLater(5, self.timeout)
 	
 	def lineReceived(self, line):
-		if not self.timedout:
+		if not self.timedout and not self.done:
 			if(line == self.code):
 				log.msg("[NAT] Message Matches")
+				self.done = True
 				self.callback(True)
 			else:
+				log.msg("[NAT] Message doesn't match. Stop trolling.")
+				self.done = True
 				self.callback(False)
 		self.transport.loseConnection()
 	
 	def timeout(self):
-		log.msg("[NAT] Client Timeout")
-		self.callback(False)
-		self.transport.loseConnection()
+		if not self.done:
+			log.msg("[NAT] Client Timeout")
+			self.callback(False)
+			self.transport.loseConnection()
 
 class EchoClientFactory(ClientFactory):
 	protocol = EchoClient
