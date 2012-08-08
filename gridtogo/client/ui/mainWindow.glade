@@ -170,26 +170,6 @@
                         <signal name="activate" handler="onbtnNewRegionClicked" swapped="no"/>
                       </object>
                     </child>
-                    <child>
-                      <object class="GtkMenuItem" id="joinRegion">
-                        <property name="use_action_appearance">False</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Join the selected region.</property>
-                        <property name="label" translatable="yes">Join Region</property>
-                        <property name="use_underline">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkMenuItem" id="hostRegion">
-                        <property name="use_action_appearance">False</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Host the selected region if you are on its list of allowed region hosts.</property>
-                        <property name="label" translatable="yes">Host Region</property>
-                        <signal name="activate" handler="onHostRegion" swapped="no"/>
-                      </object>
-                    </child>
                   </object>
                 </child>
               </object>
