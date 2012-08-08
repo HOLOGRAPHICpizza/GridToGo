@@ -125,11 +125,9 @@ class NATService(object):
 		self.service = EchoService()
 		self.clientObject = clientObject
 	
-	def handle(self, request):
-		if isinstance(request, NATCheckStartRequest):
-			self.run(request.regionStart, request.regionEnd)
 	
-	def run(self, regionStart, regionEnd):
+	def run(self, regionEnd):
+		regionStart = 9000
 		log.msg("[NAT] Check Start")
 		d = Deferred()
 		d.addCallback(self.allEstablished)

@@ -141,12 +141,6 @@ class GTGProtocol(basic.LineReceiver):
 						delta.online = True
 						self.grid.applyUserDelta(delta)
 
-						# Start a NAT check
-						maxport = self.database.getGridMaxPort(self.grid.name)
-						if maxport == 8999:
-							maxport = 9000
-						self.writeResponse(NATCheckStartRequest(9000, maxport))
-
 				elif isinstance(request, ResetPasswordRequest):
 					response = self.authenticator.resetPassword(request)
 					self.writeResponse(response)
@@ -198,8 +192,8 @@ class GTGProtocol(basic.LineReceiver):
 
 				elif isinstance(request, CreateRegionRequest):
 					log.msg("Creating new region on grid %s: %s" % (request.gridName, request.regionName))
-					port = self.database.createRegion(request.gridName, request.regionName, request.location, request.uuid)
-					region = Region(request.regionName, request.location, None, [self.user.UUID], port)
+					self.database.createRegion(request.gridName, request.regionName, request.location, request.uuid)
+					region = Region(request.regionName, request.location, None, [self.user.UUID])
 					self.grid.regions[region.regionName] = region
 					self.grid.writeResponseToAll(region)
 
