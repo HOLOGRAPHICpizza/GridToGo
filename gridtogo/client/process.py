@@ -74,7 +74,7 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 		if self.callOnEnd:
 			self.callOnEnd(self.name, reason)
 
-	def sendCommand(self, url, attrs, callback=None):
+	def sendCommand(self, command, callback=None):
 		"""Sends a command to the REST console of this process."""
 		log.msg("[REST] Sending command: /" + url)
 		if not hasattr(self, '_sessionid'):
@@ -109,12 +109,16 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 				dom = xml.dom.minidom.parseString(xmlstr)
 				self.sessionid = getText(dom.getElementsByTagName("ConsoleSession")[0].getElementsByTagName("SessionID")[0].childNodes)
 				log.msg("[REST] [SESSION] Session ID = " + self.sessionid)
+
+				attrs = { "ID": self._sessionid, "COMMAND": command }
+				self.sendCommand2("SessionCommand", attrs, callback)
 				self.sendCommand2(url, attrs, callback)
 				
 			d.addCallback(request)
 			d.addErrback(err)
 		else:
-			self.sendCommand2(url, attrs, callback)
+			attrs = { "ID": self._sessionid, "COMMAND": command }
+			self.sendCommand2("SessionCommand", attrs, callback)
 
 	def sendCommand2(self, url, attrs, callback=None):
 		agent = Agent(reactor)
