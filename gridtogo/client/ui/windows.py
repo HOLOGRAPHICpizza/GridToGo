@@ -310,7 +310,7 @@ class AboutWindowHandler(WindowHandler):
 		super(AboutWindowHandler, self).__init__(builder, clientObject, factory, window, data)
 
 	def destroy(self):
-		self.destroy()
+		self.window.destroy()
 
 	def onCloseClicked(self, *args):
 		self.destroy()
