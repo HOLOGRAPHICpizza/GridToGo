@@ -70,7 +70,7 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 		if self.callOnEnd:
 			self.callOnEnd(self.name, reason)
 
-	def sendCommand(self, url, attrs):
+	def sendCommand(self, url, attrs, callback=None):
 		"""Sends a command to the REST console of this process."""
 		if not hasattr(self, '_session'):
 			agent = Agent(reactor)
@@ -80,11 +80,17 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 				Headers({"Content-Type": ["application/x-www-form-urlencoded"]}),
 				None)
 		agent = Agent(reactor)
-		agent.request(
+		d = agent.request(
 			'POST',
 			('http://localhost:%d/' % self.consolePort) + url,
 			Headers({"Content-Type": ["application/x-www-form-urlencoded"]}),
 			PostProducer(attrs))
+
+		def request(response):
+			callback(response)
+
+		if not callback is None:
+			d.addCallback(request)
 
 
 #TODO: Remove hard-coded path separators and use path.join
