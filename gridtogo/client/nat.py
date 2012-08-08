@@ -1,7 +1,8 @@
 import socket
 from twisted.internet import reactor
+from twisted.internet.defer import Deferred
 from twisted.internet.endpoints import TCP4ServerEndpoint
-from twisted.internet.protocol import Protocol, ClientFactory
+from twisted.internet.protocol import Protocol, ClientFactory, Factory
 from twisted.protocols.basic import LineReceiver
 from twisted.python import log
 
@@ -49,7 +50,7 @@ class EchoService(object):
 	
 	def start(self, deferred, finalCount):
 		log.msg("[NAT] Starting Echo Service")
-		self.builder = EchoFactoryBuilder()
+		self.builder = EchoFactoryBuilder(self)
 		self.protocols = []
 		self.connectionCount = 0
 		self.deffered = deferred
@@ -107,15 +108,13 @@ class EchoClientFactory(ClientFactory):
 		log.msg("Connection lost: " + reason.getErrorMessage())
 
 class NATService(object):
-	def __init__(clientObject):
+	def __init__(self, clientObject):
 		self.service = EchoService()
 		self.clientObject = clientObject
 	
 	def handle(self, request):
-		if request isinstance NATCheckStartRequest:
+		if isinstance(request, NATCheckStartRequest):
 			self.run(request.regionStart, request.regionEnd)
-		elif request isinstance NATCheckEndRequest:
-			self.service.close()
 	
 	def run(self, regionStart, regionEnd):
 		d = Deferred()
@@ -123,7 +122,7 @@ class NATService(object):
 		self.count = 4 + regionEnd - regionStart
 		self.tcount = 0
 		self.done = False
-		self.service.start(d, count)
+		self.service.start(d, self.count)
 	
 	def allEstablished(self, ignored):
 		exthost = socket.gethostbyaddr(socket.gethostname())[0]
@@ -143,8 +142,10 @@ class NATService(object):
 		delta = DeltaUser(self.clientObject.localUUID)
 		delta.NATStatus = True
 		self.clientObject.writeRequest(delta)
+		self.close()
 
 	def failure(self):
 		delta = DeltaUser(self.clientObject.localUUID)
 		delta.NATStatus = False
 		self.clientObject.writeRequest(delta)
+		self.close()

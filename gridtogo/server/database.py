@@ -76,7 +76,7 @@ class IDatabase(Interface):
 		"""Returns a dictionary of Region Name -> Region where all regions are in the specified grid"""
 		pass
 
-	def getMaxPort(self, gridName):
+	def getGridMaxPort(self, gridName):
 		pass
 
 	def close(self):

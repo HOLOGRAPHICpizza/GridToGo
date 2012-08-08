@@ -55,8 +55,6 @@ class GridToGoClient(object):
 		self.callOnConnected = []
 		#TODO: implement a callOnConnectionFailed list - MAYBE, IF NECESSARY
 
-		self.nat = NATService
-
 		log.startLogging(sys.stdout)
 
 	def getLocalUser(self):
@@ -154,13 +152,14 @@ class GridToGoClient(object):
 		self.protocol.writeRequest(delta)
 
 	def processRobustOutput(self, processName, line):
-		print(line)
+		pass
 
 class GTGClientProtocol(basic.LineReceiver):
 	def __init__(self, clientObject, serializer):
 		# Alias for convenience
 		self.serializer = serializer
 		self.clientObject = clientObject
+		self.nat = NATService(clientObject)
 
 	def lineReceived(self, line):
 		try:
@@ -217,7 +216,7 @@ class GTGClientProtocol(basic.LineReceiver):
 						Gtk.MessageType.ERROR,
 						response.message)
 			else:
-				nat.handle(request)
+				self.nat.handle(response)
 
 		except serialization.InvalidSerializedDataException:
 			log.msg("Server sent bad data.")

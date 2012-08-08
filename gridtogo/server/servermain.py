@@ -142,7 +142,7 @@ class GTGProtocol(basic.LineReceiver):
 						self.grid.applyUserDelta(delta)
 
 						# Start a NAT check
-						maxport = database.getMaxPort(self.grid.name)
+						maxport = self.database.getGridMaxPort(self.grid.name)
 						if maxport == 8999:
 							maxport = 9000
 						self.writeResponse(NATCheckStartRequest(9000, maxport))
