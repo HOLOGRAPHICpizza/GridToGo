@@ -199,7 +199,7 @@ class NATService(object):
 			log.msg("[NAT] Testing HTTP console for process " + name)
 			self.proccount += 1
 			process = processes[name]
-			process.sendCommand("", {}, self.postresponse)
+			process.sendCommand2("", {}, self.postresponse)
 		reactor.callLater(5, self.timeout)
 	
 	def postresponse(self, response):
