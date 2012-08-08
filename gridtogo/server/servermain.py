@@ -192,8 +192,8 @@ class GTGProtocol(basic.LineReceiver):
 
 				elif isinstance(request, CreateRegionRequest):
 					log.msg("Creating new region on grid %s: %s" % (request.gridName, request.regionName))
-					self.database.createRegion(request.gridName, request.regionName, request.location, request.uuid)
-					region = Region(request.regionName, request.location, None, [self.user.UUID])
+					port = self.database.createRegion(request.gridName, request.regionName, request.location, request.uuid)
+					region = Region(request.regionName, request.location, None, [self.user.UUID], port)
 					self.grid.regions[region.regionName] = region
 					self.grid.writeResponseToAll(region)
 

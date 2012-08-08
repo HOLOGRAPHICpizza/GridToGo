@@ -105,8 +105,7 @@ class JSONSerializer(object):
 					uhosts = [uuid.UUID(host)] + uhosts
 				obj = Region(
 						data['regionName'], data['location'],
-						data['currentHost'],
-						uhosts)
+						data['currentHost'], uhosts, data['port'])
 			return obj
 
 		else:
