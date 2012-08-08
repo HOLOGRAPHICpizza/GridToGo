@@ -464,7 +464,8 @@ class MainWindowHandler(WindowHandler):
 				dist.configure("GridName", "localhost")
 
 				# Do region-specific configuration
-				dist.configureRegion(region.regionName, region.location, region.port)
+				self.clientObject.maxregionport += 1
+				dist.configureRegion(region.regionName, region.location, self.clientObject.maxregionport)
 
 				# We use the convention: consolePort = port + 10000
 				protocol_ = process.spawnRegionProcess(

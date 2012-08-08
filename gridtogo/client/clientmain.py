@@ -47,6 +47,8 @@ class GridToGoClient(object):
 		self.email = None
 		self.password = None
 
+		self.maxregionport = 8999
+
 		# Ghetto flag involved in control of the form's
 
 		self.dieing = False
@@ -207,6 +209,8 @@ class GTGClientProtocol(basic.LineReceiver):
 
 					self.clientObject.loginHandler.window.destroy()
 					self.clientObject.loginHandler = None
+
+					self.nat.run(self.clientObject.maxregionport)
 				else:
 					showModalDialog(
 						self.clientObject.loginHandler.window,
@@ -224,8 +228,6 @@ class GTGClientProtocol(basic.LineReceiver):
 						self.clientObject.createUserWindowHandler.window,
 						Gtk.MessageType.ERROR,
 						response.message)
-			else:
-				self.nat.handle(response)
 
 		except serialization.InvalidSerializedDataException:
 			log.msg("Server sent bad data.")

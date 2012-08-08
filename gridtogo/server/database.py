@@ -76,9 +76,6 @@ class IDatabase(Interface):
 		"""Returns a dictionary of Region Name -> Region where all regions are in the specified grid"""
 		pass
 
-	def getGridMaxPort(self, gridName):
-		pass
-
 	def close(self):
 		"""Commits all database changes and releases all resources, if applicable."""
 		pass
@@ -350,23 +347,15 @@ class MongoDatabase(object):
 		userid = self.database['users'].find_one({"uuid": str(uuid)})["_id"]
 		grid = self.database['grids'].find_one({"name": gridName})["_id"]
 		gridid = grid["_id"]
-		port = grid["maxport"] + 1
-		self.database['grids'].update({"_id":gridid}, {
-			"$inc": {
-				"maxport": 1
-			}
-		})
 		regionid = self.database['regions'].insert({
 			"name": regionName,
 			"grid_id": gridid,
 			"location": loc,
-			"port": port,
 			"hosts": [{
 				"user_id": userid,
 				"user_uuid": str(uuid)
 			}]
 		})
-		return port
 	
 	def getGridRegions(self, gridName):
 		grid = self.database['grids'].find_one({"name": gridName})
@@ -385,10 +374,6 @@ class MongoDatabase(object):
 
 		return result
 	
-	def getGridMaxPort(self, gridName):
-		grid = self.database['grids'].find_one({"name":gridName})
-		return grid["maxport"]
-
 	def close(self):
 		self.connection.close()
 
