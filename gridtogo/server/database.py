@@ -168,7 +168,7 @@ class SQLiteDatabase(object):
 			for user in cursor.fetchall():
 				users.append(uuid.UUID(user[0]))
 
-			region = Region(row[0], row[1], None, None, users)
+			region = Region(row[0], row[1], None, users)
 			regions[row[0]] = region
 		return regions
 
