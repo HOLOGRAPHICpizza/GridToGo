@@ -1,5 +1,6 @@
 import os
 from twisted.internet import protocol, reactor
+from twisted.internet.defer import succeed
 from twisted.internet.error import ProcessDone
 from twisted.python import log
 from gi.repository import Gtk
@@ -15,9 +16,9 @@ class PostProducer(object):
 
 	def __init__(self, values):
 		self.body = urllib.urlencode(values)
-		self.length = len(body)
+		self.length = len(self.body)
 	
-	def startProducing(sefl, consumer):
+	def startProducing(self, consumer):
 		consumer.write(self.body)
 		return succeed(None)
 	
@@ -72,6 +73,7 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 
 	def sendCommand(self, url, attrs, callback=None):
 		"""Sends a command to the REST console of this process."""
+		log.msg("[REST] Sending command: /" + url)
 		if not hasattr(self, '_session'):
 			agent = Agent(reactor)
 			agent.request(
@@ -87,11 +89,16 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 			PostProducer(attrs))
 
 		def request(response):
+			log.msg("[REST] Received response")
 			callback(response)
+
+		def err(response):
+			log.msg("[REST] [ERROR] " + str(response))
 
 		if not callback is None:
 			d.addCallback(request)
-
+		
+		d.addErrback(err)
 
 #TODO: Remove hard-coded path separators and use path.join
 

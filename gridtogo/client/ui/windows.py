@@ -446,6 +446,8 @@ class MainWindowHandler(WindowHandler):
 
 	def onHostRegion(self, *args):
 		(model, iterator) = self.regionView.get_selection().get_selected()
+		if model is None or iterator is None:
+			return
 		regionName = model[iterator][0]
 		log.msg("Trying to host region " + regionName)
 		log.msg("Region Hosts: " + str(self.clientObject.regions[regionName].hosts))
@@ -474,7 +476,7 @@ class MainWindowHandler(WindowHandler):
 				protocol_ = process.spawnRegionProcess(
 					dist.opensimdir,
 					region.regionName,
-					port + 10000,
+					self.clientObject.maxregionport + 10000,
 					callOnOutput=self.clientObject.processSimOutput)
 
 				self.clientObject.processes[region.regionName] = protocol_
