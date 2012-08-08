@@ -1,7 +1,7 @@
 Everything in this distribution is copyrighted by the following authors
 and released under the MIT License, with the following exceptions:
 	gridtogo/client/ui/shield.png - From http://www.fatcow.com/free-icons
-	gridtogo/client/ui/logo.png - Contains content from the OpenSim project (opensimulator.org)
+	gridtogo/client/ui/logo.* - Contains content from OpenSim (opensimulator.org) and Oxygen Icons (oxygen-icons.org)
 	gridtogo/client/opensim/*.ini - Based on files from OpenSim
 
 Copyright (c) Michael Craft <mcraft@peak15.org> 2012
