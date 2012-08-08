@@ -155,7 +155,7 @@ class NATService(object):
 	
 	def allEstablished(self, ignored):
 		log.msg("[NAT] All servers listening")
-		exthost = socket.gethostbyaddr(socket.gethostname())[0]
+		exthost = self.clientObject.externalhost
 		factory = EchoClientFactory(self.resultReceived)
 		for port in self.ports:
 			log.msg("[NAT] Starting Echo Client on port " + str(port))

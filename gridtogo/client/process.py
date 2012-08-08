@@ -29,13 +29,14 @@ class PostProducer(object):
 		pass
 
 class ConsoleProtocol(protocol.ProcessProtocol):
-	def __init__(self, name, logFile, opensimdir, consolePort, callOnEnd=None, callOnOutput=None):
+	def __init__(self, name, logFile, opensimdir, consolePort, externalhost, callOnEnd=None, callOnOutput=None):
 		self.name = name
 		self.logFile = logFile
 		self.callOnEnd = callOnEnd
 		self.callOnOutput = callOnOutput
 		self.consolePort = consolePort
 		self.opensimdir = opensimdir
+		self.externalhost = externalhost
 
 		self._buffer = ''
 
@@ -78,13 +79,13 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 			agent = Agent(reactor)
 			agent.request(
 				'POST',
-				'http://localhost:%d/StartSession/' % self.consolePort,
+				'http://%s:%d/StartSession/' % (self.externalhost. self.consolePort),
 				Headers({"Content-Type": ["application/x-www-form-urlencoded"]}),
 				None)
 		agent = Agent(reactor)
 		d = agent.request(
 			'POST',
-			('http://localhost:%d/' % self.consolePort) + url,
+			('http://%s:%d/' % (self.externalhost, self.consolePort)) + url,
 			Headers({"Content-Type": ["application/x-www-form-urlencoded"]}),
 			PostProducer(attrs))
 
@@ -102,7 +103,7 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 
 #TODO: Remove hard-coded path separators and use path.join
 
-def spawnRobustProcess(opensimdir, callOnEnd=None, callOnOutput=None):
+def spawnRobustProcess(opensimdir, externalhost, callOnEnd=None, callOnOutput=None):
 	log.msg("Starting ROBUST")
 
 	try:
@@ -110,12 +111,12 @@ def spawnRobustProcess(opensimdir, callOnEnd=None, callOnOutput=None):
 	except OSError:
 		pass
 
-	p = ConsoleProtocol("ROBUST", opensimdir + '/bin/Robust.log', opensimdir, 18000, callOnEnd, callOnOutput)
+	p = ConsoleProtocol("ROBUST", opensimdir + '/bin/Robust.log', opensimdir, 18000, externalhost, callOnEnd, callOnOutput)
 	spawnMonoProcess(p, opensimdir + "/bin/" + "Robust.exe", ['-console', 'rest'], opensimdir + "/bin")
 	log.msg("Started Robust")
 	return p
 
-def spawnRegionProcess(opensimdir, region, consolePort, callOnEnd=None, callOnOutput=None):
+def spawnRegionProcess(opensimdir, region, consolePort, externalhost, callOnEnd=None, callOnOutput=None):
 	log.msg("Starting Region: " + region)
 
 	try:
@@ -123,7 +124,7 @@ def spawnRegionProcess(opensimdir, region, consolePort, callOnEnd=None, callOnOu
 	except OSError:
 		pass
 
-	p = ConsoleProtocol(region, opensimdir + '/bin/OpenSim.log', opensimdir, consolePort, callOnEnd, callOnOutput)
+	p = ConsoleProtocol(region, opensimdir + '/bin/OpenSim.log', opensimdir, consolePort, externalhost, callOnEnd, callOnOutput)
 	spawnMonoProcess(p, opensimdir + "/bin/" + "OpenSim.exe", [
 		"-inimaster=" + opensimdir + "/bin/OpenSim.ini",
 		"-inifile=" + opensimdir +"/bin/Regions/" + region + ".ini",

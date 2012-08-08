@@ -136,7 +136,7 @@ class Distribution(object):
 		"""This does region-specific configuration."""
 		mappings = { "NAME": regionName,
 					 "LOCATION": location,
-					 "EXTERNAL_HOSTNAME": socket.gethostbyaddr(socket.gethostname())[0],
+					 "EXTERNAL_HOSTNAME": self.clientObject.externalhostname,
 					 "PORT": port,
 		             "CONSOLE_PORT": port + 10000,
 					 "UUID": str(uuid.uuid4()) }

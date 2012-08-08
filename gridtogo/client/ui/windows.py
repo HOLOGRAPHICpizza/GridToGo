@@ -466,7 +466,7 @@ class MainWindowHandler(WindowHandler):
 				log.msg("Configuring region for hosting")
 
 				# Do region-agnostic configuration
-				dist.configure("GridName", "localhost")
+				dist.configure("GridName", self.clientObject.externalhost)
 
 				# Do region-specific configuration
 				self.clientObject.maxregionport += 1
@@ -477,6 +477,7 @@ class MainWindowHandler(WindowHandler):
 					dist.opensimdir,
 					region.regionName,
 					self.clientObject.maxregionport + 10000,
+					self.clientObject.externalhost,
 					callOnOutput=self.clientObject.processSimOutput)
 
 				self.clientObject.processes[region.regionName] = protocol_
@@ -534,6 +535,7 @@ class MainWindowHandler(WindowHandler):
 		self.setStatus('Grid Server (ROBUST) is starting...')
 		protocol_ = process.spawnRobustProcess(
 			distribution.opensimdir,
+			self.clientObject.externalhost,
 			self.clientObject.robustEnded,
 			self.clientObject.processRobustOutput)
 		#console = ConsoleWindow(protocol)
