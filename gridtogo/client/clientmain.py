@@ -48,6 +48,8 @@ class GridToGoClient(object):
 		self.password = None
 
 		self.maxregionport = 8999
+		
+		self.externalhost = None
 
 		# Ghetto flag involved in control of the form's
 
@@ -201,6 +203,7 @@ class GTGClientProtocol(basic.LineReceiver):
 					self.clientObject.localUUID = response.UUID
 					self.clientObject.localGrid = response.grid
 					self.clientObject.email = response.email
+					self.clientObject.externalhost = response.externalhost
 
 					self.clientObject.mainWindowHandler = \
 						self.clientObject.windowFactory.buildWindow("mainWindow", MainWindowHandler)

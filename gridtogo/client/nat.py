@@ -131,19 +131,31 @@ class NATService(object):
 		log.msg("[NAT] Check Start")
 		d = Deferred()
 		d.addCallback(self.allEstablished)
-		self.count = 4 + regionEnd - regionStart
 		self.tcount = 0
 		self.done = False
-		self.ports = None
-		if regionStart != regionEnd:
-			self.ports = [8002, 8003, 8004, regionStart, regionEnd]
+		self.ports2 = None
+		if regionStart != regionEnd and regionEnd >= 9000:
+			self.ports2 = [8002, 8003, 8004, regionStart, regionEnd]
 		else:
-			self.ports = [8002, 8003, 8004, regionStart]
+			self.ports2 = [8002, 8003, 8004, regionStart]
+		self.ports = []
+		for port in self.ports2:
+			hasProcessRunning = False
+			for name in self.clientObject.processes:
+				process = self.clientObject.processes[name]
+				if process.consolePort == port + 10000:
+					hasProcessRunning = True
+				if process.consolePort == 18000:
+					if port == 8002 or port == 8003 or port == 8004:
+						hasProcessRunning = True
+			if not hasProcessRunning:
+				self.ports += [port]
+		self.count = len(self.ports)
 		self.service.start(d, self.count, self.ports)
 	
 	def allEstablished(self, ignored):
 		log.msg("[NAT] All servers listening")
-		exthost = socket.gethostbyaddr(socket.gethostname())[0]
+		exthost = self.clientObject.externalhost
 		factory = EchoClientFactory(self.resultReceived)
 		for port in self.ports:
 			log.msg("[NAT] Starting Echo Client on port " + str(port))
@@ -192,6 +204,7 @@ class NATService(object):
 	
 	def postresponse(self, response):
 		self.postrescount += 1
+		log.msg("[NAT] Received HTTP Response. Count: " + str(self.postrescount))
 		if self.postrescount == self.proccount:
 			self.procdone = True
 			delta = DeltaUser(self.clientObject.localUUID)
@@ -199,7 +212,7 @@ class NATService(object):
 			self.clientObject.protocol.writeRequest(delta)
 	
 	def timeout(self):
-		if not selc.procdone:
+		if not self.procdone:
 			delta = DeltaUser(self.clientObject.localUUID)
 			delta.NATStatus = False
 			self.clientObject.protocol.writeRequest(delta)

@@ -90,10 +90,12 @@ class GTGProtocol(basic.LineReceiver):
 			if not self.user:
 				if isinstance(request, LoginRequest):
 					response, userAccount = self.authenticator.authenticateUser(request)
+					response.externalhost = self.transport.getPeer().host
 					self.writeResponse(response)
 
 					if isinstance(response, LoginSuccess):
 						log.msg("%s %s has logged in to grid %s." % (request.firstName, request.lastName, request.grid))
+
 
 						# Load this user's grid if we haven't already
 						if not request.grid in self.grids:

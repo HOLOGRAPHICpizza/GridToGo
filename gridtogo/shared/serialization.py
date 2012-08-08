@@ -73,7 +73,9 @@ class JSONSerializer(object):
 		#	return class_(data['value'])
 
 		elif class_ is LoginSuccess:
-			return class_(uuid.UUID(data['UUID']), data['grid'], data['email'])
+			r = class_(uuid.UUID(data['UUID']), data['grid'], data['email'])
+			r.externalhost = data['externalhost']
+			return r
 
 		elif issubclass(class_, DeltaObject):
 			obj = None
@@ -149,6 +151,7 @@ class JSONSerializer(object):
 				data['UUID'] = obj.UUID
 				data['grid'] = obj.grid
 				data['email'] = obj.email
+				data['externalhost'] = obj.externalhost
 
 			elif isinstance(obj, CreateRegionRequest):
 				data['uuid'] = obj.uuid

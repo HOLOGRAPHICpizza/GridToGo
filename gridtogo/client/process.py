@@ -1,5 +1,7 @@
 import os
 from twisted.internet import protocol, reactor
+from twisted.internet.protocol import Protocol
+from twisted.internet.defer import succeed
 from twisted.internet.error import ProcessDone
 from twisted.python import log
 from gi.repository import Gtk
@@ -8,6 +10,7 @@ from twisted.web.client import Agent
 from twisted.web.http_headers import Headers
 from twisted.web.iweb import IBodyProducer
 import urllib
+import xml.dom.minidom
 from zope.interface import implements
 
 class PostProducer(object):
@@ -15,9 +18,9 @@ class PostProducer(object):
 
 	def __init__(self, values):
 		self.body = urllib.urlencode(values)
-		self.length = len(body)
+		self.length = len(self.body)
 	
-	def startProducing(sefl, consumer):
+	def startProducing(self, consumer):
 		consumer.write(self.body)
 		return succeed(None)
 	
@@ -28,13 +31,14 @@ class PostProducer(object):
 		pass
 
 class ConsoleProtocol(protocol.ProcessProtocol):
-	def __init__(self, name, logFile, opensimdir, consolePort, callOnEnd=None, callOnOutput=None):
+	def __init__(self, name, logFile, opensimdir, consolePort, externalhost, callOnEnd=None, callOnOutput=None):
 		self.name = name
 		self.logFile = logFile
 		self.callOnEnd = callOnEnd
 		self.callOnOutput = callOnOutput
 		self.consolePort = consolePort
 		self.opensimdir = opensimdir
+		self.externalhost = externalhost
 
 		self._buffer = ''
 
@@ -72,30 +76,82 @@ class ConsoleProtocol(protocol.ProcessProtocol):
 
 	def sendCommand(self, url, attrs, callback=None):
 		"""Sends a command to the REST console of this process."""
-		if not hasattr(self, '_session'):
+		log.msg("[REST] Sending command: /" + url)
+		if not hasattr(self, '_sessionid'):
+			log.msg("[REST] [SESSION] Fetching Session ID")
 			agent = Agent(reactor)
-			agent.request(
+			d = agent.request(
 				'POST',
-				'http://localhost:%d/StartSession/' % self.consolePort,
+				'http://%s:%d/StartSession/' % (str(self.externalhost), self.consolePort),
 				Headers({"Content-Type": ["application/x-www-form-urlencoded"]}),
-				None)
+				PostProducer({
+					"USER": "gridtogo",
+					"PASS": "gridtogopass"
+				}))
+
+			def request(response):
+				response.deliverBody(CommandProtocol(response.length, done))
+
+			def err(response):
+				log.msg("[REST] [SESSION] [ERROR] " + str(response))
+				
+			def done(protocol):
+				def getText(nodelist):
+					rc = []
+					for node in nodelist:
+						if node.nodeType == node.TEXT_NODE:
+							rc.append(node.data)
+					return ''.join(rc)
+
+				xmldata = protocol.alldata
+				xmlstr = str(bytearray(xmldata))
+				log.msg("[REST] [SESSION] Received: " + xmlstr)
+				dom = xml.dom.minidom.parseString(xmlstr)
+				self.sessionid = getText(dom.getElementsByTagName("ConsoleSession")[0].getElementsByTagName("SessionID")[0].childNodes)
+				log.msg("[REST] [SESSION] Session ID = " + self.sessionid)
+				self.sendCommand2(url, attrs, callback)
+				
+			d.addCallback(request)
+			d.addErrback(err)
+		else:
+			self.sendCommand2(url, attrs, callback)
+
+	def sendCommand2(self, url, attrs, callback=None):
 		agent = Agent(reactor)
 		d = agent.request(
 			'POST',
-			('http://localhost:%d/' % self.consolePort) + url,
+			('http://%s:%d/' % (str(self.externalhost), self.consolePort)) + url,
 			Headers({"Content-Type": ["application/x-www-form-urlencoded"]}),
 			PostProducer(attrs))
 
 		def request(response):
+			log.msg("[REST] Received response")
 			callback(response)
+
+		def err(response):
+			log.msg("[REST] [ERROR] " + str(response))
 
 		if not callback is None:
 			d.addCallback(request)
+		
+		d.addErrback(err)
 
+class CommandProtocol(Protocol):
+	def __init__(self, size, callback):
+		self.size = size
+		self.alldata = []
+		self.callback = callback
+
+	def dataReceived(self, data):
+		self.alldata += data
+	
+	def connectionLost(self, reason):
+		log.msg("[REST] Connection Lost. Reason: " + str(reason))
+		self.callback(self)
 
 #TODO: Remove hard-coded path separators and use path.join
 
-def spawnRobustProcess(opensimdir, callOnEnd=None, callOnOutput=None):
+def spawnRobustProcess(opensimdir, externalhost, callOnEnd=None, callOnOutput=None):
 	log.msg("Starting ROBUST")
 
 	try:
@@ -103,12 +159,12 @@ def spawnRobustProcess(opensimdir, callOnEnd=None, callOnOutput=None):
 	except OSError:
 		pass
 
-	p = ConsoleProtocol("ROBUST", opensimdir + '/bin/Robust.log', opensimdir, 18000, callOnEnd, callOnOutput)
+	p = ConsoleProtocol("ROBUST", opensimdir + '/bin/Robust.log', opensimdir, 18000, externalhost, callOnEnd, callOnOutput)
 	spawnMonoProcess(p, opensimdir + "/bin/" + "Robust.exe", ['-console', 'rest'], opensimdir + "/bin")
 	log.msg("Started Robust")
 	return p
 
-def spawnRegionProcess(opensimdir, region, consolePort, callOnEnd=None, callOnOutput=None):
+def spawnRegionProcess(opensimdir, region, consolePort, externalhost, callOnEnd=None, callOnOutput=None):
 	log.msg("Starting Region: " + region)
 
 	try:
@@ -116,7 +172,7 @@ def spawnRegionProcess(opensimdir, region, consolePort, callOnEnd=None, callOnOu
 	except OSError:
 		pass
 
-	p = ConsoleProtocol(region, opensimdir + '/bin/OpenSim.log', opensimdir, consolePort, callOnEnd, callOnOutput)
+	p = ConsoleProtocol(region, opensimdir + '/bin/OpenSim.log', opensimdir, consolePort, externalhost, callOnEnd, callOnOutput)
 	spawnMonoProcess(p, opensimdir + "/bin/" + "OpenSim.exe", [
 		"-inimaster=" + opensimdir + "/bin/OpenSim.ini",
 		"-inifile=" + opensimdir +"/bin/Regions/" + region + ".ini",

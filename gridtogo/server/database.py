@@ -345,8 +345,7 @@ class MongoDatabase(object):
 
 	def createRegion(self, gridName, regionName, loc, uuid):
 		userid = self.database['users'].find_one({"uuid": str(uuid)})["_id"]
-		grid = self.database['grids'].find_one({"name": gridName})["_id"]
-		gridid = grid["_id"]
+		gridid = self.database['grids'].find_one({"name": gridName})["_id"]
 		regionid = self.database['regions'].insert({
 			"name": regionName,
 			"grid_id": gridid,
@@ -370,7 +369,7 @@ class MongoDatabase(object):
 			for host in r["hosts"]:
 				availableHosts = [uuid.UUID(host["user_uuid"])] + availableHosts
 			# The None is that it is not currently being hosted.
-			result[r['name']] = Region(r['name'], r['location'], None, availableHosts, r['port'])
+			result[r['name']] = Region(r['name'], r['location'], None, availableHosts)
 
 		return result
 	
