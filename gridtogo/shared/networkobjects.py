@@ -135,3 +135,11 @@ class CreateRegionRequest(object):
 		self.gridName = gridName
 		self.regionName = regionName
 		self.location = location
+
+# Sent when a grid is hosted. Sent AFTER ROBUST has been booted.
+class ShouldInitializedGridRequest(object):
+	pass
+
+# Sent to the client when they need to initialize a grid
+class InitializeGridResponse(object):
+	pass
