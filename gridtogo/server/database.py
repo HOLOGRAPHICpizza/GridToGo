@@ -76,6 +76,9 @@ class IDatabase(Interface):
 		"""Returns a dictionary of Region Name -> Region where all regions are in the specified grid"""
 		pass
 
+	def getMaxPort(self, gridName):
+		pass
+
 	def close(self):
 		"""Commits all database changes and releases all resources, if applicable."""
 		pass
@@ -381,6 +384,10 @@ class MongoDatabase(object):
 			result[r['name']] = Region(r['name'], r['location'], None, availableHosts, r['port'])
 
 		return result
+	
+	def getGridMaxPort(self, gridName):
+		grid = self.database['grids'].find_one({"name":gridName})
+		return grid["maxport"]
 
 	def close(self):
 		self.connection.close()
