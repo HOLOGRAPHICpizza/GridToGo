@@ -76,6 +76,9 @@ class IDatabase(Interface):
 		"""Returns a dictionary of Region Name -> Region where all regions are in the specified grid"""
 		pass
 
+	def getGridMaxPort(self, gridName):
+		pass
+
 	def close(self):
 		"""Commits all database changes and releases all resources, if applicable."""
 		pass
@@ -292,7 +295,7 @@ class MongoDatabase(object):
 		if not grid is None:
 			gridid = grid['_id']
 		else:
-			grid = {"name": gridName}
+			grid = {"name": gridName, "maxport": 8999}
 			gridid = self.database['grids'].insert(grid)
 
 		moderator = False
@@ -345,17 +348,25 @@ class MongoDatabase(object):
 
 	def createRegion(self, gridName, regionName, loc, uuid):
 		userid = self.database['users'].find_one({"uuid": str(uuid)})["_id"]
-		gridid = self.database['grids'].find_one({"name": gridName})["_id"]
-		regionid = self.database['regions'].insert(
-			{"name": regionName,
-			 "grid_id": gridid,
-			 "location": loc,
-			 "hosts": [
-				{
-					"user_id": userid,
-					"user_uuid": str(uuid)
-				}
-			 ]})
+		grid = self.database['grids'].find_one({"name": gridName})["_id"]
+		gridid = grid["_id"]
+		port = grid["maxport"] + 1
+		self.database['grids'].update({"_id":gridid}, {
+			"$inc": {
+				"maxport": 1
+			}
+		})
+		regionid = self.database['regions'].insert({
+			"name": regionName,
+			"grid_id": gridid,
+			"location": loc,
+			"port": port,
+			"hosts": [{
+				"user_id": userid,
+				"user_uuid": str(uuid)
+			}]
+		})
+		return port
 	
 	def getGridRegions(self, gridName):
 		grid = self.database['grids'].find_one({"name": gridName})
@@ -370,9 +381,13 @@ class MongoDatabase(object):
 			for host in r["hosts"]:
 				availableHosts = [uuid.UUID(host["user_uuid"])] + availableHosts
 			# The None is that it is not currently being hosted.
-			result[r['name']] = Region(r['name'], r['location'], r['external_host'], None, availableHosts)
+			result[r['name']] = Region(r['name'], r['location'], None, availableHosts, r['port'])
 
 		return result
+	
+	def getGridMaxPort(self, gridName):
+		grid = self.database['grids'].find_one({"name":gridName})
+		return grid["maxport"]
 
 	def close(self):
 		self.connection.close()
