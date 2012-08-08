@@ -136,18 +136,8 @@ class CreateRegionRequest(object):
 		self.gridName = gridName
 		self.regionName = regionName
 		self.location = location
-	
-# Class for requests from SERVER to CLIENT
-class NATCheckRequest(object):
-	pass
 
-class NATCheckStartRequest(NATCheckRequest):
+class NATCheckStartRequest(object):
 	def __init__(self, regionStart, regionEnd):
 		self.regionStart = regionStart
 		self.regionEnd = regionEnd
-
-class NATCheckReadyRequest(object):
-	pass
-
-class NATCheckEndRequest(NATCheckRequest):
-	pass
