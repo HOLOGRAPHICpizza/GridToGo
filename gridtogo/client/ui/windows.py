@@ -305,6 +305,16 @@ class CreateUserWindowHandler(WindowHandler):
 		LoginWindowHandler.userCreateActive = False
 		self.destroy()
 
+class AboutWindowHandler(WindowHandler):
+	def __init__(self, builder, clientObject, factory, window, data):
+		super(AboutWindowHandler, self).__init__(builder, clientObject, factory, window, data)
+
+	def destroy(self):
+		self.destroy()
+
+	def onCloseClicked(self, *args):
+		self.destroy()
+
 class MainWindowHandler(WindowHandler):
 
 	def __init__(self, builder, clientObject, factory, window, data):
@@ -646,7 +656,6 @@ class CreateRegionWindowHandler(WindowHandler):
 		if self.window:
 			self.window.destroy()
 
-
 class ConsoleWindow(Gtk.Window):
 	def __init__(self, protocol):
 		Gtk.Window.__init__(self)
@@ -676,12 +685,5 @@ class ConsoleWindow(Gtk.Window):
 	def enter_pressed(self, something):
 		self.protocol.transport.write(self.entryfield.get_text() + "\n")
 		self.entryfield.get_buffer().set_text("", 0)
-
-class AboutWindowHandler(WindowHandler):
-	def __init__(self, builder, clientObject, factory, window, data):
-		super(AboutWindowHandler, self).__init__(builder, clientObject, factory, window, data)
-
-	def destroy(self):
-		self.destroy()
 
 

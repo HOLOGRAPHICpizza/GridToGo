@@ -131,10 +131,12 @@ class GridToGoClient(object):
 			self.loginHandler.window.destroy()
 		if self.createUserWindowHandler:
 			self.createUserWindowHandler.destroy()
-		if self.CreateRegionWindowHandler:
-			self.CreateRegionWindowHandler.destroy()
 		if self.mainWindowHandler and self.mainWindowHandler.window:
 			self.mainWindowHandler.window.destroy()
+		if self.CreateRegionWindowHandler:
+			self.CreateRegionWindowHandler.destroy()
+		if self.AboutWindowHandler:
+			self.AboutWindowHandler.destroy()
 
 		# Kill any sub-processes that are running
 		for name in self.processes:

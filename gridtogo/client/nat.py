@@ -96,7 +96,7 @@ class EchoClient(LineReceiver):
 	
 	def timeout(self):
 		log.msg("[NAT] Client Timeout")
-		self.deferred.callback(False)
+		self.callback(False)
 		self.transport.loseConnection()
 
 class EchoClientFactory(ClientFactory):
