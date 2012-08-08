@@ -6,6 +6,7 @@
     <property name="border_width">5</property>
     <property name="title" translatable="yes">About GridToGo</property>
     <property name="resizable">False</property>
+    <property name="icon">logo.svg</property>
     <property name="type_hint">dialog</property>
     <property name="program_name">GridToGo</property>
     <property name="version">v. 0.10</property>
@@ -17,7 +18,7 @@
     <property name="authors">Michael Craft
 Shane Lenehan
 Jared Hance</property>
-    <property name="logo">blank24.png</property>
+    <property name="logo">logo.svg</property>
     <signal name="close" handler="onCloseClicked" swapped="no"/>
     <child internal-child="vbox">
       <object class="GtkBox" id="aboutdialog-vbox1">
