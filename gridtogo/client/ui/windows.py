@@ -445,7 +445,7 @@ class MainWindowHandler(WindowHandler):
 			def hostRegion(dist):
 				log.msg("Configuring region for hosting")
 				dist.configure("GridName", "localhost")
-				dist.configureRegion(region.regionName, region.location, region.externalhost, 9000)
+				dist.configureRegion(region.regionName, region.location, 9000)
 			
 				process.spawnRegionProcess(dist.opensimdir, region.regionName)
 				
@@ -617,17 +617,10 @@ class CreateRegionWindowHandler(WindowHandler):
 		coordinates = self.location.get_text()
 		hostname = self.externalHostname.get_text()
 
-		#TODO: Don't hardcode gridname and localhost
-		distribution = Distribution(self.clientObject.projectRoot)
-		distribution.configure("GridName", "localhost")
-
-		# TODO Don't hardcode port
-		distribution.configureRegion(region, coordinates, hostname, 9000)
-
 		# Actually store the region in the database
 		gridName = self.clientObject.localGrid
 		uuid = self.clientObject.localUUID
-		request = CreateRegionRequest(uuid, gridName, region, coordinates, hostname)
+		request = CreateRegionRequest(uuid, gridName, region, coordinates)
 		self.clientObject.protocol.writeRequest(request)
 		self.destroy()
 		

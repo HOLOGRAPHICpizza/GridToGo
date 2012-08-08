@@ -9,6 +9,7 @@ if __name__ == "__main__":
 from gi.repository import Gtk
 import os.path
 import shutil
+import socket
 import string
 import sys
 import tarfile
@@ -125,10 +126,10 @@ class Distribution(object):
 
 		log.msg("Configured Robust")
 		
-	def configureRegion(self, regionName, location, extHostname, port):
+	def configureRegion(self, regionName, location, port):
 		mappings = { "NAME": regionName,
 					 "LOCATION": location,
-					 "EXTERNAL_HOSTNAME": extHostname,
+					 "EXTERNAL_HOSTNAME": socket.gethostname(),
 					 "PORT": port,
 					 "UUID": str(uuid.uuid4()) }
 		template = Template(mappings)

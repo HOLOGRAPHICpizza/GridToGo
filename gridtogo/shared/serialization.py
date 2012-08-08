@@ -64,8 +64,7 @@ class JSONSerializer(object):
 				uuid.UUID(data['uuid']),
 				data['gridName'],
 				data['regionName'],
-				data['location'],
-				data['externalhost'])
+				data['location'])
 
 		elif class_ is ResetPasswordRequest:
 			return class_(data['firstName'], data['lastName'])
@@ -106,7 +105,7 @@ class JSONSerializer(object):
 					uhosts = [uuid.UUID(host)] + uhosts
 				obj = Region(
 						data['regionName'], data['location'],
-						data['externalhost'], data['currentHost'],
+						data['currentHost'],
 						uhosts)
 			return obj
 
@@ -160,7 +159,6 @@ class JSONSerializer(object):
 				data['gridName'] = obj.gridName
 				data['regionName'] = obj.regionName
 				data['location'] = obj.location
-				data['externalhost'] = obj.location
 
 			elif isinstance(obj, NATCheckStartRequest):
 				data['regionStart'] = obj.regionStart

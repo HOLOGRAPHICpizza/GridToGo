@@ -38,14 +38,13 @@ class DeltaUser(DeltaObject):
 		self.attributes = userAttributes
 		self.UUID = UUID
 
-regionAttributes = ("regionName", "location", "externalhost", "currentHost", "hosts")
-regionDeltas = ("location", "externalhost", "currentHost", "hosts")
+regionAttributes = ("regionName", "location", "currentHost", "hosts")
+regionDeltas = ("location", "currentHost", "hosts")
 
 class Region(Deltable):
-	def __init__(self, regionName, location, externalhost, currentHost, hosts):
+	def __init__(self, regionName, location, currentHost, hosts):
 		self.regionName = regionName
 		self.location = location
-		self.externalhost = externalhost
 		self.attributes = regionAttributes
 		self.currentHost = currentHost
 		self.hosts = hosts
@@ -131,12 +130,11 @@ class LoginSuccess(LoginResponse):
 		self.email = email
 
 class CreateRegionRequest(object):
-	def __init__(self, uuid, gridName, regionName, location, externalhost):
+	def __init__(self, uuid, gridName, regionName, location):
 		self.uuid = uuid
 		self.gridName = gridName
 		self.regionName = regionName
 		self.location = location
-		self.externalhost = externalhost
 	
 # Class for requests from SERVER to CLIENT
 class NATCheckRequest(object):
