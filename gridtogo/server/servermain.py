@@ -174,7 +174,7 @@ class GTGProtocol(basic.LineReceiver):
 							delta.gridHost = request.gridHost
 
 						# gridHostActive
-						if hasattr(request, 'gridHostActive' and self.user.gridHost):
+						if hasattr(request, 'gridHostActive') and self.user.gridHost:
 							delta.gridHostActive = request.gridHostActive
 
 					else:
