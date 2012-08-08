@@ -6,6 +6,7 @@ import sys
 from twisted.internet import protocol, reactor, endpoints, defer
 from twisted.protocols import basic
 from twisted.python import log
+from gridtogo.client.nat import NATService
 from gridtogo.shared import serialization, networkobjects
 from gridtogo.shared.networkobjects import *
 from ui.windows import *
@@ -53,6 +54,8 @@ class GridToGoClient(object):
 		# passes a reference to a Protocol to each
 		self.callOnConnected = []
 		#TODO: implement a callOnConnectionFailed list - MAYBE, IF NECESSARY
+
+		self.nat = NATService
 
 		log.startLogging(sys.stdout)
 
@@ -213,6 +216,8 @@ class GTGClientProtocol(basic.LineReceiver):
 						self.clientObject.createUserWindowHandler.window,
 						Gtk.MessageType.ERROR,
 						response.message)
+			else:
+				nat.handle(request)
 
 		except serialization.InvalidSerializedDataException:
 			log.msg("Server sent bad data.")

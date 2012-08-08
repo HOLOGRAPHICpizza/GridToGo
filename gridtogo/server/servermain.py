@@ -141,6 +141,12 @@ class GTGProtocol(basic.LineReceiver):
 						delta.online = True
 						self.grid.applyUserDelta(delta)
 
+						# Start a NAT check
+						maxport = database.getMaxPort(self.grid.name)
+						if maxport == 8999:
+							maxport = 9000
+						self.writeResponse(NATCheckStartRequest(9000, maxport))
+
 				elif isinstance(request, ResetPasswordRequest):
 					response = self.authenticator.resetPassword(request)
 					self.writeResponse(response)
