@@ -292,7 +292,7 @@ class MongoDatabase(object):
 		if not grid is None:
 			gridid = grid['_id']
 		else:
-			grid = {"name": gridName}
+			grid = {"name": gridName, "maxport": 9000} # TODO Fix this to be minport - 1
 			gridid = self.database['grids'].insert(grid)
 
 		moderator = False
@@ -345,17 +345,24 @@ class MongoDatabase(object):
 
 	def createRegion(self, gridName, regionName, loc, uuid):
 		userid = self.database['users'].find_one({"uuid": str(uuid)})["_id"]
-		gridid = self.database['grids'].find_one({"name": gridName})["_id"]
-		regionid = self.database['regions'].insert(
-			{"name": regionName,
-			 "grid_id": gridid,
-			 "location": loc,
-			 "hosts": [
-				{
-					"user_id": userid,
-					"user_uuid": str(uuid)
-				}
-			 ]})
+		grid = self.database['grids'].find_one({"name": gridName})["_id"]
+		gridid = grid["_id"]
+		port = grid["maxport"] + 1
+		self.database['grids'].update({"_id":gridid}, {
+			"$inc": {
+				"maxport": 1
+			}
+		})
+		regionid = self.database['regions'].insert({
+			"name": regionName,
+			"grid_id": gridid,
+			"location": loc,
+			"port": port,
+			"hosts": [{
+				"user_id": userid,
+				"user_uuid": str(uuid)
+			}]
+		})
 	
 	def getGridRegions(self, gridName):
 		grid = self.database['grids'].find_one({"name": gridName})
