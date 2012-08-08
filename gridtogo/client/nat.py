@@ -1,10 +1,12 @@
 import socket
+import string
 from twisted.internet import reactor
 from twisted.internet.defer import Deferred
 from twisted.internet.endpoints import TCP4ServerEndpoint
 from twisted.internet.protocol import Protocol, ClientFactory, Factory
 from twisted.protocols.basic import LineReceiver
 from twisted.python import log
+import random
 
 from gridtogo.shared.networkobjects import *
 
@@ -14,12 +16,10 @@ class EchoProtocol(Protocol):
 		self.port = port
 	
 	def connectionMade(self):
-		self.factory.builder.service.connectionCount += 1
-		self.factory.builder.service.checkCount()
-		log.msg("[NAT] Established Connection on port " + str(port))
+		log.msg("[NAT] Established Connection on port " + str(self.port))
 	
-	def connectionLost(self):
-		log.msg("[NAT] Lost Connection on port " + str(port) + ". Reason: " + str(reason))
+	def connectionLost(self, reason):
+		log.msg("[NAT] Lost Connection on port " + str(self.port) + ". Reason: " + str(reason))
 
 	def close(self):
 		self.transport.loseConnection()
@@ -33,7 +33,7 @@ class EchoFactory(Factory):
 		self.port = port
 
 	def buildProtocol(self, addr):
-		protocol = EchoProtocol(self.port)
+		protocol = EchoProtocol(self, self.port)
 		self.builder.service.protocols += [protocol]
 		return protocol
 
@@ -48,61 +48,69 @@ class EchoService(object):
 	def __init__(self):
 		log.msg("[NAT] Creating Echo Service")
 	
-	def start(self, deferred, finalCount):
+	def start(self, deferred, finalCount, ports):
 		log.msg("[NAT] Starting Echo Service")
 		self.builder = EchoFactoryBuilder(self)
 		self.protocols = []
 		self.connectionCount = 0
-		self.deffered = deferred
+		self.deferred = deferred
 		self.finalCount = finalCount
+		for port in ports:
+			self.listenOn(port)
 	
 	def listenOn(self, port):
+		log.msg("[NAT] Listening on port " + str(port))
 		endpoint = TCP4ServerEndpoint(reactor, port)
-		endpoint.listen(self.builder.buildFactory(port))
+		d = endpoint.listen(self.builder.buildFactory(port))
+		d.addCallback(self.portStarted)
+	
+	def portStarted(self, ignored):
+		log.msg("[NAT] A port server has been successfully established.")
+		self.connectionCount += 1
+		if self.connectionCount == self.finalCount:
+			self.deferred.callback(self)
 	
 	def close(self):
 		log.msg("[NAT] Closing Echo Service")
-		for protocol in self.builder.protocols:
+		for protocol in self.protocols:
 			protocol.close()
-	
-	def checkCount(self):
-		if self.connectionCount == self.finalCount:
-			deferred.callback(self)
 
 class EchoClient(LineReceiver):
-	def __init__(self, deferred):
+	def __init__(self, callback):
 		self.code = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(16))
-		self.deferred = deferred
+		self.callback = callback
 		self.timedout = False
 
 	def connectionMade(self):
 		self.sendLine(self.code)
-		reactor.callLater(5, timeout)
+		reactor.callLater(5, self.timeout)
 	
 	def lineReceived(self, line):
 		if not self.timedout:
 			if(line == self.code):
-				self.deferred.callback(True)
+				log.msg("[NAT] Message Matches")
+				self.callback(True)
 			else:
-				self.deferred.callback(False)
-		self.close()
+				self.callback(False)
+		self.transport.loseConnection()
 	
 	def timeout(self):
-		self.deferred.classback(False)
-		self.close()
+		log.msg("[NAT] Client Timeout")
+		self.deferred.callback(False)
+		self.transport.loseConnection()
 
 class EchoClientFactory(ClientFactory):
 	protocol = EchoClient
 
-	def __init__(self, deferred):
-		self.deferred = deferred
+	def __init__(self, callback):
+		self.callback = callback
 
 	def buildProtocol(self, addr):
-		return EchoClient(deferred)
+		return EchoClient(self.callback)
 
 	def clientConnectionFailed(self, connector, reason):
 		log.msg("NAT Echo Client Connection Failed: " + reason.getErrorMessage())
-		self.deferred.callback(False)
+		self.callback(False)
 	
 	def clientConnectionLost(self, connector, reason):
 		log.msg("Connection lost: " + reason.getErrorMessage())
@@ -117,18 +125,30 @@ class NATService(object):
 			self.run(request.regionStart, request.regionEnd)
 	
 	def run(self, regionStart, regionEnd):
+		log.msg("[NAT] Check Start")
 		d = Deferred()
 		d.addCallback(self.allEstablished)
 		self.count = 4 + regionEnd - regionStart
 		self.tcount = 0
 		self.done = False
-		self.service.start(d, self.count)
+		self.ports = None
+		if regionStart != regionEnd:
+			self.ports = [8002, 8003, 8004, regionStart, regionEnd]
+		else:
+			self.ports = [8002, 8003, 8004, regionStart]
+		self.service.start(d, self.count, self.ports)
 	
 	def allEstablished(self, ignored):
+		log.msg("[NAT] All servers listening")
 		exthost = socket.gethostbyaddr(socket.gethostname())[0]
+		factory = EchoClientFactory(self.resultReceived)
+		for port in self.ports:
+			log.msg("[NAT] Starting Echo Client on port " + str(port))
+			reactor.connectTCP(exthost, port, factory)
 	
 	def resultReceived(self, result):
 		if not self.done:
+			log.msg("[NAT] Received Status: " + str(result))
 			if result:
 				self.tcount += 1
 				if self.tcount == self.count:
@@ -141,11 +161,11 @@ class NATService(object):
 	def success(self):
 		delta = DeltaUser(self.clientObject.localUUID)
 		delta.NATStatus = True
-		self.clientObject.writeRequest(delta)
-		self.close()
+		self.clientObject.protocol.writeRequest(delta)
+		self.service.close()
 
 	def failure(self):
 		delta = DeltaUser(self.clientObject.localUUID)
 		delta.NATStatus = False
-		self.clientObject.writeRequest(delta)
-		self.close()
+		self.clientObject.protocol.writeRequest(delta)
+		self.service.close()
