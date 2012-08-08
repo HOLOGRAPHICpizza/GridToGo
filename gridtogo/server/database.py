@@ -75,6 +75,12 @@ class IDatabase(Interface):
 	def getGridRegions(self, gridName):
 		"""Returns a dictionary of Region Name -> Region where all regions are in the specified grid"""
 		pass
+	
+	def getGridInitialized(self, gridName):
+		"""Gets whether a grid is initialized"""
+	
+	def initializeGrid(self, gridName):
+		"""Marks a grid as initialized"""
 
 	def close(self):
 		"""Commits all database changes and releases all resources, if applicable."""
@@ -162,7 +168,7 @@ class SQLiteDatabase(object):
 			for user in cursor.fetchall():
 				users.append(uuid.UUID(user[0]))
 
-			region = Region(row[0], row[1], None, None, users)
+			region = Region(row[0], row[1], None, users)
 			regions[row[0]] = region
 		return regions
 
@@ -292,7 +298,7 @@ class MongoDatabase(object):
 		if not grid is None:
 			gridid = grid['_id']
 		else:
-			grid = {"name": gridName, "maxport": 8999}
+			grid = {"name": gridName, "initialized": False}
 			gridid = self.database['grids'].insert(grid)
 
 		moderator = False
@@ -372,6 +378,16 @@ class MongoDatabase(object):
 			result[r['name']] = Region(r['name'], r['location'], None, availableHosts)
 
 		return result
+	
+	def getGridInitialized(self, gridName):
+		return self.database['grids'].find_one({"name": gridName})["initialized"]
+	
+	def initializeGrid(self, gridName):
+		self.database['grids'].update({"name": gridName}, {
+			"$set" : {
+				"initialized": True
+			}
+		})
 	
 	def close(self):
 		self.connection.close()
