@@ -39,7 +39,7 @@ Jared Hance</property>
         </child>
         <child>
           <object class="GtkLinkButton" id="linkbtnTechEdge">
-            <property name="label" translatable="yes">Tec Edge Discovery Lab</property>
+            <property name="label" translatable="yes">Tech Edge Discovery Lab</property>
             <property name="use_action_appearance">False</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
