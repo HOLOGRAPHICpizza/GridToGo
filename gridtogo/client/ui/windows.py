@@ -305,6 +305,39 @@ class CreateUserWindowHandler(WindowHandler):
 		LoginWindowHandler.userCreateActive = False
 		self.destroy()
 
+class CreateRegionWindowHandler(WindowHandler):
+	def __init__(self, builder, clientObject, factory, window, data):
+		super(CreateRegionWindowHandler, self).__init__(builder, clientObject, factory, window, data)
+		self.regionName = builder.get_object("entRegionName")
+		self.location = builder.get_object("entLocation")
+		self.externalHostname = builder.get_object("entExtHostname")
+
+	def onbtnCreateRegionClicked(self, *args):
+		region = self.regionName.get_text()
+		coordinates = self.location.get_text()
+		hostname = self.externalHostname.get_text()
+
+		#TODO: Don't hardcode gridname and localhost
+		distribution = Distribution(self.clientObject.projectRoot)
+		distribution.configure("GridName", "localhost")
+
+		# TODO Don't hardcode port
+		distribution.configureRegion(region, coordinates, hostname, 9000)
+
+		# Actually store the region in the database
+		gridName = self.clientObject.localGrid
+		uuid = self.clientObject.localUUID
+		request = CreateRegionRequest(uuid, gridName, region, coordinates, hostname)
+		self.clientObject.protocol.writeRequest(request)
+		self.destroy()
+		
+	def btnCancelClicked(self, *args):
+		self.destroy()
+
+	def destroy(self):
+		if self.window:
+			self.window.destroy()
+
 class AboutWindowHandler(WindowHandler):
 	def __init__(self, builder, clientObject, factory, window, data):
 		super(AboutWindowHandler, self).__init__(builder, clientObject, factory, window, data)
@@ -631,40 +664,6 @@ class RunningServicesWindow(Gtk.Window):
 
 	def cancel(self, *args):
 		self.destroy()
-
-class CreateRegionWindowHandler(WindowHandler):
-	def __init__(self, builder, clientObject, factory, window, data):
-		super(CreateRegionWindowHandler, self).__init__(builder, clientObject, factory, window, data)
-		self.regionName = builder.get_object("entRegionName")
-		self.location = builder.get_object("entLocation")
-		self.externalHostname = builder.get_object("entExtHostname")
-
-	def onbtnCreateRegionClicked(self, *args):
-		region = self.regionName.get_text()
-		coordinates = self.location.get_text()
-		hostname = self.externalHostname.get_text()
-
-		#TODO: Don't hardcode gridname and localhost
-		distribution = Distribution(self.clientObject.projectRoot)
-		distribution.configure("GridName", "localhost")
-
-		# TODO Don't hardcode port
-		distribution.configureRegion(region, coordinates, hostname, 9000)
-
-		# Actually store the region in the database
-		gridName = self.clientObject.localGrid
-		uuid = self.clientObject.localUUID
-		request = CreateRegionRequest(uuid, gridName, region, coordinates, hostname)
-		self.clientObject.protocol.writeRequest(request)
-		self.destroy()
-		
-	def btnCancelClicked(self, *args):
-		self.destroy()
-
-	def destroy(self):
-		if self.window:
-			self.window.destroy()
-
 
 class ConsoleWindow(Gtk.Window):
 	def __init__(self, protocol):
