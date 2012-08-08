@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
-  <object class="GtkImage" id="image7">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="pixbuf">gridhost-active.png</property>
-  </object>
   <object class="GtkImage" id="image1">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -17,7 +12,17 @@
     <property name="xalign">0.49000000953674316</property>
     <property name="pixbuf">shield.png</property>
   </object>
+  <object class="GtkImage" id="image3">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-missing-image</property>
+  </object>
   <object class="GtkImage" id="image4">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="pixbuf">gridhost-active.png</property>
+  </object>
+  <object class="GtkImage" id="image7">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="pixbuf">gridhost-active.png</property>
@@ -72,6 +77,17 @@
                         <property name="image">image7</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="becomeGridHost" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="NATRefresh">
+                        <property name="label" translatable="yes">Refresh NAT</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="image">image3</property>
+                        <property name="use_stock">False</property>
+                        <signal name="activate" handler="refreshnat" swapped="no"/>
                       </object>
                     </child>
                     <child>
@@ -290,6 +306,22 @@ Careful, Grid Host's will have full access to the grid's OpenSim database.</prop
                         <property name="use_underline">True</property>
                         <property name="stock_id">gtk-connect</property>
                         <signal name="clicked" handler="becomeGridHost" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="homogeneous">True</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkToolButton" id="btnNATRefresh">
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="label" translatable="yes">Refresh NAT</property>
+                        <property name="use_underline">True</property>
+                        <property name="stock_id">gtk-refresh</property>
+                        <signal name="clicked" handler="refreshnat" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
