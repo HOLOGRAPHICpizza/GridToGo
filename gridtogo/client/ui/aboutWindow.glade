@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
-  <object class="GtkAboutDialog" id="aboutGridToGo">
+  <object class="GtkAboutDialog" id="aboutWindow">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
+    <property name="title" translatable="yes">About GridToGo</property>
+    <property name="resizable">False</property>
     <property name="type_hint">dialog</property>
     <property name="program_name">GridToGo</property>
     <property name="version">v. 0.10</property>
@@ -15,6 +17,8 @@
     <property name="authors">Michael Craft
 Shane Lenehan
 Jared Hance</property>
+    <property name="logo">blank24.png</property>
+    <signal name="close" handler="onCloseClicked" swapped="no"/>
     <child internal-child="vbox">
       <object class="GtkBox" id="aboutdialog-vbox1">
         <property name="can_focus">False</property>

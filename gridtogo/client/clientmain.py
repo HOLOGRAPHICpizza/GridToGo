@@ -6,6 +6,7 @@ import sys
 from twisted.internet import protocol, reactor, endpoints, defer
 from twisted.protocols import basic
 from twisted.python import log
+from gridtogo.client.nat import NATService
 from gridtogo.shared import serialization, networkobjects
 from gridtogo.shared.networkobjects import *
 from ui.windows import *
@@ -130,10 +131,12 @@ class GridToGoClient(object):
 			self.loginHandler.window.destroy()
 		if self.createUserWindowHandler:
 			self.createUserWindowHandler.destroy()
-		if self.CreateRegionWindowHandler:
-			self.CreateRegionWindowHandler.destroy()
 		if self.mainWindowHandler and self.mainWindowHandler.window:
 			self.mainWindowHandler.window.destroy()
+		if self.CreateRegionWindowHandler:
+			self.CreateRegionWindowHandler.destroy()
+		if self.AboutWindowHandler:
+			self.AboutWindowHandler.destroy()
 
 		# Kill any sub-processes that are running
 		for name in self.processes:
@@ -165,6 +168,7 @@ class GTGClientProtocol(basic.LineReceiver):
 		# Alias for convenience
 		self.serializer = serializer
 		self.clientObject = clientObject
+		self.nat = NATService(clientObject)
 
 	def lineReceived(self, line):
 		try:
@@ -220,6 +224,8 @@ class GTGClientProtocol(basic.LineReceiver):
 						self.clientObject.createUserWindowHandler.window,
 						Gtk.MessageType.ERROR,
 						response.message)
+			else:
+				self.nat.handle(response)
 
 		except serialization.InvalidSerializedDataException:
 			log.msg("Server sent bad data.")
