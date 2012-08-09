@@ -1,0 +1,5 @@
+Save login data:
+	Add a checkbox to enable remembering login into to the login form.
+	In LoginWindowHandler, replace the login info filling code around where it currently checks PREFIL_LOGIN_SAMPLE_DATA with code to read from a flat file (if it exists) the users login info.
+	Save the data (ony if the checkbox is checked) in loginClicked to a flat file with a super simple format, you could maybe just have one field on each line without any kind of feild-identifying data and just read and save in the same order.
+
