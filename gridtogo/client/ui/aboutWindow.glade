@@ -9,15 +9,18 @@
     <property name="icon">logo.svg</property>
     <property name="type_hint">dialog</property>
     <property name="program_name">GridToGo</property>
-    <property name="version">v. 0.10</property>
-    <property name="copyright" translatable="yes">Copyright © 2012 Michael Craft, Shane Lenehan, Jared Hance.
- Made for Summer at the Edge at the Tech Edge Discovery Lab.</property>
+    <property name="version">0.1</property>
+    <property name="copyright" translatable="yes">Copyright © 2012 Michael Craft, Shane Lenehan, Jared Hance
+
+Released under the MIT License, see the LICENSE file for details.
+
+Created for Summer at the Edge 2012 under the direction of Dr. Rob Williams.</property>
     <property name="comments" translatable="yes">An easy to use GUI for creating and managing ad-hoc OpenSim Grids.</property>
     <property name="website">http://www.github.com/HOLOGRAPHICpizza/GridToGo</property>
     <property name="website_label" translatable="yes">GridToGo GitHub Page</property>
-    <property name="authors">Michael Craft
-Shane Lenehan
-Jared Hance</property>
+    <property name="authors">Michael Craft &lt;mcraft@peak15.org&gt;
+Shane Lenehan &lt;gor.otacon@keenware.net&gt;
+Jared Hance &lt;jaredhance@gmail.com&gt;</property>
     <property name="logo">logo.svg</property>
     <signal name="close" handler="onCloseClicked" swapped="no"/>
     <child internal-child="vbox">
@@ -39,7 +42,7 @@ Jared Hance</property>
         </child>
         <child>
           <object class="GtkLinkButton" id="linkbtnTechEdge">
-            <property name="label" translatable="yes">Tech Edge Discovery Lab</property>
+            <property name="label" translatable="yes">Tec^Edge Discovery Lab</property>
             <property name="use_action_appearance">False</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
