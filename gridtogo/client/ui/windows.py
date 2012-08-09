@@ -207,9 +207,12 @@ class LoginWindowHandler(WindowHandler):
 		self.userCreateActive = False
 
 		if PREFIL_LOGIN_SAMPLE_DATA:
-			self.firstNameEntry.set_text("test")
-			self.lastNameEntry.set_text("user")
-			self.passwordEntry.set_text("testpass")
+			my_file = open('rememberLoginData.txt', 'r')
+			
+			self.firstNameEntry.set_text(file.readline())
+			self.lastNameEntry.set_text(file.readline())
+			self.passwordEntry.set_text(file.readline())
+			my_file.close()
 			self.gridEntry.set_text("testgrid")
 
 	def LANModeClicked(self, *args):
