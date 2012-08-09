@@ -172,7 +172,7 @@ class GTGClientProtocol(basic.LineReceiver):
 		# Alias for convenience
 		self.serializer = serializer
 		self.clientObject = clientObject
-		self.nat = NATService(clientObject)
+		#self.nat = NATService(clientObject)
 
 	def lineReceived(self, line):
 		try:
@@ -213,7 +213,7 @@ class GTGClientProtocol(basic.LineReceiver):
 					self.clientObject.loginHandler.window.destroy()
 					self.clientObject.loginHandler = None
 
-					self.nat.run(self.clientObject.maxregionport)
+					#self.nat.run(self.clientObject.maxregionport)
 				else:
 					showModalDialog(
 						self.clientObject.loginHandler.window,
