@@ -143,3 +143,12 @@ class ShouldInitializedGridRequest(object):
 # Sent to the client when they need to initialize a grid
 class InitializeGridResponse(object):
 	pass
+
+class NATCheckRequest(object):
+	def __init__(self, ports, processports):
+		self.ports = ports
+		self.processports = processports
+
+class NATCheckResponse(object):
+	def __init__(self, status):
+		self.status = status
