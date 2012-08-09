@@ -208,9 +208,9 @@ class LoginWindowHandler(WindowHandler):
 
 		if PREFIL_LOGIN_SAMPLE_DATA:
 			curData = open('rememberLoginData.txt', 'r')
-			line_one = curData.readline()
-			line_two = curData.readline()
-			line_three = curData.readline()
+			line_one = curData.readline().strip()
+			line_two = curData.readline().strip()
+			line_three = curData.readline().strip()
 			self.firstNameEntry.set_text(line_one)
 			self.lastNameEntry.set_text(line_two)
 			self.passwordEntry.set_text(line_three)
