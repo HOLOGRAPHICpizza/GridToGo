@@ -18,10 +18,10 @@ class EchoProtocol(Protocol):
 		self.port = port
 	
 	def connectionMade(self):
-		log.msg("[NAT] Established Connection on port " + str(self.port))
+		pass
 	
 	def connectionLost(self, reason):
-		log.msg("[NAT] Lost Connection on port " + str(self.port) + ". Reason: " + str(reason))
+		pass
 
 	def close(self):
 		self.transport.loseConnection()
@@ -47,10 +47,9 @@ class EchoFactoryBuilder(object):
 
 class EchoService(object):
 	def __init__(self):
-		log.msg("[NAT] Creating Echo Service")
+		pass
 	
 	def start(self, deferred, finalCount, ports):
-		log.msg("[NAT] Starting Echo Service")
 		self.builder = EchoFactoryBuilder(self)
 		self.connections = []
 		self.connectionCount = 0
@@ -60,20 +59,17 @@ class EchoService(object):
 			self.listenOn(port)
 	
 	def listenOn(self, port):
-		log.msg("[NAT] Listening on port " + str(port))
 		endpoint = TCP4ServerEndpoint(reactor, port)
 		d = endpoint.listen(self.builder.buildFactory(port))
 		d.addCallback(self.portStarted)
 	
 	def portStarted(self, connection):
-		log.msg("[NAT] A port server has been successfully established.")
 		self.connections += [connection]
 		self.connectionCount += 1
 		if self.connectionCount == self.finalCount:
 			self.deferred.callback(self)
 	
 	def close(self):
-		log.msg("[NAT] Closing Echo Service")
 		for connection in self.connections:
 			connection.stopListening()
 
@@ -91,7 +87,6 @@ class EchoClient(LineReceiver):
 	def lineReceived(self, line):
 		if not self.timedout and not self.done:
 			if(line == self.code):
-				log.msg("[NAT] Message Matches")
 				self.done = True
 				self.callback(True)
 			else:
@@ -102,7 +97,6 @@ class EchoClient(LineReceiver):
 	
 	def timeout(self):
 		if not self.done:
-			log.msg("[NAT] Client Timeout")
 			self.callback(False)
 			self.transport.loseConnection()
 
@@ -116,11 +110,10 @@ class EchoClientFactory(ClientFactory):
 		return EchoClient(self.callback)
 
 	def clientConnectionFailed(self, connector, reason):
-		log.msg("NAT Echo Client Connection Failed: " + reason.getErrorMessage())
 		self.callback(False)
 	
 	def clientConnectionLost(self, connector, reason):
-		log.msg("Connection lost: " + reason.getErrorMessage())
+		pass
 
 class NATService(object):
 	def __init__(self, clientObject):
@@ -159,7 +152,6 @@ class NATService(object):
 		self.service.start(d, self.count, self.ports)
 	
 	def allEstablished(self, ignored):
-		log.msg("[NAT] All servers listening")
 		self.clientObject.protocol.writeRequest(NATCheckRequest(self.ports, self.processports))
 	
 	def close(self):
@@ -179,12 +171,10 @@ class NATClientService(object):
 		self.done = False
 		factory = EchoClientFactory(self.resultReceived)
 		for port in self.ports:
-			log.msg("[NAT] Starting Echo Client at: " + self.host + ":" + str(port))
 			reactor.connectTCP(self.host, port, factory)
 	
 	def resultReceived(self, result):
 		if not self.done:
-			log.msg("[NAT] Received Status: " + str(result))
 			if result:
 				self.tcount += 1
 				if self.tcount == self.count:
@@ -215,7 +205,6 @@ class NATClientService(object):
 					self.success()
 
 			def err(response):
-				log.msg("[NAT] Received Error in making a process connection. Port = " + str(port) + ". Reason = " + str(response))
 				if not self.pdone:
 					self.pdone = True
 					self.failure()
@@ -248,18 +237,15 @@ class LoopbackService(object):
 		self.factory = EchoClientFactory(self.result)
 	
 	def run(self):
-		log.msg("[NAT] Listening on port " + str(8001))
 		endpoint = TCP4ServerEndpoint(reactor, 8001)
 		d = endpoint.listen(LoopbackEchoFactory(8001))
 		d.addCallback(self.started)
 	
 	def started(self, connection):
-		log.msg("[NAT] Connecting to Loopback: " + self.exthost)
 		reactor.connectTCP(self.exthost, 8001, self.factory)
 		self.connection = connection
 	
 	def result(self, status):
-		log.msg("[NAT] Loopback Status = " + str(status))
 		delta = DeltaUser(self.clientObject.localUUID)
 		delta.NATStatus = status
 		self.clientObject.protocol.writeRequest(delta)
