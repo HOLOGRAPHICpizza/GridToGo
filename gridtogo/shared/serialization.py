@@ -78,7 +78,7 @@ class JSONSerializer(object):
 			return r
 
 		elif class_ is NATCheckRequest:
-			return class_(data['ports'])
+			return class_(data['ports'], data['processports'])
 
 		elif class_ is NATCheckResponse:
 			return class_(data['status'])
@@ -167,6 +167,7 @@ class JSONSerializer(object):
 
 			elif isinstance(obj, NATCheckRequest):
 				data['ports'] = obj.ports
+				data['processports'] = obj.processports
 
 			elif isinstance(obj, NATCheckResponse):
 				data['status'] = obj.status

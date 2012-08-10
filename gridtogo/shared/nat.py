@@ -6,6 +6,8 @@ from twisted.internet.endpoints import TCP4ServerEndpoint
 from twisted.internet.protocol import Protocol, ClientFactory, Factory
 from twisted.protocols.basic import LineReceiver
 from twisted.python import log
+from twisted.web.client import Agent
+from twisted.web.http_headers import Headers
 import random
 
 from gridtogo.shared.networkobjects import *
@@ -136,6 +138,7 @@ class NATService(object):
 		else:
 			self.ports2 = [8002, 8003, 8004, regionStart]
 		self.ports = []
+		self.processports = []
 		for port in self.ports2:
 			hasProcessRunning = False
 			for name in self.clientObject.processes:
@@ -147,12 +150,17 @@ class NATService(object):
 						hasProcessRunning = True
 			if not hasProcessRunning:
 				self.ports += [port]
+			else:
+				if port == 8002:
+					self.processports += [18000]
+				elif port != 8003 and port != 8004: # We only want ROBUST once.
+					self.processports += [port + 10000]
 		self.count = len(self.ports)
 		self.service.start(d, self.count, self.ports)
 	
 	def allEstablished(self, ignored):
 		log.msg("[NAT] All servers listening")
-		self.clientObject.protocol.writeRequest(NATCheckRequest(self.ports))
+		self.clientObject.protocol.writeRequest(NATCheckRequest(self.ports, self.processports))
 	
 	def close(self):
 		self.service.close()
@@ -162,9 +170,10 @@ class NATClientService(object):
 	def __init__(self, protocol):
 		self.protocol = protocol
 
-	def run(self, ports):
-		self.ports = ports
+	def run(self, ports, processports=[]):
 		self.host = self.protocol.transport.getPeer().host
+		self.ports = ports
+		self.processports = processports
 		self.tcount = 0
 		self.count = len(ports)
 		self.done = False
@@ -180,7 +189,7 @@ class NATClientService(object):
 				self.tcount += 1
 				if self.tcount == self.count:
 					self.done = True
-					self.success()
+					self.checkprocesses()
 			else:
 				self.done = True
 				self.failure()
@@ -190,3 +199,37 @@ class NATClientService(object):
 
 	def failure(self):
 		self.protocol.writeResponse(NATCheckResponse(False))
+	
+	def checkprocesses(self):
+		self.pdone = False
+		self.ptotalcount = len(self.processports)
+		if self.ptotalcount == 0:
+			self.success()
+			return
+		self.pcount = 0
+		for port in self.processports:
+			def request(response):
+				self.pcount += 1
+				if self.pcount == self.ptotalcount:
+					self.pdone = True
+					self.success()
+
+			def err(response):
+				log.msg("[NAT] Received Error in making a process connection. Port = " + str(port) + ". Reason = " + str(response))
+				if not self.pdone:
+					self.pdone = True
+					self.failure()
+
+			def timeout():
+				if not self.pdone:
+					self.failure()
+
+			agent = Agent(reactor)
+			d = agent.request(
+				'GET',
+				'http://' + self.host + ':' + str(port),
+				Headers({'User-Agent': ['GridToGo Server']}),
+				None)
+			d.addCallback(request)
+			d.addErrback(err)
+			reactor.callLater(5, timeout)

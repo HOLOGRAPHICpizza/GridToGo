@@ -203,7 +203,7 @@ class GTGProtocol(basic.LineReceiver):
 
 				elif isinstance(request, NATCheckRequest):
 					log.msg("[NAT] Received NATCheckRequest, checking client NAT")
-					self.nat.run(request.ports)
+					self.nat.run(request.ports, request.processports)
 
 		except serialization.InvalidSerializedDataException:
 			self.transport.write("Stop sending me bad data! >:|\r\n")

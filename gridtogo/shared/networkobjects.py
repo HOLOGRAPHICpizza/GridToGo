@@ -145,8 +145,9 @@ class InitializeGridResponse(object):
 	pass
 
 class NATCheckRequest(object):
-	def __init__(self, ports):
+	def __init__(self, ports, processports):
 		self.ports = ports
+		self.processports = processports
 
 class NATCheckResponse(object):
 	def __init__(self, status):
