@@ -167,9 +167,11 @@ class GridToGoClient(object):
 			delta.gridHostActive = True
 			self.protocol.writeRequest(delta)
 
+		log.msg("[PROCESS] [ROBUST] " + line)
+
 
 	def processSimOutput(self, processName, line):
-		print(line)
+		log.msg("[PROCESS] [" + processName + "] " + line)
 
 class GTGClientProtocol(basic.LineReceiver):
 	def __init__(self, clientObject, serializer):
