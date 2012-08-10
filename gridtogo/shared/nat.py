@@ -6,6 +6,8 @@ from twisted.internet.endpoints import TCP4ServerEndpoint
 from twisted.internet.protocol import Protocol, ClientFactory, Factory
 from twisted.protocols.basic import LineReceiver
 from twisted.python import log
+from twisted.web.client import Agent
+from twisted.web.http_headers import Headers
 import random
 
 from gridtogo.shared.networkobjects import *
@@ -125,20 +127,18 @@ class NATService(object):
 		self.service = EchoService()
 		self.clientObject = clientObject
 	
-	
 	def run(self, regionEnd):
 		regionStart = 9000
 		log.msg("[NAT] Check Start")
 		d = Deferred()
 		d.addCallback(self.allEstablished)
-		self.tcount = 0
-		self.done = False
 		self.ports2 = None
 		if regionStart != regionEnd and regionEnd >= 9000:
 			self.ports2 = [8002, 8003, 8004, regionStart, regionEnd]
 		else:
 			self.ports2 = [8002, 8003, 8004, regionStart]
 		self.ports = []
+		self.processports = []
 		for port in self.ports2:
 			hasProcessRunning = False
 			for name in self.clientObject.processes:
@@ -150,16 +150,37 @@ class NATService(object):
 						hasProcessRunning = True
 			if not hasProcessRunning:
 				self.ports += [port]
+			else:
+				if port == 8002:
+					self.processports += [18000]
+				elif port != 8003 and port != 8004: # We only want ROBUST once.
+					self.processports += [port + 10000]
 		self.count = len(self.ports)
 		self.service.start(d, self.count, self.ports)
 	
 	def allEstablished(self, ignored):
 		log.msg("[NAT] All servers listening")
-		exthost = self.clientObject.externalhost
+		self.clientObject.protocol.writeRequest(NATCheckRequest(self.ports, self.processports))
+	
+	def close(self):
+		self.service.close()
+
+# TODO Test process ports here.
+class NATClientService(object):
+	def __init__(self, protocol):
+		self.protocol = protocol
+
+	def run(self, ports, processports=[]):
+		self.host = self.protocol.transport.getPeer().host
+		self.ports = ports
+		self.processports = processports
+		self.tcount = 0
+		self.count = len(ports)
+		self.done = False
 		factory = EchoClientFactory(self.resultReceived)
 		for port in self.ports:
-			log.msg("[NAT] Starting Echo Client on port " + str(port))
-			reactor.connectTCP(exthost, port, factory)
+			log.msg("[NAT] Starting Echo Client at: " + self.host + ":" + str(port))
+			reactor.connectTCP(self.host, port, factory)
 	
 	def resultReceived(self, result):
 		if not self.done:
@@ -168,51 +189,78 @@ class NATService(object):
 				self.tcount += 1
 				if self.tcount == self.count:
 					self.done = True
-					self.success()
+					self.checkprocesses()
 			else:
 				self.done = True
 				self.failure()
 	
 	def success(self):
-		self.service.close()
-		self.continuenat()
+		self.protocol.writeResponse(NATCheckResponse(True))
 
 	def failure(self):
-		delta = DeltaUser(self.clientObject.localUUID)
-		delta.NATStatus = False
-		self.clientObject.protocol.writeRequest(delta)
-		self.service.close()
+		self.protocol.writeResponse(NATCheckResponse(False))
 	
-	def continuenat(self):
-		processes = self.clientObject.processes
-		if len(processes) == 0:
-			delta = DeltaUser(self.clientObject.localUUID)
-			delta.NATStatus = True
-			self.clientObject.protocol.writeRequest(delta)
+	def checkprocesses(self):
+		self.pdone = False
+		self.ptotalcount = len(self.processports)
+		if self.ptotalcount == 0:
+			self.success()
 			return
-			
-		log.msg("[NAT] Testing HTTP consoles")
-		self.proccount = 0
-		self.postrescount = 0
-		self.procdone = False
-		for name in processes:
-			log.msg("[NAT] Testing HTTP console for process " + name)
-			self.proccount += 1
-			process = processes[name]
-			process.sendCommand2("", {}, self.postresponse)
-		reactor.callLater(5, self.timeout)
+		self.pcount = 0
+		for port in self.processports:
+			def request(response):
+				self.pcount += 1
+				if self.pcount == self.ptotalcount:
+					self.pdone = True
+					self.success()
+
+			def err(response):
+				log.msg("[NAT] Received Error in making a process connection. Port = " + str(port) + ". Reason = " + str(response))
+				if not self.pdone:
+					self.pdone = True
+					self.failure()
+
+			def timeout():
+				if not self.pdone:
+					self.failure()
+
+			agent = Agent(reactor)
+			d = agent.request(
+				'GET',
+				'http://' + self.host + ':' + str(port),
+				Headers({'User-Agent': ['GridToGo Server']}),
+				None)
+			d.addCallback(request)
+			d.addErrback(err)
+			reactor.callLater(5, timeout)
+
+class LoopbackEchoFactory(Factory):
+	def __init__(self, port):
+		self.port = port
+
+	def buildProtocol(self, addr):
+		return EchoProtocol(self, self.port)
+
+class LoopbackService(object):
+	def __init__(self, clientObject, exthost):
+		self.clientObject = clientObject
+		self.exthost = exthost
+		self.factory = EchoClientFactory(self.result)
 	
-	def postresponse(self, response):
-		self.postrescount += 1
-		log.msg("[NAT] Received HTTP Response. Count: " + str(self.postrescount))
-		if self.postrescount == self.proccount:
-			self.procdone = True
-			delta = DeltaUser(self.clientObject.localUUID)
-			delta.NATStatus = True
-			self.clientObject.protocol.writeRequest(delta)
+	def run(self):
+		log.msg("[NAT] Listening on port " + str(8001))
+		endpoint = TCP4ServerEndpoint(reactor, 8001)
+		d = endpoint.listen(LoopbackEchoFactory(8001))
+		d.addCallback(self.started)
 	
-	def timeout(self):
-		if not self.procdone:
-			delta = DeltaUser(self.clientObject.localUUID)
-			delta.NATStatus = False
-			self.clientObject.protocol.writeRequest(delta)
+	def started(self, connection):
+		log.msg("[NAT] Connecting to Loopback: " + self.exthost)
+		reactor.connectTCP(self.exthost, 8001, self.factory)
+		self.connection = connection
+	
+	def result(self, status):
+		log.msg("[NAT] Loopback Status = " + str(status))
+		delta = DeltaUser(self.clientObject.localUUID)
+		delta.NATStatus = status
+		self.clientObject.protocol.writeRequest(delta)
+		self.connection.stopListening()
