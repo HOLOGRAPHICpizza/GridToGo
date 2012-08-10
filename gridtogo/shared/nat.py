@@ -233,3 +233,34 @@ class NATClientService(object):
 			d.addCallback(request)
 			d.addErrback(err)
 			reactor.callLater(5, timeout)
+
+class LoopbackEchoFactory(Factory):
+	def __init__(self, port):
+		self.port = port
+
+	def buildProtocol(self, addr):
+		return EchoProtocol(self, self.port)
+
+class LoopbackService(object):
+	def __init__(self, clientObject, exthost):
+		self.clientObject = clientObject
+		self.exthost = exthost
+		self.factory = EchoClientFactory(self.result)
+	
+	def run(self):
+		log.msg("[NAT] Listening on port " + str(8001))
+		endpoint = TCP4ServerEndpoint(reactor, 8001)
+		d = endpoint.listen(LoopbackEchoFactory(8001))
+		d.addCallback(self.started)
+	
+	def started(self, connection):
+		log.msg("[NAT] Connecting to Loopback: " + self.exthost)
+		reactor.connectTCP(self.exthost, 8001, self.factory)
+		self.connection = connection
+	
+	def result(self, status):
+		log.msg("[NAT] Loopback Status = " + str(status))
+		delta = DeltaUser(self.clientObject.localUUID)
+		delta.NATStatus = status
+		self.clientObject.protocol.writeRequest(delta)
+		self.connection.stopListening()

@@ -6,7 +6,7 @@ import sys
 from twisted.internet import protocol, reactor, endpoints, defer
 from twisted.protocols import basic
 from twisted.python import log
-from gridtogo.shared.nat import NATService
+from gridtogo.shared.nat import NATService, LoopbackService
 from gridtogo.shared import serialization, networkobjects
 from gridtogo.shared.networkobjects import *
 from ui.windows import *
@@ -198,11 +198,13 @@ class GTGClientProtocol(basic.LineReceiver):
 				self.clientObject.updateRegion(response)
 
 			elif isinstance(response, NATCheckResponse) and self.clientObject.mainWindowHandler:
-				log.msg("[NAT] Status = " + str(response.status))
-				delta = DeltaUser(self.clientObject.localUUID)
-				delta.NATStatus = response.status
-				self.writeRequest(delta)
-				self.nat.close()
+				log.msg("[NAT] External Status = " + str(response.status))
+				if response.status:
+					self.loopback.run()
+				else:
+					delta = DeltaUser(self.clientObject.localUUID)
+					delta.NATStatus = False
+					self.writeRequest(delta)
 
 			# Login Stuff
 			elif isinstance(response, LoginResponse) and self.clientObject.loginHandler:
@@ -220,6 +222,7 @@ class GTGClientProtocol(basic.LineReceiver):
 					self.clientObject.loginHandler.window.destroy()
 					self.clientObject.loginHandler = None
 
+					self.loopback = LoopbackService(self.clientObject, self.clientObject.externalhost)
 					self.nat.run(self.clientObject.maxregionport)
 				else:
 					showModalDialog(
