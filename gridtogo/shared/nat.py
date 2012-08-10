@@ -125,14 +125,11 @@ class NATService(object):
 		self.service = EchoService()
 		self.clientObject = clientObject
 	
-	
 	def run(self, regionEnd):
 		regionStart = 9000
 		log.msg("[NAT] Check Start")
 		d = Deferred()
 		d.addCallback(self.allEstablished)
-		self.tcount = 0
-		self.done = False
 		self.ports2 = None
 		if regionStart != regionEnd and regionEnd >= 9000:
 			self.ports2 = [8002, 8003, 8004, regionStart, regionEnd]
@@ -155,11 +152,26 @@ class NATService(object):
 	
 	def allEstablished(self, ignored):
 		log.msg("[NAT] All servers listening")
-		exthost = self.clientObject.externalhost
+		self.clientObject.protocol.writeRequest(NATCheckRequest(self.ports))
+	
+	def close(self):
+		self.service.close()
+
+# TODO Test process ports here.
+class NATClientService(object):
+	def __init__(self, protocol):
+		self.protocol = protocol
+
+	def run(self, ports):
+		self.ports = ports
+		self.host = self.protocol.transport.getPeer().host
+		self.tcount = 0
+		self.count = len(ports)
+		self.done = False
 		factory = EchoClientFactory(self.resultReceived)
 		for port in self.ports:
-			log.msg("[NAT] Starting Echo Client on port " + str(port))
-			reactor.connectTCP(exthost, port, factory)
+			log.msg("[NAT] Starting Echo Client at: " + self.host + ":" + str(port))
+			reactor.connectTCP(self.host, port, factory)
 	
 	def resultReceived(self, result):
 		if not self.done:
@@ -174,45 +186,7 @@ class NATService(object):
 				self.failure()
 	
 	def success(self):
-		self.service.close()
-		self.continuenat()
+		self.protocol.writeResponse(NATCheckResponse(True))
 
 	def failure(self):
-		delta = DeltaUser(self.clientObject.localUUID)
-		delta.NATStatus = False
-		self.clientObject.protocol.writeRequest(delta)
-		self.service.close()
-	
-	def continuenat(self):
-		processes = self.clientObject.processes
-		if len(processes) == 0:
-			delta = DeltaUser(self.clientObject.localUUID)
-			delta.NATStatus = True
-			self.clientObject.protocol.writeRequest(delta)
-			return
-			
-		log.msg("[NAT] Testing HTTP consoles")
-		self.proccount = 0
-		self.postrescount = 0
-		self.procdone = False
-		for name in processes:
-			log.msg("[NAT] Testing HTTP console for process " + name)
-			self.proccount += 1
-			process = processes[name]
-			process.sendCommand2("", {}, self.postresponse)
-		reactor.callLater(5, self.timeout)
-	
-	def postresponse(self, response):
-		self.postrescount += 1
-		log.msg("[NAT] Received HTTP Response. Count: " + str(self.postrescount))
-		if self.postrescount == self.proccount:
-			self.procdone = True
-			delta = DeltaUser(self.clientObject.localUUID)
-			delta.NATStatus = True
-			self.clientObject.protocol.writeRequest(delta)
-	
-	def timeout(self):
-		if not self.procdone:
-			delta = DeltaUser(self.clientObject.localUUID)
-			delta.NATStatus = False
-			self.clientObject.protocol.writeRequest(delta)
+		self.protocol.writeResponse(NATCheckResponse(False))

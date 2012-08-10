@@ -7,6 +7,7 @@ import configuration
 import database
 from gridtogo.shared import serialization, networkobjects
 from gridtogo.shared.networkobjects import *
+from gridtogo.shared.nat import NATClientService
 
 PRINT_PACKETS = False
 
@@ -73,6 +74,7 @@ class GTGProtocol(basic.LineReceiver):
 		self.database = database
 		self.authenticator = authenticator
 		self.grids = grids
+		self.nat = NATClientService(self)
 
 		# This is a reference to the grid object this protocol belongs to
 		self.grid = None
@@ -198,6 +200,10 @@ class GTGProtocol(basic.LineReceiver):
 					region = Region(request.regionName, request.location, None, [self.user.UUID])
 					self.grid.regions[region.regionName] = region
 					self.grid.writeResponseToAll(region)
+
+				elif isinstance(request, NATCheckRequest):
+					log.msg("[NAT] Received NATCheckRequest, checking client NAT")
+					self.nat.run(request.ports)
 
 		except serialization.InvalidSerializedDataException:
 			self.transport.write("Stop sending me bad data! >:|\r\n")

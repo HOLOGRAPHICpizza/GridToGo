@@ -77,6 +77,12 @@ class JSONSerializer(object):
 			r.externalhost = data['externalhost']
 			return r
 
+		elif class_ is NATCheckRequest:
+			return class_(data['ports'])
+
+		elif class_ is NATCheckResponse:
+			return class_(data['status'])
+
 		elif issubclass(class_, DeltaObject):
 			obj = None
 			if class_ is DeltaUser:
@@ -158,5 +164,11 @@ class JSONSerializer(object):
 				data['gridName'] = obj.gridName
 				data['regionName'] = obj.regionName
 				data['location'] = obj.location
+
+			elif isinstance(obj, NATCheckRequest):
+				data['ports'] = obj.ports
+
+			elif isinstance(obj, NATCheckResponse):
+				data['status'] = obj.status
 
 			return data
