@@ -27,7 +27,7 @@ VERSION = "0.7.3"
 # long as you don't do anything stupid like try to create the same file with
 # both...
 class Distribution(object):
-	def __init__(self, projectroot, directory=None, parent=None):
+	def __init__(self, projectroot, externalhost="localhost", directory=None, parent=None):
 		#Place the OpenSim distribution into a place where  the GridToGo program can find it
 		#TODO: Make all paths use path.join and whatnot instead of hard-coding separators
 		if directory is None:

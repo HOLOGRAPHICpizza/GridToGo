@@ -479,7 +479,7 @@ class MainWindowHandler(WindowHandler):
 			self.clientObject.protocol.writeRequest(delta)
 
 			#TODO: Don't hardcode gridname and localhost
-			distribution = Distribution(self.clientObject.projectRoot, parent=self.window)
+			distribution = Distribution(self.clientObject.projectRoot, self.clientObject.externalhost, parent=self.window)
 
 			def hostRegion(dist):
 				log.msg("Configuring region for hosting")
@@ -527,7 +527,7 @@ class MainWindowHandler(WindowHandler):
 
 			self.setStatus('Loading OpenSim distribution...')
 
-			distribution = Distribution(self.clientObject.projectRoot, parent=self.window)
+			distribution = Distribution(self.clientObject.projectRoot, self.clientObject.externalhost, parent=self.window)
 			d = Deferred()
 			d.addCallback(self.startRobust)
 			distribution.load(d)
