@@ -45,6 +45,8 @@ class Distribution(object):
 		self.regionsdir = self.directory + "/opensim/bin/Regions"
 
 		self.parent = parent
+
+		self.externalhost = externalhost
 	
 	# Loads asynchonously and passes self to the deferred
 	def load(self, deferred):
@@ -138,7 +140,7 @@ class Distribution(object):
 		"""This does region-specific configuration."""
 		mappings = { "NAME": regionName,
 					 "LOCATION": location,
-					 "EXTERNAL_HOSTNAME": self.clientObject.externalhostname,
+					 "EXTERNAL_HOSTNAME": self.externalhost,
 					 "PORT": port,
 		             "CONSOLE_PORT": port + 10000,
 					 "UUID": str(uuid.uuid4()) }
