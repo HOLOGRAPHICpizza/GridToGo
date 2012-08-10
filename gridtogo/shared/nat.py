@@ -193,7 +193,7 @@ class NATClientService(object):
 	def checkprocesses(self):
 		self.pdone = False
 		self.ptotalcount = len(self.processports)
-		if self.ptotalcount == 0:
+		if self.ptotalcount < 1:
 			self.success()
 			return
 		self.pcount = 0

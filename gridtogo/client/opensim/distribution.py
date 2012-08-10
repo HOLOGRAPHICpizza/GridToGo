@@ -65,6 +65,8 @@ class Distribution(object):
 				self.download()
 			else:
 				self.continueload()
+		else:
+			self.continueload()
 
 	def continueload(self):
 		if not os.path.isdir(self.opensimdir):

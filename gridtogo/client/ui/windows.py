@@ -523,13 +523,6 @@ class MainWindowHandler(WindowHandler):
 					)
 					return
 
-			delta = DeltaUser(self.clientObject.getLocalUser().UUID)
-			delta.gridHostActive = True
-
-			# The delta gets applied when the server echos it back
-			#self.clientObject.updateUser(delta)
-			self.clientObject.protocol.writeRequest(delta)
-
 			#TODO: Show error dialogs on failures
 
 			self.setStatus('Loading OpenSim distribution...')
