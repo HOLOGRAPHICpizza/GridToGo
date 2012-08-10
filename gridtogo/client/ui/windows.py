@@ -55,11 +55,7 @@ class UserList(Gtk.ListStore):
 		status = None
 		statusI = None
 		if newUser.online and not newUser.NATStatus:
-
-			#TODO: Temporary fix for open house
-			#status = self.statusYellow
-			status = self.statusGreen
-
+			status = self.statusYellow
 			statusI = 2
 		elif newUser.online and newUser.NATStatus:
 			status = self.statusGreen
