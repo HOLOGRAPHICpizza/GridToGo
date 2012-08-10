@@ -42,3 +42,5 @@ nosetests.xml
 
 /gridtogoserver.conf
 /.gridtogo
+rememberLoginData.txt
+

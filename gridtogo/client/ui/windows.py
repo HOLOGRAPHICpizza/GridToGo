@@ -203,7 +203,11 @@ class LoginWindowHandler(WindowHandler):
 		self.userCreateActive = False
 
 		if PREFIL_LOGIN_SAMPLE_DATA:
-			curData = open('rememberLoginData.txt', 'r')
+			try:
+				curData = open('rememberLoginData.txt', 'r')
+			except IOError:
+				print("saved login data not found")
+				return
 			line_one = curData.readline().strip()
 			line_two = curData.readline().strip()
 			line_three = curData.readline().strip()
@@ -217,9 +221,6 @@ class LoginWindowHandler(WindowHandler):
 		firname = self.firstNameEntry.get_text()
 		lasname = self.lastNameEntry.get_text()
 		passwd = self.passwordEntry.get_text()
-		rememData = open('rememberLoginData.txt', 'r+')
-		rememData.truncate()
-		rememData.close()
 		rememData = open('rememberLoginData.txt', 'w')
 		rememData.write(firname + "\n")
 		rememData.write(lasname + "\n")
