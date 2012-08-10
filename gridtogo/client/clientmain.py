@@ -159,10 +159,14 @@ class GridToGoClient(object):
 		self.protocol.writeRequest(delta)
 
 	def processRobustOutput(self, processName, line):
-		# We need to make sure all the UGAIM services come up:
-		#   Asset Service
-		#   Grid Service
-		print(line)
+		if line.strip() == "+++R.O.B.U.S.T.#":
+			self.mainWindowHandler.setStatus("Grid Server (ROBUST) is running.")
+
+			# Set gridHostActive
+			delta = DeltaUser(self.getLocalUser().UUID)
+			delta.gridHostActive = True
+			self.protocol.writeRequest(delta)
+
 
 	def processSimOutput(self, processName, line):
 		print(line)
@@ -199,6 +203,7 @@ class GTGClientProtocol(basic.LineReceiver):
 
 			elif isinstance(response, NATCheckResponse) and self.clientObject.mainWindowHandler:
 				log.msg("[NAT] External Status = " + str(response.status))
+				self.nat.close()
 				if response.status:
 					self.loopback.run()
 				else:
