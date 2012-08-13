@@ -476,37 +476,15 @@ class MainWindowHandler(WindowHandler):
 		region = self.clientObject.regions[regionName]
 		user = self.clientObject.getLocalUser()
 		if user.UUID in region.hosts:
-			log.msg("Hosting region " + regionName)
+			msg = "Hosting region %s..." % regionName
+			log.msg(msg)
+			self.setStatus(msg)
+
 			delta = DeltaRegion(regionName)
 			delta.currentHost = user.UUID
 			self.clientObject.protocol.writeRequest(delta)
 
-			#TODO: Don't hardcode gridname and localhost
-			distribution = Distribution(self.clientObject.projectRoot, self.clientObject.externalhost, parent=self.window)
-
-			def hostRegion(dist):
-				log.msg("Configuring region for hosting")
-
-				# Do region-agnostic configuration
-				dist.configure("GridName", self.clientObject.externalhost)
-
-				# Do region-specific configuration
-				self.clientObject.maxregionport += 1
-				dist.configureRegion(region.regionName, region.location, self.clientObject.maxregionport)
-
-				# We use the convention: consolePort = port + 10000
-				protocol_ = process.spawnRegionProcess(
-					dist.opensimdir,
-					region.regionName,
-					self.clientObject.maxregionport + 10000,
-					self.clientObject.externalhost,
-					callOnOutput=self.clientObject.processSimOutput)
-
-				self.clientObject.processes[region.regionName] = protocol_
-				
-			d = Deferred()
-			d.addCallback(hostRegion)
-			distribution.load(d)
+			self.clientObject.processList.add(regionName)
 
 		else:
 			showModalDialog(
@@ -526,15 +504,13 @@ class MainWindowHandler(WindowHandler):
 					)
 					return
 
-			#TODO: Show error dialogs on failures
+			self.setStatus("Grid Host (ROBUST) is running...")
 
-			self.setStatus('Loading OpenSim distribution...')
+			delta = DeltaUser(self.clientObject.localUUID)
+			delta.gridHostActive = True
+			self.clientObject.protocol.writeRequest(delta)
 
-			distribution = Distribution(self.clientObject.projectRoot, self.clientObject.externalhost, parent=self.window)
-			d = Deferred()
-			d.addCallback(self.startRobust)
-			distribution.load(d)
-			#TODO: Don't hardcode this
+			self.clientObject.processList.add('ROBUST')
 
 		else:
 			showModalDialog(
@@ -593,7 +569,7 @@ class RunningServicesWindow(Gtk.Window):
 		namecol.set_title("Process Name")
 		self.treeView.append_column(namecol)
 
-		for processName in self.clientObject.processes:
+		for processName in self.clientObject.processList:
 			iterator = listStore.append()
 			listStore.set_value(iterator, 0, processName)
 
@@ -616,19 +592,24 @@ class RunningServicesWindow(Gtk.Window):
 
 	def getSelectedProcess(self):
 		(model, iterator) = self.treeView.get_selection().get_selected()
-		processName = model[iterator][0]
-		return self.clientObject.processes[processName]
+		return model[iterator][0]
 
 	def viewConsole(self, *args):
 		process_ = self.getSelectedProcess()
 
+		workingDir = "/home/michael/opensim-demo/bin/"
+
+		port = '19000'
+		if process_ == 'ROBUST':
+			port = '18000'
+
 		args = [
-				os.path.join(process_.opensimdir, 'bin', 'OpenSim.ConsoleClient.exe'),
+				os.path.join(workingDir, 'OpenSim.ConsoleClient.exe'),
 		        '-host', 'localhost',
-		        '-port', str(process_.consolePort),
+		        '-port', port,
 		        '-user', 'gridtogo',
 		        '-pass', 'gridtogopass',
-		        '-prompt', process_.name]
+		        '-prompt', process_]
 
 		if os.name == 'nt':
 			raise NotImplementedError('Running on Windows is not yet supported.')
@@ -636,13 +617,12 @@ class RunningServicesWindow(Gtk.Window):
 			process.spawnProcess(
 				'xterm',
 				['xterm', '-fg', 'white', '-bg', 'black', '-sl', '3000', '-e', 'mono'] + args,
-				os.path.join(process_.opensimdir, 'bin'))
+				workingDir)
 
 		self.destroy()
 
 	def killProcess(self, *args):
-		self.getSelectedProcess().transport.signalProcess('KILL')
-		self.destroy()
+		pass
 
 	def cancel(self, *args):
 		self.destroy()
@@ -658,9 +638,10 @@ class CreateRegionWindowHandler(WindowHandler):
 		region = self.regionName.get_text()
 
 		#TODO: Temporary fix for open house
-		coordinates = "%d,%d" % (
-			random.randint(1,32766),
-			random.randint(1,32766))
+		coordinates = "1000,1000"
+		#coordinates = "%d,%d" % (
+		#	random.randint(1,32766),
+		#	random.randint(1,32766))
 		#coordinates = self.location.get_text()
 
 		#hostname = self.externalHostname.get_text()

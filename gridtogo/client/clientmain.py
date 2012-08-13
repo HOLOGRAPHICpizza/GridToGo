@@ -36,6 +36,7 @@ class GridToGoClient(object):
 
 		# dict mapping process names to process protocols
 		self.processes = {}
+		self.processList = set()
 
 		# dict mapping UUIDs to User objects
 		# The cleint's local list of all grid users
