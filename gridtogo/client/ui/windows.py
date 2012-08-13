@@ -10,6 +10,7 @@ import os
 from twisted.python import log
 from twisted.internet import protocol, reactor
 from twisted.internet.defer import Deferred
+import urllib
 
 import random
 random.seed()
@@ -534,6 +535,20 @@ class MainWindowHandler(WindowHandler):
 
 		self.clientObject.processes['ROBUST'] = protocol_
 
+	def joinRegion(self, *args):
+		(model, iterator) = self.regionView.get_selection().get_selected()
+		if model is None or iterator is None:
+			return
+		regionName = model[iterator][0]
+
+		localUser = self.clientObject.getLocalUser()
+
+		process.spawnProcess(
+			'imprudence',
+			['imprudence',
+			 '--login', localUser.firstName, localUser.lastName, 'burrtango',
+			 '--url', 'secondlife://' + urllib.quote(regionName + '/128/128')],
+			'/home/michael')
 
 	def manageServices(self, *args):
 		"""Spawn a window to kill services or connect to their consoles."""

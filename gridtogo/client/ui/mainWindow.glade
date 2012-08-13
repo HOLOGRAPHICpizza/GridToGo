@@ -379,6 +379,7 @@ Careful, Grid Host's will have full access to the grid's OpenSim database.</prop
                         <property name="label" translatable="yes">Join Selected Region</property>
                         <property name="use_underline">True</property>
                         <property name="stock_id">gtk-yes</property>
+                        <signal name="clicked" handler="joinRegion" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
