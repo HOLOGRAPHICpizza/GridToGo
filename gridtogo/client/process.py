@@ -164,7 +164,11 @@ def spawnRobustProcess(opensimdir, externalhost, callOnEnd=None, callOnOutput=No
 		pass
 
 	p = ConsoleProtocol("ROBUST", opensimdir + '/bin/Robust.log', opensimdir, 18000, externalhost, callOnEnd, callOnOutput)
-	spawnMonoProcess(p, opensimdir + "/bin/" + "Robust.exe", ['-console', 'rest'], opensimdir + "/bin")
+	spawnMonoProcess(
+		p,
+		opensimdir + "/bin/" + "Robust.exe",
+		['-console', 'rest'],
+		opensimdir + "/bin")
 	log.msg("Started Robust")
 	return p
 
@@ -178,27 +182,33 @@ def spawnRegionProcess(opensimdir, region, consolePort, externalhost, callOnEnd=
 
 	p = ConsoleProtocol(region, opensimdir + '/bin/OpenSim.log', opensimdir, consolePort, externalhost, callOnEnd, callOnOutput)
 	spawnMonoProcess(p, opensimdir + "/bin/" + "OpenSim.exe", [
-		"-inimaster=" + opensimdir + "/bin/OpenSim.ini",
-		"-inifile=" + opensimdir +"/bin/Regions/" + region + ".ini",
+		'-inimaster="' + opensimdir + '/bin/OpenSim.ini"',
+		'-inifile="' + opensimdir + '/bin/Regions/' + region + '.ini"',
 		"-console=rest",
 		'-name="'+ region + '"'
 	], opensimdir + "/bin")
 	log.msg("Started region: " + region)
 	return p
 
-def spawnMonoProcess(protocol, name, args, p):
+def spawnMonoProcess(protocol_, name, args, p):
 	if os.name == 'nt':
-		#return reactor.spawnProcess(protocol, name, args, path=p)
 		raise NotImplementedError('Running on Windows is not yet supported.')
 	else:
-		log.msg("Args: " + str([name] + args))
-		#TODO: Make this not hard-coded to xterm
-		return reactor.spawnProcess(
-			protocol,
-			#"xterm",
-			#["xterm", '-fg', 'white', '-bg', 'black', '-sl', '3000', "-e", "mono", name] + args,
-			"mono",
-			["mono", name] + args,
-			path=p,
-			env=os.environ)
+		return spawnProcess(
+			'mono',
+			["mono", "--debug", name] + args,
+			p,
+			protocol_)
 
+def spawnProcess(executable, args, workingDir, protocol_=protocol.ProcessProtocol()):
+	dump = '[PROCESS] Starting: '
+	for arg in args:
+		dump += arg + ' '
+	log.msg(dump)
+
+	return reactor.spawnProcess(
+		protocol_,
+		executable,
+		args,
+		os.environ,
+		workingDir)

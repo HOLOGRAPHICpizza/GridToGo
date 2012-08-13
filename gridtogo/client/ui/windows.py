@@ -58,7 +58,7 @@ class UserList(Gtk.ListStore):
 		status = None
 		statusI = None
 		if newUser.online and not newUser.NATStatus:
-			status = self.statusYellow
+			status = self.statusGreen
 			statusI = 2
 		elif newUser.online and newUser.NATStatus:
 			status = self.statusGreen
@@ -620,30 +620,23 @@ class RunningServicesWindow(Gtk.Window):
 		return self.clientObject.processes[processName]
 
 	def viewConsole(self, *args):
-		process = self.getSelectedProcess()
+		process_ = self.getSelectedProcess()
 
-		args = [os.path.join(process.opensimdir, 'bin', 'OpenSim.ConsoleClient.exe'),
+		args = [
+				os.path.join(process_.opensimdir, 'bin', 'OpenSim.ConsoleClient.exe'),
 		        '-host', 'localhost',
-		        '-port', str(process.consolePort),
+		        '-port', str(process_.consolePort),
 		        '-user', 'gridtogo',
 		        '-pass', 'gridtogopass',
-		        '-prompt', process.name]
-
-		dump = ''
-		dumpList = ['xterm', '-fg', 'white', '-bg', 'black', '-sl', '3000', '-e', 'mono'] + args
-		for item in dumpList:
-			dump += item + ' '
-		print dump
+		        '-prompt', process_.name]
 
 		if os.name == 'nt':
 			raise NotImplementedError('Running on Windows is not yet supported.')
 		else:
-			reactor.spawnProcess(
-				protocol.ProcessProtocol(),
+			process.spawnProcess(
 				'xterm',
 				['xterm', '-fg', 'white', '-bg', 'black', '-sl', '3000', '-e', 'mono'] + args,
-				os.environ,
-				os.path.join(process.opensimdir, 'bin'))
+				os.path.join(process_.opensimdir, 'bin'))
 
 		self.destroy()
 

@@ -11,7 +11,7 @@ from gridtogo.shared import serialization, networkobjects
 from gridtogo.shared.networkobjects import *
 from ui.windows import *
 
-PRINT_PACKETS = False
+PRINT_PACKETS = True
 
 class GridToGoClient(object):
 	"""
@@ -178,7 +178,7 @@ class GTGClientProtocol(basic.LineReceiver):
 		# Alias for convenience
 		self.serializer = serializer
 		self.clientObject = clientObject
-		self.nat = NATService(clientObject)
+		self.nat = None#NATService(clientObject)
 
 	def lineReceived(self, line):
 		try:
@@ -229,8 +229,8 @@ class GTGClientProtocol(basic.LineReceiver):
 					self.clientObject.loginHandler.window.destroy()
 					self.clientObject.loginHandler = None
 
-					self.loopback = LoopbackService(self.clientObject, self.clientObject.externalhost)
-					self.nat.run(self.clientObject.maxregionport)
+					self.loopback = None#LoopbackService(self.clientObject, self.clientObject.externalhost)
+					#self.nat.run(self.clientObject.maxregionport)
 				else:
 					showModalDialog(
 						self.clientObject.loginHandler.window,

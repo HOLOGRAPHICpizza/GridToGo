@@ -9,7 +9,7 @@ from gridtogo.shared import serialization, networkobjects
 from gridtogo.shared.networkobjects import *
 from gridtogo.shared.nat import NATClientService
 
-PRINT_PACKETS = False
+PRINT_PACKETS = True
 
 class GridToGoServer(object):
 	"""Ony one object of this class should exist per python interpreter."""
