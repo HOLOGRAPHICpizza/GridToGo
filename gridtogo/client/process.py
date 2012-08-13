@@ -181,7 +181,7 @@ def spawnRegionProcess(opensimdir, region, consolePort, externalhost, callOnEnd=
 		"-inimaster=" + opensimdir + "/bin/OpenSim.ini",
 		"-inifile=" + opensimdir +"/bin/Regions/" + region + ".ini",
 		"-console=rest",
-		"-name=" + region
+		'-name="'+ region + '"'
 	], opensimdir + "/bin")
 	log.msg("Started region: " + region)
 	return p

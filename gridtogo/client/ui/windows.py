@@ -11,6 +11,9 @@ from twisted.python import log
 from twisted.internet import protocol, reactor
 from twisted.internet.defer import Deferred
 
+import random
+random.seed()
+
 PREFIL_LOGIN_SAMPLE_DATA = True
 
 def loadPixbuf(imageName, clientObject):
@@ -660,8 +663,14 @@ class CreateRegionWindowHandler(WindowHandler):
 
 	def onbtnCreateRegionClicked(self, *args):
 		region = self.regionName.get_text()
-		coordinates = self.location.get_text()
-		hostname = self.externalHostname.get_text()
+
+		#TODO: Temporary fix for open house
+		coordinates = "%d,%d" % (
+			random.randint(1,32766),
+			random.randint(1,32766))
+		#coordinates = self.location.get_text()
+
+		#hostname = self.externalHostname.get_text()
 
 		# Actually store the region in the database
 		gridName = self.clientObject.localGrid
